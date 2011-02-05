@@ -16,7 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <glib/gi18n.h>
+
 #include "gom-collection.h"
+#include "gom-query.h"
 #include "gom-util.h"
 
 G_DEFINE_TYPE(GomCollection, gom_collection, G_TYPE_OBJECT)
@@ -25,6 +28,15 @@ struct _GomCollectionPrivate
 {
 	GomQuery *query;
 };
+
+enum
+{
+	PROP_0,
+	PROP_QUERY,
+	LAST_PROP
+};
+
+static GParamSpec *gParamSpecs[LAST_PROP];
 
 /**
  * gom_collection_finalize:
@@ -47,6 +59,59 @@ gom_collection_finalize (GObject *object)
 }
 
 /**
+ * gom_collection_set_property:
+ * @object: (in): A #GObject.
+ * @prop_id: (in): The property identifier.
+ * @value: (out): The given property.
+ * @pspec: (in): A #ParamSpec.
+ *
+ * Get a given #GObject property.
+ */
+static void
+gom_collection_get_property (GObject    *object,
+                             guint       prop_id,
+                             GValue     *value,
+                             GParamSpec *pspec)
+{
+	GomCollection *collection = GOM_COLLECTION(object);
+
+	switch (prop_id) {
+	case PROP_QUERY:
+		g_value_set_object(value, collection->priv->query);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+	}
+}
+
+/**
+ * gom_collection_set_property:
+ * @object: (in): A #GObject.
+ * @prop_id: (in): The property identifier.
+ * @value: (in): The given property.
+ * @pspec: (in): A #ParamSpec.
+ *
+ * Set a given #GObject property.
+ */
+static void
+gom_collection_set_property (GObject      *object,
+                             guint         prop_id,
+                             const GValue *value,
+                             GParamSpec   *pspec)
+{
+	GomCollection *collection = GOM_COLLECTION(object);
+
+	switch (prop_id) {
+	case PROP_QUERY:
+		gom_clear_object(&collection->priv->query);
+		collection->priv->query = g_value_dup_object(value);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+	}
+}
+
+/**
  * gom_collection_class_init:
  * @klass: (in): A #GomCollectionClass.
  *
@@ -62,7 +127,18 @@ gom_collection_class_init (GomCollectionClass *klass)
 
 	object_class = G_OBJECT_CLASS(klass);
 	object_class->finalize = gom_collection_finalize;
+	object_class->get_property = gom_collection_get_property;
+	object_class->set_property = gom_collection_set_property;
 	g_type_class_add_private(object_class, sizeof(GomCollectionPrivate));
+
+	gParamSpecs[PROP_QUERY] =
+		g_param_spec_object("query",
+		                    _("Query"),
+		                    _("The query of the collection"),
+		                    GOM_TYPE_QUERY,
+		                    G_PARAM_READWRITE);
+	g_object_class_install_property(object_class, PROP_QUERY,
+	                                gParamSpecs[PROP_QUERY]);
 }
 
 /**

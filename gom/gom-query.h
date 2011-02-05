@@ -30,10 +30,18 @@ G_BEGIN_DECLS
 #define GOM_IS_QUERY(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOM_TYPE_QUERY))
 #define GOM_IS_QUERY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GOM_TYPE_QUERY))
 #define GOM_QUERY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GOM_TYPE_QUERY, GomQueryClass))
+#define GOM_TYPE_QUERY_DIRECTION  (gom_query_direction_get_type())
 
-typedef struct _GomQuery        GomQuery;
-typedef struct _GomQueryClass   GomQueryClass;
-typedef struct _GomQueryPrivate GomQueryPrivate;
+typedef struct _GomQuery          GomQuery;
+typedef struct _GomQueryClass     GomQueryClass;
+typedef struct _GomQueryPrivate   GomQueryPrivate;
+typedef enum   _GomQueryDirection GomQueryDirection;
+
+enum _GomQueryDirection
+{
+	GOM_QUERY_ASCENDING,
+	GOM_QUERY_DESCENDING,
+};
 
 struct _GomQuery
 {
@@ -48,7 +56,8 @@ struct _GomQueryClass
 	GObjectClass parent_class;
 };
 
-GType gom_query_get_type (void) G_GNUC_CONST;
+GType gom_query_get_type           (void) G_GNUC_CONST;
+GType gom_query_direction_get_type (void) G_GNUC_CONST;
 
 G_END_DECLS
 

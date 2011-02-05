@@ -1,4 +1,4 @@
-/* gom/gom-enumerable-array.c
+/* gom-enumerable-array.c
  *
  * Copyright (C) 2011 Christian Hergert <chris@dronelabs.com>
  *

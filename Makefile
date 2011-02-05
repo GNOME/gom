@@ -6,6 +6,7 @@ libGom_a_OBJS += gom/gom-collection.o
 libGom_a_OBJS += gom/gom-enumerable.o
 libGom_a_OBJS += gom/gom-enumerable-array.o
 libGom_a_OBJS += gom/gom-property-set.o
+libGom_a_OBJS += gom/gom-query.o
 libGom_a_OBJS += gom/gom-resource.o
 libGom_a_OBJS += gom/gom-adapter-sqlite.o
 

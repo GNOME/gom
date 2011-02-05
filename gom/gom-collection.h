@@ -21,8 +21,6 @@
 
 #include <glib-object.h>
 
-#include "gom-query.h"
-
 G_BEGIN_DECLS
 
 #define GOM_TYPE_COLLECTION            (gom_collection_get_type())

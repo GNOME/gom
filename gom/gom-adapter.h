@@ -82,10 +82,13 @@ struct _GomAdapterClass
 	                    GError         **error);
 };
 
-GType    gom_adapter_get_type      (void) G_GNUC_CONST;
-gboolean gom_adapter_create        (GomAdapter      *adapter,
-                                    GomEnumerable   *enumerable,
-                                    GError         **error);
+GType    gom_adapter_get_type (void) G_GNUC_CONST;
+gboolean gom_adapter_create   (GomAdapter      *adapter,
+                               GomEnumerable   *enumerable,
+                               GError         **error);
+gboolean gom_adapter_delete   (GomAdapter      *adapter,
+                               GomCollection   *collection,
+                               GError         **error);
 
 G_END_DECLS
 

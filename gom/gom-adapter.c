@@ -38,3 +38,11 @@ gom_adapter_create (GomAdapter     *adapter,
 {
 	return GOM_ADAPTER_GET_CLASS(adapter)->create(adapter, enumerable, error);
 }
+
+gboolean
+gom_adapter_delete (GomAdapter     *adapter,
+                    GomCollection  *collection,
+                    GError        **error)
+{
+	return GOM_ADAPTER_GET_CLASS(adapter)->delete(adapter, collection, error);
+}
