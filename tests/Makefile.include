@@ -25,5 +25,9 @@ test_gom_LDFLAGS += $(GOBJECT_LIBS)
 test_gom_LDFLAGS += $(top_builddir)/libgom-1.0.la
 test_gom_LDFLAGS += $(top_builddir)/libmock.la
 
+test_gom_DEPENDENCIES =
+test_gom_DEPENDENCIES += $(top_builddir)/libgom-1.0.la
+test_gom_DEPENDENCIES += $(top_builddir)/libmock.la
+
 test_gom_SOURCES =
 test_gom_SOURCES += $(top_srcdir)/tests/test-gom.c
