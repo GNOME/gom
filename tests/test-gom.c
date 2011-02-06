@@ -208,6 +208,40 @@ test_gom_adapter_sqlite_basic (void)
 	g_object_unref(sqlite);
 }
 
+static void
+test_gom_query_basic (void)
+{
+	GomQuery *query;
+	GomPropertySet *fields;
+	GomResourceClass *klass;
+	gboolean unique = FALSE;
+	guint64 limit = 0;
+	guint64 offset = 0;
+	GType resource_type;
+
+	klass = g_type_class_ref(MOCK_TYPE_PERSON);
+	fields = gom_resource_class_get_properties(klass);
+	query = g_object_new(GOM_TYPE_QUERY,
+	                     "resource-type", MOCK_TYPE_PERSON,
+	                     "unique", TRUE,
+	                     "limit", G_GUINT64_CONSTANT(123),
+	                     "offset", G_GUINT64_CONSTANT(321),
+	                     "fields", fields,
+	                     NULL);
+	g_assert(query);
+	g_object_get(query,
+	             "unique", &unique,
+	             "limit", &limit,
+	             "offset", &offset,
+	             "resource-type", &resource_type,
+	             NULL);
+	g_assert_cmpint(unique, ==, TRUE);
+	g_assert_cmpint(limit, ==, 123);
+	g_assert_cmpint(offset, ==, 321);
+	g_assert_cmpint(resource_type, ==, MOCK_TYPE_PERSON);
+	g_object_unref(query);
+}
+
 gint
 main (gint   argc,
       gchar *argv[])
@@ -231,6 +265,7 @@ main (gint   argc,
 	                test_gom_resource_class_init);
 	ADD_FORKED_TEST("/Gom/Adapter/Sqlite/basic",
 	                test_gom_adapter_sqlite_basic);
+	g_test_add_func("/Gom/Query/basic", test_gom_query_basic);
 
 #undef ADD_FORKED_TEST
 

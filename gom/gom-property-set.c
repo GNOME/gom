@@ -223,3 +223,20 @@ gom_property_set_unref (GomPropertySet *set) /* IN */
 		g_slice_free(GomPropertySet, set);
 	}
 }
+
+GType
+gom_property_set_get_type (void)
+{
+	static gsize initialized = FALSE;
+	static GType type_id = 0;
+
+	if (g_once_init_enter(&initialized)) {
+		type_id = g_boxed_type_register_static(
+				"GomPropertySet",
+				(GBoxedCopyFunc)gom_property_set_ref,
+				(GBoxedFreeFunc)gom_property_set_unref);
+		g_once_init_leave(&initialized, TRUE);
+	}
+
+	return type_id;
+}
