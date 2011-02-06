@@ -106,7 +106,14 @@ gom_property_set_new (GomProperty *first_property,
 
 GomProperty*
 gom_property_set_find (GomPropertySet *set,
-                       GQuark          name)
+                       const gchar    *name)
+{
+	return gom_property_set_findq(set, g_quark_from_string(name));
+}
+
+GomProperty*
+gom_property_set_findq (GomPropertySet *set,
+                        GQuark          name)
 {
 	gint i;
 

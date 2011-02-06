@@ -30,6 +30,8 @@ G_BEGIN_DECLS
 typedef struct _GomPropertySet GomPropertySet;
 
 GomProperty*    gom_property_set_find     (GomPropertySet  *set,
+                                           const gchar     *name);
+GomProperty*    gom_property_set_findq    (GomPropertySet  *set,
                                            GQuark           name);
 GType           gom_property_set_get_type (void) G_GNUC_CONST;
 GomPropertySet* gom_property_set_new      (GomProperty     *first_property,
