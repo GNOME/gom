@@ -213,21 +213,31 @@ test_gom_query_basic (void)
 {
 	GomQuery *query;
 	GomPropertySet *fields;
+	GomProperty *prop;
 	GomResourceClass *klass;
+	GomCondition *cond;
 	gboolean unique = FALSE;
 	guint64 limit = 0;
 	guint64 offset = 0;
 	GType resource_type;
+	GValue val = { 0 };
 
 	klass = g_type_class_ref(MOCK_TYPE_PERSON);
 	fields = gom_resource_class_get_properties(klass);
+	prop = gom_property_set_find(fields, "id");
+	g_value_init(&val, G_TYPE_UINT64);
+	g_value_set_uint64(&val, 1);
+	cond = gom_condition_equal(prop, &val);
 	query = g_object_new(GOM_TYPE_QUERY,
 	                     "resource-type", MOCK_TYPE_PERSON,
+	                     "condition", cond,
+	                     "direction", GOM_QUERY_ASCENDING,
 	                     "unique", TRUE,
 	                     "limit", G_GUINT64_CONSTANT(123),
 	                     "offset", G_GUINT64_CONSTANT(321),
 	                     "fields", fields,
 	                     NULL);
+	gom_condition_unref(cond);
 	g_assert(query);
 	g_object_get(query,
 	             "unique", &unique,

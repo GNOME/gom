@@ -18,6 +18,7 @@
 
 #include <glib/gi18n.h>
 
+#include "gom-condition.h"
 #include "gom-property-set.h"
 #include "gom-query.h"
 #include "gom-resource.h"
@@ -33,6 +34,7 @@ struct _GomQueryPrivate
 {
 	GomQueryDirection direction;
 	GomPropertySet *fields;
+	GomCondition *condition;
 	GPtrArray *relations;
 	gboolean unique;
 	guint64 offset;
@@ -43,6 +45,7 @@ struct _GomQueryPrivate
 enum
 {
 	PROP_0,
+	PROP_CONDITION,
 	PROP_DIRECTION,
 	PROP_FIELDS,
 	PROP_LIMIT,
@@ -57,25 +60,29 @@ enum
  * Forward declarations.
  */
 
-static void gom_query_finalize          (GObject        *object);
-static void gom_query_get_property      (GObject        *object,
-                                         guint           prop_id,
-                                         GValue         *value,
-                                         GParamSpec     *pspec);
-static void gom_query_set_fields        (GomQuery       *query,
-                                         GomPropertySet *set);
-static void gom_query_set_limit         (GomQuery       *query,
-                                         guint64         limit);
-static void gom_query_set_offset        (GomQuery       *query,
-                                         guint64         offset);
-static void gom_query_set_property      (GObject        *object,
-                                         guint           prop_id,
-                                         const GValue   *value,
-                                         GParamSpec     *pspec);
-static void gom_query_set_resource_type (GomQuery       *query,
-                                         GType           resource_type);
-static void gom_query_set_unique        (GomQuery       *query,
-                                         gboolean        unique);
+static void gom_query_finalize          (GObject           *object);
+static void gom_query_get_property      (GObject           *object,
+                                         guint              prop_id,
+                                         GValue            *value,
+                                         GParamSpec        *pspec);
+static void gom_query_set_condition     (GomQuery          *query,
+                                         GomCondition      *condition);
+static void gom_query_set_direction     (GomQuery          *query,
+                                         GomQueryDirection  direction);
+static void gom_query_set_fields        (GomQuery          *query,
+                                         GomPropertySet    *set);
+static void gom_query_set_limit         (GomQuery          *query,
+                                         guint64            limit);
+static void gom_query_set_offset        (GomQuery          *query,
+                                         guint64            offset);
+static void gom_query_set_property      (GObject           *object,
+                                         guint              prop_id,
+                                         const GValue      *value,
+                                         GParamSpec        *pspec);
+static void gom_query_set_resource_type (GomQuery          *query,
+                                         GType              resource_type);
+static void gom_query_set_unique        (GomQuery          *query,
+                                         gboolean           unique);
 
 /*
  * Globals.
@@ -102,6 +109,15 @@ gom_query_class_init (GomQueryClass *klass)
 	object_class->get_property = gom_query_get_property;
 	object_class->set_property = gom_query_set_property;
 	g_type_class_add_private(object_class, sizeof(GomQueryPrivate));
+
+	gParamSpecs[PROP_CONDITION] =
+		g_param_spec_boxed("condition",
+		                   _("Condition"),
+		                   _("The condition for the query."),
+		                   GOM_TYPE_CONDITION,
+		                   G_PARAM_READWRITE);
+	g_object_class_install_property(object_class, PROP_CONDITION,
+	                                gParamSpecs[PROP_CONDITION]);
 
 	gParamSpecs[PROP_DIRECTION] =
 		g_param_spec_enum("direction",
@@ -216,6 +232,12 @@ gom_query_get_property (GObject    *object,
 	GomQuery *query = GOM_QUERY(object);
 
 	switch (prop_id) {
+	case PROP_CONDITION:
+		g_value_set_boxed(value, query->priv->condition);
+		break;
+	case PROP_DIRECTION:
+		g_value_set_enum(value, query->priv->direction);
+		break;
 	case PROP_FIELDS:
 		g_value_set_boxed(value, query->priv->fields);
 		break;
@@ -254,42 +276,37 @@ gom_query_init (GomQuery *query)
 		                            GomQueryPrivate);
 }
 
-/**
- * gom_query_set_property:
- * @object: (in): A #GObject.
- * @prop_id: (in): The property identifier.
- * @value: (in): The given property.
- * @pspec: (in): A #ParamSpec.
- *
- * Set a given #GObject property.
- */
 static void
-gom_query_set_property (GObject      *object,
-                        guint         prop_id,
-                        const GValue *value,
-                        GParamSpec   *pspec)
+gom_query_set_condition (GomQuery     *query,
+                         GomCondition *condition)
 {
-	GomQuery *query = GOM_QUERY(object);
+	GomQueryPrivate *priv;
 
-	switch (prop_id) {
-	case PROP_RESOURCE_TYPE:
-		gom_query_set_resource_type(query, g_value_get_gtype(value));
-		break;
-	case PROP_UNIQUE:
-		gom_query_set_unique(query, g_value_get_boolean(value));
-		break;
-	case PROP_LIMIT:
-		gom_query_set_limit(query, g_value_get_uint64(value));
-		break;
-	case PROP_OFFSET:
-		gom_query_set_offset(query, g_value_get_uint64(value));
-		break;
-	case PROP_FIELDS:
-		gom_query_set_fields(query, g_value_get_boxed(value));
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+	g_return_if_fail(condition != NULL);
+
+	priv = query->priv;
+
+	if (condition != priv->condition) {
+		gom_clear_pointer(&priv->condition, gom_condition_unref);
+		if (condition) {
+			priv->condition = gom_condition_ref(condition);
+		}
 	}
+}
+
+static void
+gom_query_set_direction (GomQuery          *query,
+                         GomQueryDirection  direction)
+{
+	GomQueryPrivate *priv;
+
+	g_return_if_fail(GOM_IS_QUERY(query));
+	g_return_if_fail(direction >= GOM_QUERY_ASCENDING);
+	g_return_if_fail(direction <= GOM_QUERY_DESCENDING);
+
+	priv = query->priv;
+
+	priv->direction = direction;
 }
 
 static void
@@ -332,6 +349,50 @@ gom_query_set_offset (GomQuery *query,
 
 	priv->offset = offset;
 	g_object_notify_by_pspec(G_OBJECT(query), gParamSpecs[PROP_OFFSET]);
+}
+
+/**
+ * gom_query_set_property:
+ * @object: (in): A #GObject.
+ * @prop_id: (in): The property identifier.
+ * @value: (in): The given property.
+ * @pspec: (in): A #ParamSpec.
+ *
+ * Set a given #GObject property.
+ */
+static void
+gom_query_set_property (GObject      *object,
+                        guint         prop_id,
+                        const GValue *value,
+                        GParamSpec   *pspec)
+{
+	GomQuery *query = GOM_QUERY(object);
+
+	switch (prop_id) {
+	case PROP_CONDITION:
+		gom_query_set_condition(query, g_value_get_boxed(value));
+		break;
+	case PROP_DIRECTION:
+		gom_query_set_direction(query, g_value_get_enum(value));
+		break;
+	case PROP_FIELDS:
+		gom_query_set_fields(query, g_value_get_boxed(value));
+		break;
+	case PROP_LIMIT:
+		gom_query_set_limit(query, g_value_get_uint64(value));
+		break;
+	case PROP_OFFSET:
+		gom_query_set_offset(query, g_value_get_uint64(value));
+		break;
+	case PROP_RESOURCE_TYPE:
+		gom_query_set_resource_type(query, g_value_get_gtype(value));
+		break;
+	case PROP_UNIQUE:
+		gom_query_set_unique(query, g_value_get_boolean(value));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+	}
 }
 
 static void

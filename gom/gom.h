@@ -27,6 +27,7 @@ G_BEGIN_DECLS
 
 #include "gom-adapter.h"
 #include "gom-adapter-sqlite.h"
+#include "gom-condition.h"
 #include "gom-collection.h"
 #include "gom-enumerable.h"
 #include "gom-property.h"

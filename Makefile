@@ -3,6 +3,7 @@ all: build/libGom.a build/libMock.a build/test-gom run-tests
 libGom_a_OBJS :=
 libGom_a_OBJS += gom/gom-adapter.o
 libGom_a_OBJS += gom/gom-collection.o
+libGom_a_OBJS += gom/gom-condition.o
 libGom_a_OBJS += gom/gom-enumerable.o
 libGom_a_OBJS += gom/gom-enumerable-array.o
 libGom_a_OBJS += gom/gom-property-set.o
@@ -46,6 +47,8 @@ CFLAGS += $(shell pkg-config --cflags gobject-2.0)
 LDFLAGS :=
 LDFLAGS += -lsqlite3
 LDFLAGS += $(shell pkg-config --libs gobject-2.0)
+
+gom/gom-query.o: gom/gom-condition.h
 
 %.o: %.c %.h Makefile
 	@echo "  [CC]   $@"
