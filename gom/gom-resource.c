@@ -773,7 +773,7 @@ gom_resource_get_property (GObject    *object,
 	}
 
 	meta = gom_resource_class_get_meta(GOM_RESOURCE_GET_CLASS(object));
-	if ((prop = gom_property_set_find(meta->properties, name))) {
+	if ((prop = gom_property_set_findq(meta->properties, name))) {
 		g_value_copy(&prop->default_value, value);
 	}
 }

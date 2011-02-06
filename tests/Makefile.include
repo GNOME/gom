@@ -1,0 +1,29 @@
+
+noinst_PROGRAMS =
+noinst_PROGRAMS += test-gom
+
+noinst_LTLIBRARIES =
+noinst_LTLIBRARIES += libmock.la
+
+TEST_PROGS += test-gom
+
+libmock_la_CPPFLAGS =
+libmock_la_CPPFLAGS += $(GOBJECT_CFLAGS)
+libmock_la_CPPFLAGS += $(INCLUDE_CFLAGS)
+
+libmock_la_SOURCES =
+libmock_la_SOURCES += $(top_srcdir)/tests/mock/mock-gender.c
+libmock_la_SOURCES += $(top_srcdir)/tests/mock/mock-occupation.c
+libmock_la_SOURCES += $(top_srcdir)/tests/mock/mock-person.c
+
+test_gom_CPPFLAGS =
+test_gom_CPPFLAGS += $(GOBJECT_CFLAGS)
+test_gom_CPPFLAGS += $(INCLUDE_CFLAGS)
+
+test_gom_LDFLAGS =
+test_gom_LDFLAGS += $(GOBJECT_LIBS)
+test_gom_LDFLAGS += $(top_builddir)/libgom-1.0.la
+test_gom_LDFLAGS += $(top_builddir)/libmock.la
+
+test_gom_SOURCES =
+test_gom_SOURCES += $(top_srcdir)/tests/test-gom.c

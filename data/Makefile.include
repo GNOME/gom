@@ -1,0 +1,3 @@
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA =
+pkgconfig_DATA += $(top_srcdir)/data/gom-1.0.pc
