@@ -167,11 +167,11 @@ gom_adapter_sqlite_append_condition (GomAdapterSqlite *sqlite,
 		g_string_append_printf(str, " %s.%s IS :%s ", table, field, key);
 		g_hash_table_insert(hash, key, value);
 	} else if (gom_condition_is_a(condition, GOM_CONDITION_AND)) {
-		//g_assert_not_reached(); /* TODO */
+		g_assert_not_reached(); /* TODO */
 	} else if (gom_condition_is_a(condition, GOM_CONDITION_OR)) {
-		//g_assert_not_reached(); /* TODO */
+		g_assert_not_reached(); /* TODO */
 	} else {
-		//g_assert_not_reached();
+		g_assert_not_reached();
 	}
 
 	g_string_append(str, ") ");
