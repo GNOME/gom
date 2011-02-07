@@ -74,6 +74,14 @@ gom_condition_unref (GomCondition *condition)
 	}
 }
 
+gboolean
+gom_condition_is_a (GomCondition *condition,
+                    GQuark        oper)
+{
+	g_return_val_if_fail(condition != NULL, 0);
+	return condition->oper == oper;
+}
+
 GomCondition*
 gom_condition_equal (GomProperty  *property,
                      const GValue *value)
@@ -81,7 +89,7 @@ gom_condition_equal (GomProperty  *property,
 	GomCondition *condition;
 
 	condition = gom_condition_new();
-	condition->oper = g_quark_from_static_string("equal");
+	condition->oper = gQuarkEqual;
 	condition->u.equality.property = property;
 	g_value_init(&condition->u.equality.value, G_VALUE_TYPE(value));
 	g_value_copy(value, &condition->u.equality.value);
@@ -96,7 +104,7 @@ gom_condition_and (GomCondition *right,
 	GomCondition *condition;
 
 	condition = gom_condition_new();
-	condition->oper = g_quark_from_static_string("and");
+	condition->oper = gQuarkAnd;
 	condition->u.boolean.left = left;
 	condition->u.boolean.right = right;
 
@@ -110,11 +118,24 @@ gom_condition_or (GomCondition *right,
 	GomCondition *condition;
 
 	condition = gom_condition_new();
-	condition->oper = g_quark_from_static_string("or");
+	condition->oper = gQuarkOr;
 	condition->u.boolean.left = left;
 	condition->u.boolean.right = right;
 
 	return condition;
+}
+
+static void
+gom_condition_initialize (void)
+{
+	static gsize initialized = FALSE;
+
+	if (g_once_init_enter(&initialized)) {
+		gQuarkAnd = g_quark_from_static_string(":and");
+		gQuarkOr = g_quark_from_static_string(":or");
+		gQuarkEqual = g_quark_from_static_string(":equal");
+		g_once_init_leave(&initialized, TRUE);
+	}
 }
 
 GType
@@ -133,4 +154,25 @@ gom_condition_get_type (void)
 	}
 
 	return type_id;
+}
+
+GQuark
+gom_condition_and_quark (void)
+{
+	gom_condition_initialize();
+	return gQuarkAnd;
+}
+
+GQuark
+gom_condition_or_quark (void)
+{
+	gom_condition_initialize();
+	return gQuarkOr;
+}
+
+GQuark
+gom_condition_equal_quark (void)
+{
+	gom_condition_initialize();
+	return gQuarkEqual;
 }

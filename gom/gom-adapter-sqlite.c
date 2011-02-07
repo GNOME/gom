@@ -19,6 +19,7 @@
 #include <sqlite3.h>
 
 #include "gom-adapter-sqlite.h"
+#include "gom-condition.h"
 #include "gom-resource.h"
 #include "gom-util.h"
 
@@ -47,6 +48,9 @@ enum
 
 static gboolean gom_adapter_sqlite_create          (GomAdapter        *adapter,
                                                     GomEnumerable     *enumerable,
+                                                    GError           **error);
+static gboolean gom_adapter_sqlite_delete          (GomAdapter        *adapter,
+                                                    GomCollection     *collection,
                                                     GError           **error);
 static gboolean gom_adapter_sqlite_ensure_table    (GomAdapterSqlite  *sqlite,
                                                     GomResource       *resource,
@@ -115,6 +119,17 @@ gtype_to_sqltype (GType type)
 	}
 }
 
+static void
+gom_adapter_sqlite_append_condition (GomAdapterSqlite *sqlite,
+                                     GomCondition     *condition,
+                                     GString          *str)
+{
+	g_string_append(str, "(");
+
+
+	g_string_append(str, ") ");
+}
+
 void
 gom_adapter_sqlite_begin (GomAdapterSqlite *sqlite)
 {
@@ -139,6 +154,7 @@ gom_adapter_sqlite_class_init (GomAdapterSqliteClass *klass)
 
 	adapter_class = GOM_ADAPTER_CLASS(klass);
 	adapter_class->create = gom_adapter_sqlite_create;
+	adapter_class->delete = gom_adapter_sqlite_delete;
 
 	object_class = G_OBJECT_CLASS(klass);
 	object_class->finalize = gom_adapter_sqlite_finalize;
@@ -582,6 +598,64 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 	g_string_free(str, TRUE);
 
 	return ret;
+}
+
+static gboolean
+gom_adapter_sqlite_delete (GomAdapter     *adapter,
+                           GomCollection  *collection,
+                           GError        **error)
+{
+	GomAdapterSqlitePrivate *priv;
+	GomResourceClassMeta *meta;
+	GomResourceClass *resource_class;
+	GomAdapterSqlite *sqlite = (GomAdapterSqlite *)adapter;
+	GomCondition *condition = NULL;
+	const gchar *table;
+	GomQuery *query = NULL;
+	GString *str = NULL;
+	GType resource_type = 0;
+
+	g_return_val_if_fail(GOM_IS_ADAPTER_SQLITE(sqlite), FALSE);
+
+	priv = sqlite->priv;
+
+	if (!priv->sqlite) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_NOT_OPEN,
+		            "Must open sqlite before calling %s()",
+		            G_STRFUNC);
+		return FALSE;
+	}
+
+	str = g_string_new("DELETE FROM ");
+
+	g_object_get(collection,
+	             "query", &query,
+	             NULL);
+
+	if (query) {
+		g_object_get(query,
+		             "resource-type", &resource_type,
+		             "condition", &condition,
+		             NULL);
+		resource_class = g_type_class_peek(resource_type);
+		meta = gom_resource_class_get_meta(resource_class);
+		table = meta->table ? meta->table : g_type_name(resource_type);
+		g_string_append_printf(str, "%s WHERE ", table);
+		gom_adapter_sqlite_append_condition(sqlite, condition, str);
+		gom_clear_pointer(&condition, gom_condition_unref);
+	} else {
+		/*
+		 * TODO: Iterate the collection and remove each item individually
+		 */
+	}
+
+	g_debug("%s", str->str);
+
+	gom_clear_object(&query);
+	g_string_free(str, TRUE);
+
+	return TRUE;
 }
 
 static gboolean

@@ -25,7 +25,10 @@
 
 G_BEGIN_DECLS
 
-#define GOM_TYPE_CONDITION (gom_condition_get_type())
+#define GOM_TYPE_CONDITION  (gom_condition_get_type())
+#define GOM_CONDITION_AND   (gom_condition_and_quark())
+#define GOM_CONDITION_OR    (gom_condition_or_quark())
+#define GOM_CONDITION_EQUAL (gom_condition_equal_quark())
 
 typedef struct _GomCondition GomCondition;
 typedef enum   _GomOperator  GomOperator;
@@ -46,15 +49,20 @@ struct _GomCondition
 	} u;
 };
 
-GType         gom_condition_get_type (void) G_GNUC_CONST;
-GomCondition* gom_condition_and      (GomCondition *left,
-                                      GomCondition *right);
-GomCondition* gom_condition_equal    (GomProperty  *property,
-                                      const GValue *value);
-GomCondition* gom_condition_or       (GomCondition *left,
-                                      GomCondition *right);
-GomCondition* gom_condition_ref      (GomCondition *condition);
-void          gom_condition_unref    (GomCondition *condition);
+GType         gom_condition_get_type    (void) G_GNUC_CONST;
+GomCondition* gom_condition_and         (GomCondition *left,
+                                         GomCondition *right);
+GomCondition* gom_condition_equal       (GomProperty  *property,
+                                         const GValue *value);
+GomCondition* gom_condition_or          (GomCondition *left,
+                                         GomCondition *right);
+GomCondition* gom_condition_ref         (GomCondition *condition);
+void          gom_condition_unref       (GomCondition *condition);
+gboolean      gom_condition_is_a        (GomCondition *condition,
+                                         GQuark        oper);
+GQuark        gom_condition_and_quark   (void) G_GNUC_CONST;
+GQuark        gom_condition_equal_quark (void) G_GNUC_CONST;
+GQuark        gom_condition_or_quark    (void) G_GNUC_CONST;
 
 G_END_DECLS
 

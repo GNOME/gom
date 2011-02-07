@@ -252,6 +252,42 @@ test_gom_query_basic (void)
 	g_object_unref(query);
 }
 
+static void
+test_gom_resource_delete (void)
+{
+	GomAdapterSqlite *sqlite;
+	GomResource *person;
+	GError *error = NULL;
+
+	sqlite = g_object_new(GOM_TYPE_ADAPTER_SQLITE, NULL);
+
+	if (!gom_adapter_sqlite_load_from_file(sqlite, TEST_DB, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	person = g_object_new(MOCK_TYPE_PERSON,
+	                      "adapter", sqlite,
+	                      "name", "Christian Hergert",
+	                      NULL);
+	if (!gom_resource_save(person, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	if (!gom_resource_delete(person, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	gom_adapter_sqlite_close(sqlite);
+
+	g_object_unref(sqlite);
+}
+
 gint
 main (gint   argc,
       gchar *argv[])
@@ -269,6 +305,8 @@ main (gint   argc,
 	           test_gom_fixture_test, \
 	           test_gom_fixture_teardown)
 			
+	ADD_FORKED_TEST("/Gom/Resource/delete",
+	                test_gom_resource_delete);
 	ADD_FORKED_TEST("/Gom/Resource/properties",
 	                test_gom_resource_properties);
 	ADD_FORKED_TEST("/Gom/Resource/Class/init",

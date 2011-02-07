@@ -20,6 +20,7 @@
 #include <gobject/gvaluecollector.h>
 #include <string.h>
 
+#include "gom-condition.h"
 #include "gom-enumerable.h"
 #include "gom-enumerable-array.h"
 #include "gom-private.h"
@@ -102,6 +103,80 @@ static GomPropertyValue*
 _property_value_new (void)
 {
 	return g_slice_new0(GomPropertyValue);
+}
+
+/**
+ * gom_resource_delete:
+ * @resource: (in): A #GomResource.
+ *
+ * Deletes a resource from the underlying data store.
+ *
+ * Returns: %TRUE if successful; otherwise %FALSE and @error is set.
+ * Side effects: None.
+ */
+gboolean
+gom_resource_delete (GomResource  *resource,
+                     GError      **error)
+{
+	GomResourcePrivate *priv;
+	GomResourceClass *resource_class;
+	GomPropertySet *set;
+	GomCollection *collection;
+	GomCondition *condition = NULL;
+	GomCondition *conditions = NULL;
+	GomProperty *prop;
+	GomQuery *query;
+	gboolean ret = FALSE;
+	GValue value = { 0 };
+	GType resource_type;
+	guint n_props;
+	gint i;
+
+	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+
+	priv = resource->priv;
+
+	if (priv->is_new) {
+		return TRUE;
+	}
+
+	resource_type = G_TYPE_FROM_INSTANCE(resource);
+	resource_class = g_type_class_peek(resource_type);
+	set = gom_resource_class_get_properties(resource_class);
+	n_props = gom_property_set_length(set);
+
+	for (i = 0; i < n_props; i++) {
+		prop = gom_property_set_get_nth(set, i);
+		if (prop->is_key) {
+			g_value_init(&value, prop->value_type);
+			g_object_get_property(G_OBJECT(resource),
+			                      g_quark_to_string(prop->name),
+			                      &value);
+			condition = gom_condition_equal(prop, &value);
+			g_value_unset(&value);
+			conditions = conditions ?
+			             gom_condition_and(conditions, condition) :
+			             gom_condition_ref(condition);
+			gom_condition_unref(condition);
+		}
+	}
+
+	query = g_object_new(GOM_TYPE_QUERY,
+	                     "condition", condition,
+	                     "limit", G_GUINT64_CONSTANT(1),
+	                     "resource-type", resource_type,
+	                     NULL);
+	collection = g_object_new(GOM_TYPE_COLLECTION,
+	                          "query", query,
+	                          NULL);
+
+	ret = gom_adapter_delete(priv->adapter, collection, error);
+
+	gom_clear_object(&query);
+	gom_clear_object(&collection);
+	gom_clear_pointer(&conditions, gom_condition_unref);
+
+	return ret;
 }
 
 /**
