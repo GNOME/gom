@@ -705,7 +705,9 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
 		 */
 	}
 
-	g_debug("%s", str->str);
+	if (gLogSql) {
+		g_log("Gom", G_LOG_LEVEL_DEBUG, "%s", str->str);
+	}
 
 	if (!!sqlite3_prepare_v2(priv->sqlite, str->str, -1, &stmt, NULL)) {
 		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
