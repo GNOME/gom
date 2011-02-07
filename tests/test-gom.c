@@ -267,10 +267,9 @@ test_gom_resource_delete (void)
 		g_assert_not_reached();
 	}
 
-	person = g_object_new(MOCK_TYPE_PERSON,
-	                      "adapter", sqlite,
-	                      "name", "Christian Hergert",
-	                      NULL);
+	person = gom_resource_create(MOCK_TYPE_PERSON, GOM_ADAPTER(sqlite),
+	                             "name", "Christian Hergert",
+	                             NULL);
 	if (!gom_resource_save(person, &error)) {
 		g_error("%s", error->message);
 		g_error_free(error);
@@ -305,8 +304,6 @@ main (gint   argc,
 	           test_gom_fixture_test, \
 	           test_gom_fixture_teardown)
 			
-	ADD_FORKED_TEST("/Gom/Resource/delete",
-	                test_gom_resource_delete);
 	ADD_FORKED_TEST("/Gom/Resource/properties",
 	                test_gom_resource_properties);
 	ADD_FORKED_TEST("/Gom/Resource/Class/init",
@@ -314,6 +311,8 @@ main (gint   argc,
 	ADD_FORKED_TEST("/Gom/Adapter/Sqlite/basic",
 	                test_gom_adapter_sqlite_basic);
 	g_test_add_func("/Gom/Query/basic", test_gom_query_basic);
+	ADD_FORKED_TEST("/Gom/Resource/delete",
+	                test_gom_resource_delete);
 
 #undef ADD_FORKED_TEST
 

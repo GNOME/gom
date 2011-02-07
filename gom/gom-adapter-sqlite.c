@@ -70,6 +70,33 @@ static gboolean gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
 static guint    gSignals[LAST_SIGNAL];
 static gboolean gLogSql;
 
+static const gchar *
+_get_table_name (GType type)
+{
+	GomResourceClassMeta *meta;
+	GomResourceClass *resource_class;
+	const gchar *table;
+
+	resource_class = g_type_class_ref(type);
+	meta = gom_resource_class_get_meta(resource_class);
+	table = meta->table ? meta->table : g_type_name(type);
+	g_type_class_unref(resource_class);
+
+	return table;
+}
+
+static GValue *
+_g_value_dup (const GValue *value)
+{
+	GValue *dup_value;
+
+	dup_value = g_new0(GValue, 1);
+	g_value_init(dup_value, G_VALUE_TYPE(value));
+	g_value_copy(value, dup_value);
+
+	return dup_value;
+}
+
 static void
 _g_value_free (gpointer data)
 {
@@ -122,10 +149,30 @@ gtype_to_sqltype (GType type)
 static void
 gom_adapter_sqlite_append_condition (GomAdapterSqlite *sqlite,
                                      GomCondition     *condition,
+                                     GHashTable       *hash,
                                      GString          *str)
 {
+	const gchar *table;
+	const gchar *field;
+	GValue *value;
+	gchar *key;
+
 	g_string_append(str, "(");
 
+	if (gom_condition_is_a(condition, GOM_CONDITION_EQUAL)) {
+		field = g_quark_to_string(condition->u.equality.property->name);
+		table = _get_table_name(condition->u.equality.property->owner_type);
+		key = g_strdup_printf("%s_%s", table, field);
+		value = _g_value_dup(&condition->u.equality.value);
+		g_string_append_printf(str, " %s.%s IS :%s ", table, field, key);
+		g_hash_table_insert(hash, key, value);
+	} else if (gom_condition_is_a(condition, GOM_CONDITION_AND)) {
+		//g_assert_not_reached(); /* TODO */
+	} else if (gom_condition_is_a(condition, GOM_CONDITION_OR)) {
+		//g_assert_not_reached(); /* TODO */
+	} else {
+		//g_assert_not_reached();
+	}
 
 	g_string_append(str, ") ");
 }
@@ -609,10 +656,16 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
 	GomResourceClassMeta *meta;
 	GomResourceClass *resource_class;
 	GomAdapterSqlite *sqlite = (GomAdapterSqlite *)adapter;
+	GHashTableIter iter;
 	GomCondition *condition = NULL;
+	sqlite3_stmt *stmt = NULL;
 	const gchar *table;
+	GHashTable *hash = NULL;
 	GomQuery *query = NULL;
+	gboolean ret = FALSE;
 	GString *str = NULL;
+	GValue *v;
+	gchar *k;
 	GType resource_type = 0;
 
 	g_return_val_if_fail(GOM_IS_ADAPTER_SQLITE(sqlite), FALSE);
@@ -628,6 +681,8 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
 	}
 
 	str = g_string_new("DELETE FROM ");
+	hash = g_hash_table_new_full(g_str_hash, g_str_equal,
+	                             g_free, _g_value_free);
 
 	g_object_get(collection,
 	             "query", &query,
@@ -642,7 +697,7 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
 		meta = gom_resource_class_get_meta(resource_class);
 		table = meta->table ? meta->table : g_type_name(resource_type);
 		g_string_append_printf(str, "%s WHERE ", table);
-		gom_adapter_sqlite_append_condition(sqlite, condition, str);
+		gom_adapter_sqlite_append_condition(sqlite, condition, hash, str);
 		gom_clear_pointer(&condition, gom_condition_unref);
 	} else {
 		/*
@@ -652,10 +707,34 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
 
 	g_debug("%s", str->str);
 
+	if (!!sqlite3_prepare_v2(priv->sqlite, str->str, -1, &stmt, NULL)) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_SQLITE,
+		            "%s", sqlite3_errmsg(priv->sqlite));
+		goto failure;
+	}
+
+	g_hash_table_iter_init(&iter, hash);
+	while (g_hash_table_iter_next(&iter, (gpointer *)&k, (gpointer*)&v)) {
+		_bind_parameter(stmt, k, v);
+	}
+
+	if (!(ret = (SQLITE_DONE == sqlite3_step(stmt)))) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_SQLITE,
+		            "%s", sqlite3_errmsg(priv->sqlite));
+		goto failure;
+	}
+
+	ret = TRUE;
+
+  failure:
 	gom_clear_object(&query);
+	gom_clear_pointer(&hash, g_hash_table_destroy);
+	gom_clear_pointer(&stmt, sqlite3_finalize);
 	g_string_free(str, TRUE);
 
-	return TRUE;
+	return ret;
 }
 
 static gboolean

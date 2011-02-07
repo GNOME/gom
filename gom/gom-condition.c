@@ -22,6 +22,8 @@ static GQuark gQuarkEqual;
 static GQuark gQuarkAnd;
 static GQuark gQuarkOr;
 
+static void gom_condition_initialize (void);
+
 static void
 gom_condition_destroy (GomCondition *condition)
 {
@@ -45,6 +47,8 @@ static GomCondition*
 gom_condition_new (void)
 {
 	GomCondition *condition;
+
+	gom_condition_initialize();
 
 	condition = g_slice_new0(GomCondition);
 	condition->ref_count = 1;
