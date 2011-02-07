@@ -8,6 +8,7 @@ configure
 *.db
 depcomp
 .deps
+*.gir
 gtk-doc.make
 INSTALL
 install-sh
@@ -24,3 +25,4 @@ missing
 stamp-h1
 *.swp
 test-gom
+*.typelib

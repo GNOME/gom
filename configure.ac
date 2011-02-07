@@ -23,7 +23,7 @@ AC_INIT([gom],[gom_version])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([build/m4])
 
-AM_INIT_AUTOMAKE([1.10])
+AM_INIT_AUTOMAKE([-Wno-portability])
 AM_MAINTAINER_MODE([enable])
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
