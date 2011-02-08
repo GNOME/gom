@@ -287,6 +287,45 @@ test_gom_resource_delete (void)
 	g_object_unref(sqlite);
 }
 
+static void
+test_gom_resource_update (void)
+{
+	GomAdapterSqlite *sqlite;
+	GomResource *person;
+	GError *error = NULL;
+
+	sqlite = g_object_new(GOM_TYPE_ADAPTER_SQLITE, NULL);
+
+	if (!gom_adapter_sqlite_load_from_file(sqlite, TEST_DB, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	person = gom_resource_create(MOCK_TYPE_PERSON, GOM_ADAPTER(sqlite),
+	                             "name", "Christian Hergert",
+	                             NULL);
+	if (!gom_resource_save(person, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	g_object_set(person,
+	             "name", "Christian Yogurt",
+	             NULL);
+
+	if (!gom_resource_save(person, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	gom_adapter_sqlite_close(sqlite);
+
+	g_object_unref(sqlite);
+}
+
 gint
 main (gint   argc,
       gchar *argv[])
@@ -313,6 +352,8 @@ main (gint   argc,
 	g_test_add_func("/Gom/Query/basic", test_gom_query_basic);
 	ADD_FORKED_TEST("/Gom/Resource/delete",
 	                test_gom_resource_delete);
+	ADD_FORKED_TEST("/Gom/Resource/update",
+	                test_gom_resource_update);
 
 #undef ADD_FORKED_TEST
 
