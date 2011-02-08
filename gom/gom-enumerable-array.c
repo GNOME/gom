@@ -115,7 +115,7 @@ gom_enumerable_array_get_value (GomEnumerable     *enumerable,
 	g_value_set_object(value, priv->resources[iter->data[2].v_int]);
 }
 
-guint
+static guint
 gom_enumerable_array_get_n_columns (GomEnumerable *enumerable)
 {
 	return 1;
