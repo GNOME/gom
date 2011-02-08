@@ -110,6 +110,20 @@ _g_value_free (gpointer data)
 	}
 }
 
+static void
+_resource_mark_clean (GomResource *resource)
+{
+	GomPropertyValue **values;
+	guint n_values = 0;
+	gint i;
+
+	values = gom_resource_get_properties(resource, &n_values);
+	for (i = 0; i < n_values; i++) {
+		values[i]->is_dirty = FALSE;
+	}
+	g_free(values);
+}
+
 /**
  * gtype_to_sqltype:
  * @type: (in): A #GType.
@@ -319,6 +333,7 @@ gom_adapter_sqlite_create (GomAdapter     *adapter,
 				g_value_unset(&value);
 				return FALSE;
 			}
+			_resource_mark_clean(g_value_get_object(&value));
 			g_value_unset(&value);
 		} while (gom_enumerable_iter_next(&iter));
 	}
