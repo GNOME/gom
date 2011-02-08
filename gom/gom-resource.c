@@ -44,6 +44,7 @@ enum
 {
 	PROP_0,
 	PROP_ADAPTER,
+	PROP_IS_NEW,
 	LAST_PROP
 };
 
@@ -577,6 +578,15 @@ gom_resource_class_init (GomResourceClass *resource_class)
 	g_object_class_install_property(object_class, PROP_ADAPTER,
 	                                gParamSpecs[PROP_ADAPTER]);
 
+	gParamSpecs[PROP_IS_NEW] =
+		g_param_spec_boolean("is-new",
+		                     _("Is New"),
+		                     _("If this is a newly created object not yet persisted."),
+		                     FALSE,
+		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+	g_object_class_install_property(object_class, PROP_IS_NEW,
+	                                gParamSpecs[PROP_IS_NEW]);
+
 	gMetaByType = g_hash_table_new_full(g_int_hash, g_int_equal, NULL, g_free);
 }
 
@@ -874,6 +884,9 @@ gom_resource_real_get_property (GObject    *object,
 	case PROP_ADAPTER:
 		g_value_set_object(value, resource->priv->adapter);
 		break;
+	case PROP_IS_NEW:
+		g_value_set_boolean(value, resource->priv->is_new);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
 	}
@@ -926,6 +939,9 @@ gom_resource_real_set_property (GObject      *object,
 	switch (prop_id) {
 	case PROP_ADAPTER:
 		resource->priv->adapter = g_value_dup_object(value);
+		break;
+	case PROP_IS_NEW:
+		resource->priv->is_new = g_value_get_boolean(value);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
