@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
+
 #include "gom-property-set.h"
 #include "gom-util.h"
 
@@ -104,6 +106,24 @@ gom_property_set_new (GomProperty *first_property,
 	return set;
 }
 
+GomPropertySet*
+gom_property_set_dup (GomPropertySet *set)
+{
+	GomPropertySet *new_set;
+
+	g_return_val_if_fail(set != NULL, NULL);
+
+	new_set = g_slice_new(GomPropertySet);
+	new_set->ref_count = 1;
+	new_set->n_properties = set->n_properties;
+	new_set->properties = g_malloc_n(new_set->n_properties,
+	                                 sizeof(GomProperty*));
+	memcpy(new_set->properties, set->properties,
+	       new_set->n_properties * sizeof(GomProperty*));
+
+	return new_set;
+}
+
 GomProperty*
 gom_property_set_find (GomPropertySet *set,
                        const gchar    *name)
@@ -185,6 +205,30 @@ gom_property_set_add (GomPropertySet *set,
 	set->properties = g_realloc_n(set->properties, set->n_properties + 1,
 	                              sizeof *set->properties);
 	set->properties[set->n_properties++] = property;
+}
+
+void
+gom_property_set_remove (GomPropertySet *set,
+                         GomProperty    *property)
+{
+	gint i;
+
+	g_return_if_fail(set != NULL);
+	g_return_if_fail(property != NULL);
+
+	for (i = 0; i < set->n_properties; i++) {
+		if (set->properties[i] == property) {
+			set->properties[i] = set->properties[set->n_properties - 1];
+			set->n_properties--;
+			set->properties = g_realloc_n(set->properties, set->n_properties,
+			                              sizeof *set->properties);
+			return;
+		}
+	}
+
+
+	g_critical("GomPropertySet did not contain %s",
+	           g_quark_to_string(property->name));
 }
 
 /**

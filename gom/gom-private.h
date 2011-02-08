@@ -26,8 +26,10 @@
 
 G_BEGIN_DECLS
 
-void gom_property_set_add (GomPropertySet  *set,
-                           GomProperty     *property);
+void gom_property_set_add    (GomPropertySet  *set,
+                              GomProperty     *property);
+void gom_property_set_remove (GomPropertySet *set,
+                              GomProperty    *property);
 
 G_END_DECLS
 
