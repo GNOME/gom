@@ -165,6 +165,16 @@ gom_enumerable_array_init (GomEnumerableArray *array)
 		                            GomEnumerableArrayPrivate);
 }
 
+/**
+ * gom_enumerable_array_new:
+ * @resources: (array length=n_resources) (in): An array of #GomResource.
+ * @n_resources: (in): The number of resources in @resources.
+ *
+ * Creates a new #GomEnumerableArray containing @resources.
+ *
+ * Returns: A newly allocated #GomEnumerableArray.
+ * Side effects: None.
+ */
 GomEnumerable*
 gom_enumerable_array_new (GomResource **resources,
                           guint         n_resources)
