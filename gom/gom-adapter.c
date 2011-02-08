@@ -46,3 +46,14 @@ gom_adapter_delete (GomAdapter     *adapter,
 {
 	return GOM_ADAPTER_GET_CLASS(adapter)->delete(adapter, collection, error);
 }
+
+gboolean
+gom_adapter_update (GomAdapter     *adapter,
+                    GomPropertySet *properties,
+                    GValueArray    *values,
+                    GomCollection  *collection,
+                    GError        **error)
+{
+	return GOM_ADAPTER_GET_CLASS(adapter)->update(adapter, properties, values,
+	                                              collection, error);
+}

@@ -89,6 +89,11 @@ gboolean gom_adapter_create   (GomAdapter      *adapter,
 gboolean gom_adapter_delete   (GomAdapter      *adapter,
                                GomCollection   *collection,
                                GError         **error);
+gboolean gom_adapter_update   (GomAdapter      *adapter,
+                               GomPropertySet  *properties,
+                               GValueArray     *values,
+                               GomCollection   *collection,
+                               GError         **error);
 
 G_END_DECLS
 
