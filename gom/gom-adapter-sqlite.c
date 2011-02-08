@@ -49,6 +49,9 @@ enum
 static gboolean gom_adapter_sqlite_create          (GomAdapter        *adapter,
                                                     GomEnumerable     *enumerable,
                                                     GError           **error);
+static gboolean gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
+                                                    GomResource       *resource,
+                                                    GError           **error);
 static gboolean gom_adapter_sqlite_delete          (GomAdapter        *adapter,
                                                     GomCollection     *collection,
                                                     GError           **error);
@@ -59,8 +62,10 @@ static gboolean gom_adapter_sqlite_execute_sql     (GomAdapterSqlite  *sqlite,
                                                     const gchar       *sql,
                                                     GError           **error);
 static void     gom_adapter_sqlite_finalize        (GObject           *object);
-static gboolean gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
-                                                    GomResource       *resource,
+static gboolean gom_adapter_sqlite_update          (GomAdapter        *adapter,
+                                                    GomPropertySet    *properties,
+                                                    GValueArray       *values,
+                                                    GomCollection     *collection,
                                                     GError           **error);
 
 /*
@@ -215,6 +220,7 @@ gom_adapter_sqlite_class_init (GomAdapterSqliteClass *klass)
 
 	adapter_class = GOM_ADAPTER_CLASS(klass);
 	adapter_class->create = gom_adapter_sqlite_create;
+	adapter_class->update = gom_adapter_sqlite_update;
 	adapter_class->delete = gom_adapter_sqlite_delete;
 
 	object_class = G_OBJECT_CLASS(klass);
@@ -938,4 +944,135 @@ gom_adapter_sqlite_load_from_file (GomAdapterSqlite  *sqlite,
 	g_signal_emit(sqlite, gSignals[OPENED], 0);
 
 	return TRUE;
+}
+
+static gboolean
+gom_adapter_sqlite_update (GomAdapter        *adapter,
+                           GomPropertySet    *properties,
+                           GValueArray       *values,
+                           GomCollection     *collection,
+                           GError           **error)
+{
+	GomAdapterSqlitePrivate *priv;
+	GomAdapterSqlite *sqlite = (GomAdapterSqlite *)adapter;
+	GHashTableIter iter;
+	GomCondition *condition = NULL;
+	sqlite3_stmt *stmt = NULL;
+	GomProperty *prop;
+	const gchar *k = NULL;
+	const gchar *table;
+	GHashTable *hash = NULL;
+	GomQuery *query = NULL;
+	gboolean ret = FALSE;
+	GString *str = NULL;
+	GValue *v = NULL;
+	GValue value = { 0 };
+	GType resource_type = 0;
+	guint n_props;
+	gint i;
+
+	g_return_val_if_fail(GOM_IS_ADAPTER_SQLITE(sqlite), FALSE);
+	g_return_val_if_fail(properties != NULL, FALSE);
+	g_return_val_if_fail(values != NULL, FALSE);
+	g_return_val_if_fail(values->n_values ==
+	                     gom_property_set_length(properties),
+	                     FALSE);
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), FALSE);
+
+	priv = sqlite->priv;
+
+	if (!priv->sqlite) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_NOT_OPEN,
+		            "Must open a database before updating a resource.");
+		return FALSE;
+	}
+
+	g_object_get(collection,
+	             "query", &query,
+	             NULL);
+
+	if (!query) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_SQLITE,
+		            "The collection does not contain a query.");
+		goto failure;
+	}
+
+	g_object_get(query,
+	             "condition", &condition,
+	             "resource-type", &resource_type,
+	             NULL);
+
+	if (!condition) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_SQLITE,
+		            "The query does not contain a condition.");
+		goto failure;
+	}
+
+	if (!resource_type) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_SQLITE,
+		            "The query does not contain a resource type.");
+		goto failure;
+	}
+
+	n_props = gom_property_set_length(properties);
+	table = _get_table_name(resource_type);
+	hash = g_hash_table_new_full(g_str_hash, g_str_equal,
+	                             g_free, _g_value_free);
+	str = g_string_new("UPDATE ");
+	g_string_append_printf(str, "%s SET ", table);
+
+	for (i = 0; i < n_props; i++) {
+		prop = gom_property_set_get_nth(properties, i);
+		g_string_append_printf(str, "%s = :%s, ",
+		                       g_quark_to_string(prop->name),
+		                       g_quark_to_string(prop->name));
+		g_value_init(&value, prop->value_type);
+		v = g_value_array_get_nth(values, i);
+		v = _g_value_dup(v);
+		g_hash_table_insert(hash, g_strdup(g_quark_to_string(prop->name)), v);
+	}
+
+	g_string_truncate(str, str->len - 2);
+
+	g_string_append(str, " WHERE ");
+
+	gom_adapter_sqlite_append_condition(sqlite, condition, hash, str);
+
+	g_string_append(str, ";");
+
+	if (!!sqlite3_prepare_v2(priv->sqlite, str->str, -1, &stmt, NULL)) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_SQLITE,
+		            "%s", sqlite3_errmsg(priv->sqlite));
+		goto failure;
+	}
+
+	g_hash_table_iter_init(&iter, hash);
+	while (g_hash_table_iter_next(&iter, (gpointer *)&k, (gpointer *)&v)) {
+		_bind_parameter(stmt, k, v);
+	}
+
+	if (!(ret = (SQLITE_DONE == sqlite3_step(stmt)))) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_SQLITE,
+		            "%s", sqlite3_errmsg(priv->sqlite));
+		goto failure;
+	}
+
+	ret = TRUE;
+
+failure:
+	if (str) {
+		g_string_free(str, TRUE);
+	}
+	gom_clear_pointer(&stmt, sqlite3_finalize);
+	gom_clear_pointer(&condition, gom_condition_unref);
+	gom_clear_pointer(&hash, g_hash_table_unref);
+	gom_clear_object(&query);
+
+	return ret;
 }

@@ -228,6 +228,64 @@ gom_resource_class_get_meta (GomResourceClass *resource_class)
 }
 
 /**
+ * gom_resource_get_condition:
+ * @resource: (in): A #GomResource.
+ *
+ * Retrieves a condition to uniquely identify this resource.
+ *
+ * Returns: A #GomCondition.
+ * Side effects: None.
+ */
+static GomCondition*
+gom_resource_get_condition (GomResource *resource)
+{
+	GomResourceClass *resource_class;
+	GomPropertySet *props;
+	GomCondition *condition = NULL;
+	GomProperty *prop;
+	GPtrArray *all;
+	GValue value = { 0 };
+	guint n_props;
+	gint i;
+
+	resource_class = GOM_RESOURCE_GET_CLASS(resource);
+	props = gom_resource_class_get_properties(resource_class);
+	all = g_ptr_array_new_with_free_func((GDestroyNotify)gom_condition_unref);
+	n_props = gom_property_set_length(props);
+
+	for (i = 0; i < n_props; i++) {
+		prop = gom_property_set_get_nth(props, i);
+		if (prop->is_key) {
+			g_value_init(&value, prop->value_type);
+			g_object_get_property(G_OBJECT(resource),
+			                      g_quark_to_string(prop->name),
+			                      &value);
+			condition = gom_condition_equal(prop, &value);
+			g_ptr_array_add(all, condition);
+			g_value_unset(&value);
+		}
+	}
+
+	condition = NULL;
+
+	if (all->len > 1) {
+		condition = g_ptr_array_index(all, 0);
+		for (i = 1; i < all->len; i++) {
+			condition = gom_condition_and(condition,
+			                              g_ptr_array_index(all, i));
+		}
+	} else if (all->len == 1) {
+		condition = gom_condition_ref(g_ptr_array_index(all, 0));
+	} else {
+		g_assert_not_reached();
+	}
+
+	gom_clear_pointer(&all, g_ptr_array_unref);
+
+	return condition;
+}
+
+/**
  * gom_resource_class_get_properties:
  * @resource_class: (in): A #GomResourceClass.
  *
@@ -991,8 +1049,18 @@ gom_resource_save_self (GomResource  *resource,
                         GError      **error)
 {
 	GomResourcePrivate *priv;
-	GomEnumerable *enumerable;
+	GomPropertyValue *value;
+	GomPropertySet *props;
+	GomPropertySet *set = NULL;
+	GomEnumerable *enumerable = NULL;
+	GomCollection *collection = NULL;
+	GomCondition *condition = NULL;
+	GomProperty *prop;
+	GValueArray *values = NULL;
+	GomQuery *query = NULL;
 	gboolean ret = FALSE;
+	guint n_props;
+	gint i;
 
 	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
 
@@ -1010,10 +1078,40 @@ gom_resource_save_self (GomResource  *resource,
 		if ((ret = gom_adapter_create(priv->adapter, enumerable, error))) {
 			priv->is_new = FALSE;
 		}
-		g_object_unref(enumerable);
 	} else {
-		ret = TRUE;
+		props = gom_resource_class_get_properties(
+				GOM_RESOURCE_GET_CLASS(resource));
+		n_props = gom_property_set_length(props);
+		set = gom_property_set_dup(props);
+		values = g_value_array_new(n_props);
+		for (i = 0; i < n_props; i++) {
+			prop = gom_property_set_get_nth(props, i);
+			if ((value = g_hash_table_lookup(priv->properties, &prop->name))) {
+				if (value->is_dirty) {
+					g_value_array_append(values, &value->value);
+					continue;
+				}
+			}
+			gom_property_set_remove(set, prop);
+		}
+		condition = gom_resource_get_condition(resource);
+		query = g_object_new(GOM_TYPE_QUERY,
+		                     "resource-type", G_TYPE_FROM_INSTANCE(resource),
+		                     "condition", condition,
+		                     NULL);
+		collection = g_object_new(GOM_TYPE_COLLECTION,
+		                          "query", query,
+		                          NULL);
+		ret = gom_adapter_update(priv->adapter, set, values,
+		                         collection, error);
 	}
+
+	gom_clear_object(&collection);
+	gom_clear_object(&enumerable);
+	gom_clear_object(&query);
+	gom_clear_pointer(&condition, gom_condition_unref);
+	gom_clear_pointer(&set, gom_property_set_unref);
+	gom_clear_pointer(&values, g_value_array_free);
 
 	return ret;
 }
