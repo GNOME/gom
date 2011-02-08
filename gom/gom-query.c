@@ -124,7 +124,7 @@ gom_query_class_init (GomQueryClass *klass)
 		                  _("Direction"),
 		                  _("The sort direction of the query"),
 		                  GOM_TYPE_QUERY_DIRECTION,
-		                  GOM_QUERY_ASCENDING,
+		                  GOM_QUERY_DEFAULT,
 		                  G_PARAM_READWRITE);
 	g_object_class_install_property(object_class, PROP_DIRECTION,
 	                                gParamSpecs[PROP_DIRECTION]);
@@ -185,6 +185,7 @@ gom_query_direction_get_type (void)
 	static gsize initialized = FALSE;
 	static GType type_id = 0;
 	static const GEnumValue values[] = {
+		{ GOM_QUERY_DEFAULT, "GOM_QUERY_DEFAULT", "DEFAULT" },
 		{ GOM_QUERY_ASCENDING, "GOM_QUERY_ASCENDING", "ASCENDING" },
 		{ GOM_QUERY_DESCENDING, "GOM_QUERY_DESCENDING", "DESCENDING" },
 		{ 0 }
@@ -301,7 +302,7 @@ gom_query_set_direction (GomQuery          *query,
 	GomQueryPrivate *priv;
 
 	g_return_if_fail(GOM_IS_QUERY(query));
-	g_return_if_fail(direction >= GOM_QUERY_ASCENDING);
+	g_return_if_fail(direction >= GOM_QUERY_DEFAULT);
 	g_return_if_fail(direction <= GOM_QUERY_DESCENDING);
 
 	priv = query->priv;

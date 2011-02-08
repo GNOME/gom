@@ -39,6 +39,7 @@ typedef enum   _GomQueryDirection GomQueryDirection;
 
 enum _GomQueryDirection
 {
+	GOM_QUERY_DEFAULT,
 	GOM_QUERY_ASCENDING,
 	GOM_QUERY_DESCENDING,
 };
