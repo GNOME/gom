@@ -109,7 +109,9 @@ gboolean gom_resource_reload       (GomResource  *resource,
                                     GError      **error);
 gboolean gom_resource_save         (GomResource  *resource,
                                     GError      **error);
-GomPropertyValue** gom_resource_get_properties (GomResource *resource, guint *n_values) G_GNUC_WARN_UNUSED_RESULT;
+GomPropertyValue**
+         gom_resource_get_properties (GomResource *resource,
+                                      guint       *n_values) G_GNUC_WARN_UNUSED_RESULT;
 void     gom_resource_get_property (GObject      *object,
                                     guint         prop_id,
                                     GValue       *value,
