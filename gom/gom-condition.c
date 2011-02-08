@@ -56,6 +56,14 @@ gom_condition_new (void)
 	return condition;
 }
 
+/**
+ * gom_condition_ref:
+ * @condition: (in): A #GomCondition.
+ *
+ * Increments the reference count of @condition by one.
+ *
+ * Returns: @condition.
+ */
 GomCondition*
 gom_condition_ref (GomCondition *condition)
 {
@@ -66,6 +74,16 @@ gom_condition_ref (GomCondition *condition)
 	return condition;
 }
 
+/**
+ * gom_condition_unref:
+ * @condition: (in): A #GomCondition.
+ *
+ * Unrefs the reference count of @condition by one. @condition is destroyed
+ * once the reference count reaches zero.
+ *
+ * Returns: None.
+ * Side effects: None.
+ */
 void
 gom_condition_unref (GomCondition *condition)
 {
@@ -78,6 +96,16 @@ gom_condition_unref (GomCondition *condition)
 	}
 }
 
+/**
+ * gom_condition_is_a:
+ * @condition: (in): A #GomCondition.
+ * @oper: (in): The #GQuark of the operator.
+ *
+ * Checks if @condition matches the operator @oper.
+ *
+ * Returns: %TRUE if condition matches @oper; otherwise %FALSE.
+ * Side effects: None.
+ */
 gboolean
 gom_condition_is_a (GomCondition *condition,
                     GQuark        oper)
@@ -86,6 +114,18 @@ gom_condition_is_a (GomCondition *condition,
 	return condition->oper == oper;
 }
 
+/**
+ * gom_condition_equal:
+ * @property: (in): A #GomProperty.
+ * @value: (in): A #GValue.
+ *
+ * Creates a new #GomCondition checking that compares the property @property
+ * with the value @value.
+ *
+ * Returns: A newly allocated #GomCondition that should be freed with
+ *   gom_condition_unref().
+ * Side effects: None.
+ */
 GomCondition*
 gom_condition_equal (GomProperty  *property,
                      const GValue *value)
@@ -101,6 +141,18 @@ gom_condition_equal (GomProperty  *property,
 	return condition;
 }
 
+/**
+ * gom_condition_and:
+ * @left: (in): A #GomCondition.
+ * @right: (in): A #GomCondition.
+ *
+ * Creates a new #GomCondition checking that ensures that both the right
+ * and left condition are matched.
+ *
+ * Returns: A newly allocated #GomCondition that should be freed with
+ *   gom_condition_unref().
+ * Side effects: None.
+ */
 GomCondition*
 gom_condition_and (GomCondition *right,
                    GomCondition *left)
@@ -115,6 +167,18 @@ gom_condition_and (GomCondition *right,
 	return condition;
 }
 
+/**
+ * gom_condition_or:
+ * @left: (in): A #GomCondition.
+ * @right: (in): A #GomCondition.
+ *
+ * Creates a new #GomCondition checking that either the @right or @left
+ * condition are matched.
+ *
+ * Returns: A newly allocated #GomCondition that should be freed with
+ *   gom_condition_unref().
+ * Side effects: None.
+ */
 GomCondition*
 gom_condition_or (GomCondition *right,
                   GomCondition *left)
@@ -134,6 +198,9 @@ gom_condition_initialize (void)
 {
 	static gsize initialized = FALSE;
 
+	/*
+	 * Allocate our internal quarks.
+	 */
 	if (g_once_init_enter(&initialized)) {
 		gQuarkAnd = g_quark_from_static_string(":and");
 		gQuarkOr = g_quark_from_static_string(":or");
