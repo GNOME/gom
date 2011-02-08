@@ -106,6 +106,16 @@ gom_property_set_new (GomProperty *first_property,
 	return set;
 }
 
+/**
+ * gom_property_set_dup:
+ * @set: (in): A #GomPropertySet.
+ *
+ * Copies the contents of a #GomPropertySet. The set should be freed using
+ * gom_property_set_unref().
+ *
+ * Returns: A newly allocated #GomPropertySet.
+ * Side effects: None.
+ */
 GomPropertySet*
 gom_property_set_dup (GomPropertySet *set)
 {
@@ -124,6 +134,16 @@ gom_property_set_dup (GomPropertySet *set)
 	return new_set;
 }
 
+/**
+ * gom_property_set_find:
+ * @set: (in): A #GomPropertySet.
+ * @name: (in): The property to find.
+ *
+ * Locates the property named @name contained in @set.
+ *
+ * Returns: A #GomProperty if successful; otherwise %NULL.
+ * Side effects: None.
+ */
 GomProperty*
 gom_property_set_find (GomPropertySet *set,
                        const gchar    *name)
@@ -131,6 +151,16 @@ gom_property_set_find (GomPropertySet *set,
 	return gom_property_set_findq(set, g_quark_from_string(name));
 }
 
+/**
+ * gom_property_set_findq:
+ * @set: (in): A #GomPropertySet.
+ * @name: (in): A #GQuark of the property name.
+ *
+ * Locates the property named @name contained in @set.
+ *
+ * Returns: A #GomProperty if successful; otherwise %NULL.
+ * Side effects: None.
+ */
 GomProperty*
 gom_property_set_findq (GomPropertySet *set,
                         GQuark          name)
@@ -207,6 +237,16 @@ gom_property_set_add (GomPropertySet *set,
 	set->properties[set->n_properties++] = property;
 }
 
+/**
+ * gom_property_set_remove:
+ * @set: (in): A #GomPropertySet.
+ * @property: (in): A #GomProperty.
+ *
+ * An internal method to remove a @property from @set.
+ *
+ * Returns: None.
+ * Side effects: None.
+ */
 void
 gom_property_set_remove (GomPropertySet *set,
                          GomProperty    *property)
@@ -225,7 +265,6 @@ gom_property_set_remove (GomPropertySet *set,
 			return;
 		}
 	}
-
 
 	g_critical("GomPropertySet did not contain %s",
 	           g_quark_to_string(property->name));
