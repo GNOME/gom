@@ -67,59 +67,60 @@ struct _GomResourceClassMeta
 	GomPropertySet *properties;
 };
 
-void            gom_resource_class_belongs_to       (GomResourceClass  *resource_class,
-                                                     const gchar       *property_name,
-                                                     const gchar       *property_nick,
-                                                     const gchar       *property_desc,
-                                                     GType              resource_type,
-                                                     ...) G_GNUC_NULL_TERMINATED;
-GomResourceClassMeta*
-                gom_resource_class_get_meta         (GomResourceClass  *resource_class);
-GomPropertySet* gom_resource_class_get_properties   (GomResourceClass  *resource_class);
-void            gom_resource_class_has_a            (GomResourceClass  *resource_class,
-                                                     const gchar       *property_name,
-                                                     const gchar       *property_nick,
-                                                     const gchar       *property_desc,
-                                                     GType              resource_type,
-                                                     ...) G_GNUC_NULL_TERMINATED;
-void            gom_resource_class_has_many         (GomResourceClass  *resource_class,
-                                                     const gchar       *property_name,
-                                                     const gchar       *property_nick,
-                                                     const gchar       *property_desc,
-                                                     GType              resource_type,
-                                                     ...) G_GNUC_NULL_TERMINATED;
-void            gom_resource_class_table            (GomResourceClass  *resource_class,
-                                                     const gchar       *table);
-void            gom_resource_class_install_property (GomResourceClass *resource_class,
-                                                     GParamSpec       *param_spec,
-                                                     ...) G_GNUC_NULL_TERMINATED;
+void                  gom_resource_class_belongs_to         (GomResourceClass  *resource_class,
+                                                             const gchar       *property_name,
+                                                             const gchar       *property_nick,
+                                                             const gchar       *property_desc,
+                                                             GType              resource_type,
+                                                             ...) G_GNUC_NULL_TERMINATED;
+GomResourceClassMeta* gom_resource_class_get_meta           (GomResourceClass  *resource_class);
+GomPropertySet*       gom_resource_class_get_properties     (GomResourceClass  *resource_class);
+void                  gom_resource_class_has_a              (GomResourceClass  *resource_class,
+                                                             const gchar       *property_name,
+                                                             const gchar       *property_nick,
+                                                             const gchar       *property_desc,
+                                                             GType              resource_type,
+                                                             ...) G_GNUC_NULL_TERMINATED;
+void                    gom_resource_class_has_many         (GomResourceClass  *resource_class,
+                                                             const gchar       *property_name,
+                                                             const gchar       *property_nick,
+                                                             const gchar       *property_desc,
+                                                             GType              resource_type,
+                                                             ...) G_GNUC_NULL_TERMINATED;
+void                    gom_resource_class_table            (GomResourceClass  *resource_class,
+                                                             const gchar       *table);
+void                    gom_resource_class_install_property (GomResourceClass *resource_class,
+                                                             GParamSpec       *param_spec,
+                                                             ...) G_GNUC_NULL_TERMINATED;
 
-gpointer gom_resource_create       (GType         resource_type,
-                                    GomAdapter   *adapter,
-                                    const gchar  *first_property,
-                                    ...) G_GNUC_NULL_TERMINATED;
-gboolean gom_resource_delete       (GomResource  *resource,
-                                    GError      **error);
-GQuark   gom_resource_error_quark  (void) G_GNUC_CONST;
-GType    gom_resource_get_type     (void) G_GNUC_CONST;
-gboolean gom_resource_is_clean     (GomResource  *resource);
-gboolean gom_resource_is_dirty     (GomResource  *resource);
-gboolean gom_resource_is_new       (GomResource  *resource);
-gboolean gom_resource_reload       (GomResource  *resource,
-                                    GError      **error);
-gboolean gom_resource_save         (GomResource  *resource,
-                                    GError      **error);
-GomPropertyValue**
-         gom_resource_get_properties (GomResource *resource,
-                                      guint       *n_values) G_GNUC_WARN_UNUSED_RESULT;
-void     gom_resource_get_property (GObject      *object,
-                                    guint         prop_id,
-                                    GValue       *value,
-                                    GParamSpec   *pspec);
-void     gom_resource_set_property (GObject      *object,
-                                    guint         prop_id,
-                                    const GValue *value,
-                                    GParamSpec   *pspec);
+gpointer                gom_resource_create                 (GType             resource_type,
+                                                             GomAdapter       *adapter,
+                                                             const gchar      *first_property,
+                                                             ...) G_GNUC_NULL_TERMINATED;
+gboolean                gom_resource_delete                 (GomResource      *resource,
+                                                             GError          **error);
+GQuark                  gom_resource_error_quark            (void) G_GNUC_CONST;
+GomCollection*          gom_resource_find                   (GomQuery         *query,
+                                                             GomAdapter       *adapter,
+                                                             GError          **error);
+GType                   gom_resource_get_type               (void) G_GNUC_CONST;
+gboolean                gom_resource_is_clean               (GomResource      *resource);
+gboolean                gom_resource_is_dirty               (GomResource      *resource);
+gboolean                gom_resource_is_new                 (GomResource      *resource);
+gboolean                gom_resource_reload                 (GomResource      *resource,
+                                                             GError          **error);
+gboolean                gom_resource_save                   (GomResource      *resource,
+                                                             GError          **error);
+GomPropertyValue**      gom_resource_get_properties         (GomResource      *resource,
+                                                             guint            *n_values) G_GNUC_WARN_UNUSED_RESULT;
+void                    gom_resource_get_property           (GObject          *object,
+                                                             guint             prop_id,
+                                                             GValue           *value,
+                                                             GParamSpec       *pspec);
+void                    gom_resource_set_property           (GObject          *object,
+                                                             guint             prop_id,
+                                                             const GValue     *value,
+                                                             GParamSpec       *pspec);
 
 G_END_DECLS
 
