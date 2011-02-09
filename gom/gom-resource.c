@@ -107,6 +107,39 @@ _property_value_new (void)
 }
 
 /**
+ * gom_resource_class_get_meta:
+ * @resource_class: (in): A #GomResourceClass.
+ *
+ * Retrieves the #GomResourceClassMeta for a particular class. If it is
+ * not yet created, then it will be created and cached for later use.
+ *
+ * Returns: A #GomResourceClassMeta corresponding to @resource_class.
+ * Side effects: None.
+ */
+GomResourceClassMeta*
+gom_resource_class_get_meta (GomResourceClass *resource_class)
+{
+	GomResourceClassMeta *meta;
+	GType gtype;
+
+	g_return_val_if_fail(GOM_IS_RESOURCE_CLASS(resource_class), NULL);
+
+	gtype = G_TYPE_FROM_CLASS(resource_class);
+
+	/*
+	 * If the meta introspection has not yet been created, create it now.
+	 */
+	if (!(meta = g_hash_table_lookup(gMetaByType, &gtype))) {
+		meta = g_new0(GomResourceClassMeta, 1);
+		meta->type = gtype;
+		meta->properties = gom_property_set_newv(0, NULL);
+		g_hash_table_insert(gMetaByType, &meta->type, meta);
+	}
+
+	return meta;
+}
+
+/**
  * gom_resource_delete:
  * @resource: (in): A #GomResource.
  *
@@ -192,39 +225,6 @@ GQuark
 gom_resource_error_quark (void)
 {
 	return g_quark_from_string("gom_resource_error_quark");
-}
-
-/**
- * gom_resource_class_get_meta:
- * @resource_class: (in): A #GomResourceClass.
- *
- * Retrieves the #GomResourceClassMeta for a particular class. If it is
- * not yet created, then it will be created and cached for later use.
- *
- * Returns: A #GomResourceClassMeta corresponding to @resource_class.
- * Side effects: None.
- */
-GomResourceClassMeta*
-gom_resource_class_get_meta (GomResourceClass *resource_class)
-{
-	GomResourceClassMeta *meta;
-	GType gtype;
-
-	g_return_val_if_fail(GOM_IS_RESOURCE_CLASS(resource_class), NULL);
-
-	gtype = G_TYPE_FROM_CLASS(resource_class);
-
-	/*
-	 * If the meta introspection has not yet been created, create it now.
-	 */
-	if (!(meta = g_hash_table_lookup(gMetaByType, &gtype))) {
-		meta = g_new0(GomResourceClassMeta, 1);
-		meta->type = gtype;
-		meta->properties = gom_property_set_newv(0, NULL);
-		g_hash_table_insert(gMetaByType, &meta->type, meta);
-	}
-
-	return meta;
 }
 
 /**
