@@ -1,4 +1,4 @@
-/* gom/gom-condition.c
+/* gom-condition.c
  *
  * Copyright (C) 2011 Christian Hergert <chris@dronelabs.com>
  *

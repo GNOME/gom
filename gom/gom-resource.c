@@ -23,6 +23,7 @@
 #include "gom-condition.h"
 #include "gom-enumerable.h"
 #include "gom-enumerable-array.h"
+#include "gom-enumerable-resource.h"
 #include "gom-private.h"
 #include "gom-resource.h"
 #include "gom-util.h"
@@ -52,15 +53,23 @@ enum
  * Forward declarations.
  */
 
-static void gom_resource_finalize          (GObject      *object);
-static void gom_resource_real_get_property (GObject      *object,
-                                            guint         prop_id,
-                                            GValue       *value,
-                                            GParamSpec   *pspec);
-static void gom_resource_real_set_property (GObject      *object,
-                                            guint         prop_id,
-                                            const GValue *value,
-                                            GParamSpec   *pspec);
+static void              _property_value_free           (gpointer       data);
+static GomPropertyValue* _property_value_new            (void);
+static void              gom_resource_finalize          (GObject       *object);
+static void              gom_resource_real_get_property (GObject       *object,
+                                                         guint          prop_id,
+                                                         GValue        *value,
+                                                         GParamSpec    *pspec);
+static void              gom_resource_real_set_property (GObject       *object,
+                                                         guint          prop_id,
+                                                         const GValue  *value,
+                                                         GParamSpec    *pspec);
+static gboolean          gom_resource_save_children     (GomResource   *resource,
+                                                         GError       **error);
+static gboolean          gom_resource_save_parents      (GomResource   *resource,
+                                                         GError       **error);
+static gboolean          gom_resource_save_self         (GomResource   *resource,
+                                                         GError       **error);
 
 /*
  * Globals.
@@ -225,6 +234,54 @@ GQuark
 gom_resource_error_quark (void)
 {
 	return g_quark_from_string("gom_resource_error_quark");
+}
+
+/**
+ * gom_resource_find:
+ * @query: (in): A #GomQuery.
+ * @adapter: (in): A #GomAdapter.
+ * @error: (error): A location for a #GError, or %NULL.
+ *
+ * Locates a set of #GomResource<!-- -->'s based on @query from @adapter.
+ * The resulting enumerable will contain a single column of type #GomResource.
+ * See #GomEnumerable for more information on iterating data sets.
+ *
+ * Returns: A #GomEnumerable if successful; otherwise %NULL and @error is set.
+ * Side effects: None.
+ */
+GomEnumerable*
+gom_resource_find (GomQuery    *query,
+                   GomAdapter  *adapter,
+                   GError     **error)
+{
+	GomEnumerable *enumerable = NULL;
+	GomEnumerable *ret = NULL;
+
+	g_return_val_if_fail(GOM_IS_QUERY(query), NULL);
+	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), NULL);
+
+	/*
+	 * Get the resulting enumerable for the query from the adapter.
+	 * Ideally, the adapters will allow this to be as lazy as possible
+	 * to prevent abusing the underlying storage.
+	 */
+	if (!gom_adapter_read(adapter, query, &enumerable, error)) {
+		return NULL;
+	}
+
+	/*
+	 * Create a resource enumerator that can populate new instances of
+	 * GomResource with values from the underlying query and result
+	 * enumerable.
+	 */
+	ret = g_object_new(GOM_TYPE_ENUMERABLE_RESOURCE,
+	                   "enumerable", enumerable,
+	                   "query", query,
+	                   NULL);
+
+	g_object_unref(enumerable);
+
+	return ret;
 }
 
 /**
@@ -950,6 +1007,17 @@ gom_resource_real_get_property (GObject    *object,
 	}
 }
 
+/**
+ * gom_resource_get_properties:
+ * @resource: (in): A #GomResource.
+ * @n_values: (out): A location for the length of the resulting array.
+ *
+ * Retrieves a list of values for the currently loaded properties of
+ * @resource.
+ *
+ * Returns: (array length=n_values) (transfer container): Array of #GomPropertyValue.
+ * Side effects: None.
+ */
 GomPropertyValue**
 gom_resource_get_properties (GomResource *resource,
                              guint       *n_values)
@@ -965,9 +1033,15 @@ gom_resource_get_properties (GomResource *resource,
 
 	priv = resource->priv;
 
+	/*
+	 * Allocate memory to store the resulting array.
+	 */
 	*n_values = g_hash_table_size(priv->properties);
 	values = g_malloc_n(*n_values, sizeof(GomPropertyValue*));
 
+	/*
+	 * Iterate the hash table, populating the array.
+	 */
 	g_hash_table_iter_init(&iter, priv->properties);
 	while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&value)) {
 		g_assert_cmpint(i, <, *n_values);
@@ -1032,6 +1106,9 @@ gom_resource_set_property (GObject      *object,
 
 	name = g_quark_from_string(pspec->name);
 
+	/*
+	 * Retrieve the property container, or create it.
+	 */
 	if (!(prop_value = g_hash_table_lookup(priv->properties, &name))) {
 		prop_value = _property_value_new();
 		prop_value->name = name;
@@ -1039,8 +1116,10 @@ gom_resource_set_property (GObject      *object,
 		g_hash_table_insert(priv->properties, &prop_value->name, prop_value);
 	}
 
+	/*
+	 * Mark the property as dirty and store a private copy of the value.
+	 */
 	prop_value->is_dirty = TRUE;
-
 	g_value_copy(value, &prop_value->value);
 }
 

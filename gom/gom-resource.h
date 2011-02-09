@@ -100,7 +100,7 @@ gpointer                gom_resource_create                 (GType             r
 gboolean                gom_resource_delete                 (GomResource      *resource,
                                                              GError          **error);
 GQuark                  gom_resource_error_quark            (void) G_GNUC_CONST;
-GomCollection*          gom_resource_find                   (GomQuery         *query,
+GomEnumerable*          gom_resource_find                   (GomQuery         *query,
                                                              GomAdapter       *adapter,
                                                              GError          **error);
 GType                   gom_resource_get_type               (void) G_GNUC_CONST;
