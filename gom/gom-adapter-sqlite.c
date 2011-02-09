@@ -62,6 +62,10 @@ static gboolean gom_adapter_sqlite_execute_sql     (GomAdapterSqlite  *sqlite,
                                                     const gchar       *sql,
                                                     GError           **error);
 static void     gom_adapter_sqlite_finalize        (GObject           *object);
+static gboolean gom_adapter_sqlite_read            (GomAdapter        *adapter,
+                                                    GomQuery          *query,
+                                                    GomEnumerable    **enumerable,
+                                                    GError           **error);
 static gboolean gom_adapter_sqlite_update          (GomAdapter        *adapter,
                                                     GomPropertySet    *properties,
                                                     GValueArray       *values,
@@ -220,6 +224,7 @@ gom_adapter_sqlite_class_init (GomAdapterSqliteClass *klass)
 
 	adapter_class = GOM_ADAPTER_CLASS(klass);
 	adapter_class->create = gom_adapter_sqlite_create;
+	adapter_class->read = gom_adapter_sqlite_read;
 	adapter_class->update = gom_adapter_sqlite_update;
 	adapter_class->delete = gom_adapter_sqlite_delete;
 
@@ -947,11 +952,37 @@ gom_adapter_sqlite_load_from_file (GomAdapterSqlite  *sqlite,
 }
 
 static gboolean
-gom_adapter_sqlite_update (GomAdapter        *adapter,
-                           GomPropertySet    *properties,
-                           GValueArray       *values,
-                           GomCollection     *collection,
-                           GError           **error)
+gom_adapter_sqlite_read (GomAdapter     *adapter,
+                         GomQuery       *query,
+                         GomEnumerable **enumerable,
+                         GError        **error)
+{
+	GomAdapterSqlitePrivate *priv;
+	GomAdapterSqlite *sqlite = (GomAdapterSqlite *)adapter;
+	gboolean ret = FALSE;
+
+	g_return_val_if_fail(GOM_IS_ADAPTER_SQLITE(sqlite), FALSE);
+	g_return_val_if_fail(GOM_IS_QUERY(query), FALSE);
+	g_return_val_if_fail(enumerable != NULL, FALSE);
+
+	priv = sqlite->priv;
+
+	if (!priv->sqlite) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_NOT_OPEN,
+		            "Must open a database before reading.");
+		return FALSE;
+	}
+
+	return ret;
+}
+
+static gboolean
+gom_adapter_sqlite_update (GomAdapter      *adapter,
+                           GomPropertySet  *properties,
+                           GValueArray     *values,
+                           GomCollection   *collection,
+                           GError         **error)
 {
 	GomAdapterSqlitePrivate *priv;
 	GomAdapterSqlite *sqlite = (GomAdapterSqlite *)adapter;

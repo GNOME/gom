@@ -47,7 +47,12 @@ gom_adapter_create (GomAdapter     *adapter,
                     GomEnumerable  *enumerable,
                     GError        **error)
 {
-	return GOM_ADAPTER_GET_CLASS(adapter)->create(adapter, enumerable, error);
+	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
+	g_return_val_if_fail(GOM_IS_ENUMERABLE(enumerable), FALSE);
+
+	return GOM_ADAPTER_GET_CLASS(adapter)->create(adapter,
+	                                              enumerable,
+	                                              error);
 }
 
 /**
@@ -66,7 +71,43 @@ gom_adapter_delete (GomAdapter     *adapter,
                     GomCollection  *collection,
                     GError        **error)
 {
-	return GOM_ADAPTER_GET_CLASS(adapter)->delete(adapter, collection, error);
+	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), FALSE);
+
+	return GOM_ADAPTER_GET_CLASS(adapter)->delete(adapter,
+	                                              collection,
+	                                              error);
+}
+
+/**
+ * gom_adapter_read:
+ * @adapter: (in): A #GomAdapter.
+ * @query: (in): A #GomQuery.
+ * @enumerable: (out) (transfer full): A location for a #GomEnumerable.
+ * @error: (error): A location for a #GError, or %NULL.
+ *
+ * Performs @query on the underlying storage. The results are available
+ * by iterating through the result set which is stored in the location
+ * specified by @enumerable.
+ *
+ * Returns: %TRUE if successful; otherwise %FALSE.
+ * Side effects: None.
+ */
+gboolean
+gom_adapter_read (GomAdapter     *adapter,
+                  GomQuery       *query,
+                  GomEnumerable **enumerable,
+                  GError        **error)
+{
+	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
+	g_return_val_if_fail(GOM_IS_QUERY(query), FALSE);
+	g_return_val_if_fail(enumerable != NULL, FALSE);
+	g_return_val_if_fail(*enumerable == NULL, FALSE);
+
+	return GOM_ADAPTER_GET_CLASS(adapter)->read(adapter,
+	                                            query,
+	                                            enumerable,
+	                                            error);
 }
 
 /**
@@ -90,6 +131,14 @@ gom_adapter_update (GomAdapter     *adapter,
                     GomCollection  *collection,
                     GError        **error)
 {
-	return GOM_ADAPTER_GET_CLASS(adapter)->update(adapter, properties, values,
-	                                              collection, error);
+	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
+	g_return_val_if_fail(properties != NULL, FALSE);
+	g_return_val_if_fail(values != NULL, FALSE);
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), FALSE);
+
+	return GOM_ADAPTER_GET_CLASS(adapter)->update(adapter,
+	                                              properties,
+	                                              values,
+	                                              collection,
+	                                              error);
 }
