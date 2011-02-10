@@ -53,6 +53,14 @@ enum
  * Forward declarations.
  */
 
+static void              _date_time_to_uint64           (const GValue  *src_value,
+                                                         GValue        *dst_value);
+static void              _date_time_to_int64            (const GValue  *src_value,
+                                                         GValue        *dst_value);
+static void              _uint64_to_date_time           (const GValue  *src_value,
+                                                         GValue        *dst_value);
+static void              _int64_to_date_time            (const GValue  *src_value,
+                                                         GValue        *dst_value);
 static void              _property_value_free           (gpointer       data);
 static GomPropertyValue* _property_value_new            (void);
 static void              gom_resource_finalize          (GObject       *object);
@@ -77,6 +85,88 @@ static gboolean          gom_resource_save_self         (GomResource   *resource
 
 static GParamSpec *gParamSpecs[LAST_PROP];
 static GHashTable *gMetaByType;
+
+/**
+ * _date_time_to_uint64:
+ * @src_value: (in): A #GValue.
+ * @dst_value: (in): A #GValue.
+ *
+ * Converts from a #GDateTime to a #guint64.
+ *
+ * Returns: None.
+ * Side effects: None.
+ */
+static void
+_date_time_to_uint64 (const GValue *src_value,
+                      GValue       *dst_value)
+{
+	GDateTime *dt = g_value_get_boxed(src_value);
+
+	if (dt) {
+		dst_value->data[0].v_uint64 = g_date_time_to_unix(dt);
+	}
+}
+
+/**
+ * _date_time_to_int64:
+ * @src_value: (in): A #GValue.
+ * @dst_value: (in): A #GValue.
+ *
+ * Converts from a #GDateTime to a #gint64.
+ *
+ * Returns: None.
+ * Side effects: None.
+ */
+static void
+_date_time_to_int64 (const GValue *src_value,
+                     GValue       *dst_value)
+{
+	GDateTime *dt = g_value_get_boxed(src_value);
+
+	if (dt) {
+		dst_value->data[0].v_uint64 = g_date_time_to_unix(dt);
+	}
+}
+
+/**
+ * _uint64_to_date_time:
+ * @src_value: (in): A #GValue.
+ * @dst_value: (in): A #GValue.
+ *
+ * Converts from a #guint64 to a #GDateTime.
+ *
+ * Returns: None.
+ * Side effects: None.
+ */
+static void
+_uint64_to_date_time (const GValue *src_value,
+                      GValue       *dst_value)
+{
+	GDateTime *dt;
+
+	dt = g_date_time_new_from_unix_utc(src_value->data[0].v_uint64);
+	g_value_take_boxed(dst_value, dt);
+}
+
+/**
+ * _int64_to_date_time:
+ * @src_value: (in): A #GValue.
+ * @dst_value: (in): A #GValue.
+ *
+ * Converts from a #gint64 to a #GDateTime.
+ *
+ * Returns: None.
+ * Side effects: None.
+ */
+static void
+_int64_to_date_time (const GValue *src_value,
+                     GValue       *dst_value)
+{
+	GDateTime *dt;
+
+	dt = g_date_time_new_from_unix_utc(src_value->data[0].v_uint64);
+	g_value_take_boxed(dst_value, dt);
+}
 
 /**
  * _property_value_free:
@@ -703,6 +793,11 @@ gom_resource_class_init (GomResourceClass *resource_class)
 	                                gParamSpecs[PROP_IS_NEW]);
 
 	gMetaByType = g_hash_table_new_full(g_int_hash, g_int_equal, NULL, g_free);
+
+	g_value_register_transform_func(G_TYPE_DATE_TIME, G_TYPE_UINT64, _date_time_to_uint64);
+	g_value_register_transform_func(G_TYPE_DATE_TIME, G_TYPE_INT64, _date_time_to_int64);
+	g_value_register_transform_func(G_TYPE_UINT64, G_TYPE_DATE_TIME, _uint64_to_date_time);
+	g_value_register_transform_func(G_TYPE_INT64, G_TYPE_DATE_TIME, _int64_to_date_time);
 }
 
 /**
