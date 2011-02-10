@@ -44,6 +44,11 @@ gboolean
 gom_enumerable_iter_init (GomEnumerableIter *iter,
                           GomEnumerable     *enumerable)
 {
+	g_return_val_if_fail(GOM_IS_ENUMERABLE(enumerable), FALSE);
+	g_return_val_if_fail(iter != NULL, FALSE);
+
+	iter->enumerable = enumerable;
+
 	return GOM_ENUMERABLE_GET_CLASS(enumerable)->iter_init(enumerable, iter);
 }
 
