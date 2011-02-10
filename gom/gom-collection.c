@@ -430,3 +430,48 @@ gom_collection_slice (GomCollection *collection,
 
 	return ret;
 }
+
+gpointer
+gom_collection_get_nth (GomCollection *collection,
+                        guint64        nth)
+{
+	GomCollectionPrivate *priv;
+	GomEnumerableIter iter;
+	GomEnumerable *enumerable =  NULL;
+	GomResource *ret = NULL;
+	GomQuery *query = NULL;
+	guint64 offset = 0;
+	GError *error = NULL;
+
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), 0);
+	g_return_val_if_fail(gom_collection_consistent(collection), 0);
+
+	priv = collection->priv;
+
+	query = gom_query_dup(priv->query);
+	g_object_get(query,
+	             "offset", &offset,
+	             NULL);
+	offset += nth;
+	g_object_set(query,
+	             "limit", G_GUINT64_CONSTANT(1),
+	             "offset", offset,
+	             NULL);
+
+	if (!gom_adapter_read(priv->adapter, query, &enumerable, &error)) {
+		g_critical("%s", error->message);
+		g_clear_error(&error);
+		goto failure;
+	}
+
+	if (gom_enumerable_iter_init(&iter, enumerable)) {
+		ret = gom_collection_build_resource(collection, enumerable,
+		                                    &iter, query);
+	}
+
+failure:
+	gom_clear_object(&enumerable);
+	gom_clear_object(&query);
+
+	return ret;
+}

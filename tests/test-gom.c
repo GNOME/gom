@@ -492,6 +492,47 @@ test_gom_collection_slice (void)
 	gom_clear_object(&collection);
 }
 
+static void
+test_gom_collection_get_nth (void)
+{
+	GomAdapterSqlite *sqlite = NULL;
+	GomCollection *collection = NULL;
+	MockPerson *person = NULL;
+	GError *error = NULL;
+
+	sqlite = g_object_new(GOM_TYPE_ADAPTER_SQLITE, NULL);
+
+	if (!gom_adapter_sqlite_load_from_file(sqlite, TEST_DB, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	if (!(collection = gom_resource_find(MOCK_TYPE_PERSON,
+	                                     GOM_ADAPTER(sqlite),
+	                                     NULL, &error))) {
+		g_error("%s", error->message);
+	}
+	g_assert_cmpint(2, ==, gom_collection_count(collection));
+
+	if (!(person = gom_collection_get_nth(collection, 0))) {
+		g_error("Failed to get the zeroeth item in collection");
+	}
+	ASSERT_PROP_UINT64(person, "id", 1);
+	gom_clear_object(&person);
+
+	if (!(person = gom_collection_get_nth(collection, 1))) {
+		g_error("Failed to get the zeroeth item in collection");
+	}
+	ASSERT_PROP_UINT64(person, "id", 2);
+	gom_clear_object(&person);
+
+	gom_adapter_sqlite_close(sqlite);
+
+	gom_clear_object(&sqlite);
+	gom_clear_object(&collection);
+}
+
 gint
 main (gint   argc,
       gchar *argv[])
@@ -529,6 +570,8 @@ main (gint   argc,
 	                test_gom_collection_last);
 	ADD_FORKED_TEST("/Gom/Collection/slice",
 	                test_gom_collection_slice);
+	ADD_FORKED_TEST("/Gom/Collection/get_nth",
+	                test_gom_collection_get_nth);
 
 #undef ADD_FORKED_TEST
 

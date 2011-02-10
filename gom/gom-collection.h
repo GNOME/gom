@@ -51,6 +51,8 @@ struct _GomCollectionClass
 GType          gom_collection_get_type (void) G_GNUC_CONST;
 guint64        gom_collection_count    (GomCollection *collection);
 gpointer       gom_collection_first    (GomCollection *collection);
+gpointer       gom_collection_get_nth  (GomCollection *collection,
+                                        guint64        nth);
 gpointer       gom_collection_last     (GomCollection *collection);
 GomCollection* gom_collection_slice    (GomCollection *collection,
                                         gint64         begin,
