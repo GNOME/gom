@@ -30,15 +30,15 @@ typedef struct _GomPropertyValue GomPropertyValue;
 
 struct _GomProperty
 {
-	GQuark           name;
-	GType            owner_type;
-	GType            value_type;
-	GValue           default_value;
-	gboolean         is_key;
-	gboolean         is_serial;
-	gboolean         is_eager;
-	gboolean         is_unique;
-	GomRelationship  relationship;
+	GQuark          name;
+	GType           owner_type;
+	GType           value_type;
+	GValue          default_value;
+	gboolean        is_key;
+	gboolean        is_serial;
+	gboolean        is_eager;
+	gboolean        is_unique;
+	GomRelationship relationship;
 };
 
 struct _GomPropertyValue
