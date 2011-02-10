@@ -548,11 +548,11 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 	}
 
 	if (!count_only) {
-		if (offset) {
-			g_string_append_printf(str, "OFFSET %"G_GUINT64_FORMAT" ", offset);
-		}
 		if (limit) {
 			g_string_append_printf(str, "LIMIT %"G_GUINT64_FORMAT" ", limit);
+		}
+		if (offset) {
+			g_string_append_printf(str, "OFFSET %"G_GUINT64_FORMAT" ", offset);
 		}
 	}
 
