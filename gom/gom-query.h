@@ -57,8 +57,9 @@ struct _GomQueryClass
 	GObjectClass parent_class;
 };
 
-GType gom_query_get_type           (void) G_GNUC_CONST;
-GType gom_query_direction_get_type (void) G_GNUC_CONST;
+GomQuery* gom_query_dup                (GomQuery *query);
+GType     gom_query_get_type           (void) G_GNUC_CONST;
+GType     gom_query_direction_get_type (void) G_GNUC_CONST;
 
 G_END_DECLS
 

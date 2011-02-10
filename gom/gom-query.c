@@ -90,6 +90,29 @@ static void gom_query_set_unique        (GomQuery          *query,
 
 static GParamSpec *gParamSpecs[LAST_PROP];
 
+GomQuery*
+gom_query_dup (GomQuery *query)
+{
+	GomQueryPrivate *priv;
+	GomQuery *ret;
+
+	g_return_val_if_fail(GOM_IS_QUERY(query), NULL);
+
+	priv = query->priv;
+
+	ret = g_object_new(GOM_TYPE_QUERY,
+	                   "condition", priv->condition,
+	                   "direction", priv->direction,
+	                   "fields", priv->fields,
+	                   "limit", priv->limit,
+	                   "offset", priv->offset,
+	                   "resource-type", priv->resource_type,
+	                   "unique", priv->unique,
+	                   NULL);
+
+	return ret;
+}
+
 /**
  * gom_query_class_init:
  * @klass: (in): A #GomQueryClass.
