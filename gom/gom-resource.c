@@ -450,7 +450,7 @@ gom_resource_class_get_properties (GomResourceClass *resource_class)
 	g_return_val_if_fail(GOM_IS_RESOURCE_CLASS(resource_class), NULL);
 
 	meta = gom_resource_class_get_meta(resource_class);
-	return gom_property_set_ref(meta->properties);
+	return meta->properties;
 }
 
 /**
