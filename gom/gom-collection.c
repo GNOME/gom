@@ -180,3 +180,253 @@ gom_collection_init (GomCollection *collection)
 		                            GOM_TYPE_COLLECTION,
 		                            GomCollectionPrivate);
 }
+
+static gboolean
+gom_collection_consistent (GomCollection *collection)
+{
+	if (!collection->priv->query) {
+		g_critical("GomCollection  has no query!");
+		return FALSE;
+	}
+
+	if (!collection->priv->adapter) {
+		g_critical("GomCollection  has no adapter!");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+/**
+ * gom_collection_count:
+ * @collection: (in): A #GomCollection.
+ *
+ * Retrieves the number of resources that match the query for @collection.
+ *
+ * Returns: A #guint64 containing the resource count.
+ * Side effects: None.
+ */
+guint64
+gom_collection_count (GomCollection *collection)
+{
+	GomCollectionPrivate *priv;
+	GomEnumerableIter iter;
+	GomEnumerable *enumerable =  NULL;
+	GomQuery *query = NULL;
+	guint64 offset = 0;
+	guint64 limit = 0;
+	guint64 ret = 0;
+	GValue value = { 0 };
+	GError *error = NULL;
+
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), 0);
+	g_return_val_if_fail(gom_collection_consistent(collection), 0);
+
+	priv = collection->priv;
+
+	query = gom_query_dup(priv->query);
+	g_object_set(query,
+	             "count-only", TRUE,
+	             NULL);
+	g_object_get(query,
+	             "limit", &limit,
+	             "offset", &offset,
+	             NULL);
+
+	if (!gom_adapter_read(priv->adapter, query, &enumerable, &error)) {
+		g_critical("%s", error->message);
+		g_clear_error(&error);
+		goto failure;
+	}
+
+	if (gom_enumerable_iter_init(&iter, enumerable)) {
+		g_value_init(&value, G_TYPE_UINT64);
+		gom_enumerable_get_value(enumerable, &iter, 0, &value);
+		ret = g_value_get_uint64(&value);
+		g_value_unset(&value);
+	}
+
+	if (limit) {
+		ret = MAX(limit, (ret - offset));
+	} else if (offset) {
+		ret = MAX(0, ((gint64)ret - (gint64)offset));
+	}
+
+failure:
+	gom_clear_object(&enumerable);
+	gom_clear_object(&query);
+
+	return ret;
+}
+
+static GomResource*
+gom_collection_build_resource (GomCollection     *collection,
+                               GomEnumerable     *enumerable,
+                               GomEnumerableIter *iter,
+                               GomQuery          *query)
+{
+	GomCollectionPrivate *priv;
+	GomPropertySet *fields = NULL;
+	GomProperty *field;
+	GomResource *ret = NULL;
+	GParameter param;
+	GArray *parameters = NULL;
+	GType resource_type = 0;
+	guint n_fields = 0;
+	gint i;
+
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), NULL);
+	g_return_val_if_fail(GOM_IS_ENUMERABLE(enumerable), NULL);
+	g_return_val_if_fail(iter != NULL, NULL);
+	g_return_val_if_fail(GOM_IS_QUERY(query), NULL);
+
+	priv = collection->priv;
+
+	g_object_get(query,
+	             "fields", &fields,
+	             "resource-type", &resource_type,
+	             NULL);
+
+	if (!fields || !g_type_is_a(resource_type, GOM_TYPE_RESOURCE)) {
+		goto failure;
+	}
+
+	n_fields = gom_property_set_length(fields);
+	parameters = g_array_sized_new(FALSE, FALSE, sizeof(GParameter), n_fields + 1);
+
+	for (i = 0; i < n_fields; i++) {
+		field = gom_property_set_get_nth(fields, i);
+		memset(&param, 0, sizeof param);
+		param.name = g_quark_to_string(field->name);
+		g_value_init(&param.value, field->value_type);
+		gom_enumerable_get_value(enumerable, iter, i, &param.value);
+		g_array_append_val(parameters, param);
+		if (!gom_enumerable_iter_next(iter)) {
+			break;
+		}
+	}
+
+	memset(&param, 0, sizeof param);
+	param.name = "adapter";
+	g_value_init(&param.value, GOM_TYPE_ADAPTER);
+	g_value_set_object(&param.value, priv->adapter);
+	g_array_append_val(parameters, param);
+
+	ret = g_object_newv(resource_type,
+	                    parameters->len,
+	                    (GParameter *)parameters->data);
+
+  failure:
+	if (parameters) {
+		for (i = 0; i < parameters->len; i++) {
+			param = g_array_index(parameters, GParameter, i);
+			g_value_unset(&param.value);
+		}
+		g_array_free(parameters, TRUE);
+	}
+
+	gom_clear_pointer(&fields, gom_property_set_unref);
+
+	return ret;
+}
+
+static gpointer
+gom_collection_first_with_reverse (GomCollection *collection,
+                                   gboolean       reverse)
+{
+	GomCollectionPrivate *priv;
+	GomEnumerableIter iter;
+	GomEnumerable *enumerable =  NULL;
+	GomResource *ret = NULL;
+	GomQuery *query = NULL;
+	GError *error = NULL;
+
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), 0);
+	g_return_val_if_fail(gom_collection_consistent(collection), 0);
+
+	priv = collection->priv;
+
+	query = gom_query_dup(priv->query);
+	g_object_set(query,
+	             "limit", G_GUINT64_CONSTANT(1),
+	             "reverse", reverse,
+	             NULL);
+
+	if (!gom_adapter_read(priv->adapter, query, &enumerable, &error)) {
+		g_critical("%s", error->message);
+		g_clear_error(&error);
+		goto failure;
+	}
+
+	if (gom_enumerable_iter_init(&iter, enumerable)) {
+		ret = gom_collection_build_resource(collection, enumerable,
+		                                    &iter, query);
+	}
+
+failure:
+	gom_clear_object(&enumerable);
+	gom_clear_object(&query);
+
+	return ret;
+}
+
+gpointer
+gom_collection_first (GomCollection *collection)
+{
+	return gom_collection_first_with_reverse(collection, FALSE);
+}
+
+gpointer
+gom_collection_last (GomCollection *collection)
+{
+	return gom_collection_first_with_reverse(collection, TRUE);
+}
+
+GomCollection*
+gom_collection_slice (GomCollection *collection,
+                      gint64         begin,
+                      gint64         end)
+{
+	GomCollectionPrivate *priv;
+	GomCollection *ret = NULL;
+	GomQuery *query = NULL;
+	guint64 limit = 0;
+	guint64 offset = 0;
+
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), NULL);
+	g_return_val_if_fail(begin > 0, NULL);
+	g_return_val_if_fail(begin < end || end == -1, NULL);
+
+	priv = collection->priv;
+
+	query = gom_query_dup(priv->query);
+
+	g_object_get(query,
+	             "limit", &limit,
+	             "offset", &offset,
+	             NULL);
+
+	if (begin) {
+		offset += begin;
+	}
+
+	if (end == -1) {
+		limit = 0;
+	} else {
+		limit = end - begin;
+	}
+
+	g_object_set(query,
+	             "limit", limit,
+	             "offset", offset,
+	             NULL);
+
+	ret = g_object_new(GOM_TYPE_COLLECTION,
+	                   "adapter", priv->adapter,
+	                   "query", query,
+	                   NULL);
+
+	gom_clear_object(&query);
+
+	return ret;
+}

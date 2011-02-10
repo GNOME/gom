@@ -48,7 +48,13 @@ struct _GomCollectionClass
 	GObjectClass parent_class;
 };
 
-GType gom_collection_get_type (void) G_GNUC_CONST;
+GType          gom_collection_get_type (void) G_GNUC_CONST;
+guint64        gom_collection_count    (GomCollection *collection);
+gpointer       gom_collection_first    (GomCollection *collection);
+gpointer       gom_collection_last     (GomCollection *collection);
+GomCollection* gom_collection_slice    (GomCollection *collection,
+                                        gint64         begin,
+                                        gint64         end);
 
 G_END_DECLS
 

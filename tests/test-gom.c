@@ -1,6 +1,7 @@
 #include <glib-object.h>
 #include <glib/gstdio.h>
 #include <gom/gom.h>
+#include <gom/gom-util.h>
 #include <stdlib.h>
 
 #include "mock/mock-person.h"
@@ -28,6 +29,13 @@
 #define ASSERT_PROP_ENUM(_o, _p, _v) \
 	G_STMT_START { \
 		gint val = 0; \
+		g_object_get(_o, _p, &val, NULL); \
+		g_assert_cmpint(val, ==, _v); \
+	} G_STMT_END
+
+#define ASSERT_PROP_UINT64(_o, _p, _v) \
+	G_STMT_START { \
+		guint64 val = 0; \
 		g_object_get(_o, _p, &val, NULL); \
 		g_assert_cmpint(val, ==, _v); \
 	} G_STMT_END
@@ -326,6 +334,159 @@ test_gom_resource_update (void)
 	g_object_unref(sqlite);
 }
 
+static void
+test_gom_collection_count (void)
+{
+	GomAdapterSqlite *sqlite = NULL;
+	GomCollection *collection = NULL;
+	GomCondition *condition = NULL;
+	GomProperty *prop;
+	guint64 count = 0;
+	GError *error = NULL;
+	GValue val = { 0 };
+
+	sqlite = g_object_new(GOM_TYPE_ADAPTER_SQLITE, NULL);
+
+	if (!gom_adapter_sqlite_load_from_file(sqlite, TEST_DB, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	if (!(collection = gom_resource_find(MOCK_TYPE_PERSON,
+	                                     GOM_ADAPTER(sqlite),
+	                                     NULL, &error))) {
+		g_error("%s", error->message);
+	}
+
+	count = gom_collection_count(collection);
+	g_assert_cmpint(count, ==, 2);
+	gom_clear_object(&collection);
+
+	g_value_init(&val, G_TYPE_UINT64);
+	g_value_set_uint64(&val, 2);
+	prop = gom_property_set_find(gom_resource_class_get_properties(g_type_class_peek(MOCK_TYPE_PERSON)), "id");
+	condition = gom_condition_equal(prop, &val);
+
+	if (!(collection = gom_resource_find(MOCK_TYPE_PERSON,
+	                                     GOM_ADAPTER(sqlite),
+	                                     condition, &error))) {
+	    g_error("%s", error->message);
+	}
+
+	count = gom_collection_count(collection);
+	g_assert_cmpint(count, ==, 1);
+	gom_clear_object(&collection);
+
+	gom_adapter_sqlite_close(sqlite);
+
+	gom_clear_object(&sqlite);
+	gom_clear_pointer(&condition, gom_condition_unref);
+}
+
+static void
+test_gom_collection_first (void)
+{
+	GomAdapterSqlite *sqlite = NULL;
+	GomCollection *collection = NULL;
+	MockPerson *person = NULL;
+	GError *error = NULL;
+
+	sqlite = g_object_new(GOM_TYPE_ADAPTER_SQLITE, NULL);
+
+	if (!gom_adapter_sqlite_load_from_file(sqlite, TEST_DB, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	if (!(collection = gom_resource_find(MOCK_TYPE_PERSON,
+	                                     GOM_ADAPTER(sqlite),
+	                                     NULL, &error))) {
+		g_error("%s", error->message);
+	}
+
+	if (!(person = gom_collection_first(collection))) {
+		g_error("Failed to get the first item in collection");
+	}
+
+	ASSERT_PROP_UINT64(person, "id", 1);
+
+	gom_adapter_sqlite_close(sqlite);
+
+	gom_clear_object(&sqlite);
+	gom_clear_object(&person);
+	gom_clear_object(&collection);
+}
+
+static void
+test_gom_collection_last (void)
+{
+	GomAdapterSqlite *sqlite = NULL;
+	GomCollection *collection = NULL;
+	MockPerson *person = NULL;
+	GError *error = NULL;
+
+	sqlite = g_object_new(GOM_TYPE_ADAPTER_SQLITE, NULL);
+
+	if (!gom_adapter_sqlite_load_from_file(sqlite, TEST_DB, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	if (!(collection = gom_resource_find(MOCK_TYPE_PERSON,
+	                                     GOM_ADAPTER(sqlite),
+	                                     NULL, &error))) {
+		g_error("%s", error->message);
+	}
+
+	if (!(person = gom_collection_last(collection))) {
+		g_error("Failed to get the last item in collection");
+	}
+
+	ASSERT_PROP_UINT64(person, "id", 2);
+
+	gom_adapter_sqlite_close(sqlite);
+
+	gom_clear_object(&sqlite);
+	gom_clear_object(&person);
+	gom_clear_object(&collection);
+}
+
+static void
+test_gom_collection_slice (void)
+{
+	GomAdapterSqlite *sqlite = NULL;
+	GomCollection *collection = NULL;
+	GomCollection *slice = NULL;
+	GError *error = NULL;
+
+	sqlite = g_object_new(GOM_TYPE_ADAPTER_SQLITE, NULL);
+
+	if (!gom_adapter_sqlite_load_from_file(sqlite, TEST_DB, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	if (!(collection = gom_resource_find(MOCK_TYPE_PERSON,
+	                                     GOM_ADAPTER(sqlite),
+	                                     NULL, &error))) {
+		g_error("%s", error->message);
+	}
+	g_assert_cmpint(2, ==, gom_collection_count(collection));
+
+	slice = gom_collection_slice(collection, 1, -1);
+	g_assert_cmpint(1, ==, gom_collection_count(slice));
+
+	gom_adapter_sqlite_close(sqlite);
+
+	gom_clear_object(&sqlite);
+	gom_clear_object(&collection);
+	gom_clear_object(&slice);
+}
+
 gint
 main (gint   argc,
       gchar *argv[])
@@ -349,11 +510,20 @@ main (gint   argc,
 	                test_gom_resource_class_init);
 	ADD_FORKED_TEST("/Gom/Adapter/Sqlite/basic",
 	                test_gom_adapter_sqlite_basic);
-	g_test_add_func("/Gom/Query/basic", test_gom_query_basic);
+	ADD_FORKED_TEST("/Gom/Query/basic",
+	                test_gom_query_basic);
 	ADD_FORKED_TEST("/Gom/Resource/delete",
 	                test_gom_resource_delete);
 	ADD_FORKED_TEST("/Gom/Resource/update",
 	                test_gom_resource_update);
+	ADD_FORKED_TEST("/Gom/Collection/count",
+	                test_gom_collection_count);
+	ADD_FORKED_TEST("/Gom/Collection/first",
+	                test_gom_collection_first);
+	ADD_FORKED_TEST("/Gom/Collection/last",
+	                test_gom_collection_last);
+	ADD_FORKED_TEST("/Gom/Collection/slice",
+	                test_gom_collection_slice);
 
 #undef ADD_FORKED_TEST
 
