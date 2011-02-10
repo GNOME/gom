@@ -29,6 +29,11 @@ G_BEGIN_DECLS
 
 typedef struct _GomPropertySet GomPropertySet;
 
+struct _GomPropertySet
+{
+	guint len;
+};
+
 GomPropertySet* gom_property_set_dup      (GomPropertySet  *set);
 GomProperty*    gom_property_set_find     (GomPropertySet  *set,
                                            const gchar     *name);

@@ -21,13 +21,12 @@
 #include "gom-property-set.h"
 #include "gom-util.h"
 
-struct _GomPropertySet
+typedef struct
 {
-	volatile gint ref_count;
-
-	GomProperty **properties;
 	guint         n_properties;
-};
+	GomProperty **properties;
+	volatile gint ref_count;
+} GomPropertySetReal;
 
 /**
  * gom_property_set_dispose:
@@ -39,9 +38,10 @@ struct _GomPropertySet
  * Side effects: None.
  */
 static void
-gom_property_set_dispose (GomPropertySet *set) /* IN */
+gom_property_set_dispose (GomPropertySet *set)
 {
-	g_free(set->properties);
+	GomPropertySetReal *real = (GomPropertySetReal *)set;
+	g_free(real->properties);
 }
 
 /**
@@ -60,14 +60,14 @@ GomPropertySet*
 gom_property_set_newv (guint         n_properties,
                        GomProperty **properties)
 {
-	GomPropertySet *set;
+	GomPropertySetReal *real;
 
-	set = g_slice_new0(GomPropertySet);
-	set->ref_count = 1;
-	set->n_properties = n_properties;
-	set->properties = properties;
+	real = g_slice_new0(GomPropertySetReal);
+	real->ref_count = 1;
+	real->n_properties = n_properties;
+	real->properties = properties;
 
-	return set;
+	return (GomPropertySet *)real;
 }
 
 /**
@@ -119,19 +119,20 @@ gom_property_set_new (GomProperty *first_property,
 GomPropertySet*
 gom_property_set_dup (GomPropertySet *set)
 {
-	GomPropertySet *new_set;
+	GomPropertySetReal *real = (GomPropertySetReal *)set;
+	GomPropertySetReal *new_set;
 
-	g_return_val_if_fail(set != NULL, NULL);
+	g_return_val_if_fail(real != NULL, NULL);
 
-	new_set = g_slice_new(GomPropertySet);
+	new_set = g_slice_new(GomPropertySetReal);
 	new_set->ref_count = 1;
-	new_set->n_properties = set->n_properties;
+	new_set->n_properties = real->n_properties;
 	new_set->properties = g_malloc_n(new_set->n_properties,
 	                                 sizeof(GomProperty*));
-	memcpy(new_set->properties, set->properties,
+	memcpy(new_set->properties, real->properties,
 	       new_set->n_properties * sizeof(GomProperty*));
 
-	return new_set;
+	return (GomPropertySet *)new_set;
 }
 
 /**
@@ -165,14 +166,15 @@ GomProperty*
 gom_property_set_findq (GomPropertySet *set,
                         GQuark          name)
 {
+	GomPropertySetReal *real = (GomPropertySetReal *)set;
 	gint i;
 
-	g_return_val_if_fail(set != NULL, NULL);
+	g_return_val_if_fail(real != NULL, NULL);
 	g_return_val_if_fail(name != 0, NULL);
 
-	for (i = 0; i < set->n_properties; i++) {
-		if (set->properties[i]->name == name) {
-			return set->properties[i];
+	for (i = 0; i < real->n_properties; i++) {
+		if (real->properties[i]->name == name) {
+			return real->properties[i];
 		}
 	}
 
@@ -193,10 +195,12 @@ GomProperty*
 gom_property_set_get_nth (GomPropertySet *set,
                           guint           nth)
 {
-	g_return_val_if_fail(set != NULL, NULL);
-	g_return_val_if_fail(nth < set->n_properties, NULL);
+	GomPropertySetReal *real = (GomPropertySetReal *)set;
 
-	return set->properties[nth];
+	g_return_val_if_fail(real != NULL, NULL);
+	g_return_val_if_fail(nth < real->n_properties, NULL);
+
+	return real->properties[nth];
 }
 
 /**
@@ -212,8 +216,7 @@ guint
 gom_property_set_length (GomPropertySet *set)
 {
 	g_return_val_if_fail(set != NULL, 0);
-
-	return set->n_properties;
+	return set->len;
 }
 
 /**
@@ -229,12 +232,14 @@ void
 gom_property_set_add (GomPropertySet *set,
                       GomProperty    *property)
 {
-	g_return_if_fail(set != NULL);
+	GomPropertySetReal *real = (GomPropertySetReal *)set;
+
+	g_return_if_fail(real != NULL);
 	g_return_if_fail(property != NULL);
 
-	set->properties = g_realloc_n(set->properties, set->n_properties + 1,
-	                              sizeof *set->properties);
-	set->properties[set->n_properties++] = property;
+	real->properties = g_realloc_n(real->properties, set->len + 1,
+	                              sizeof *real->properties);
+	real->properties[real->n_properties++] = property;
 }
 
 /**
@@ -251,17 +256,18 @@ void
 gom_property_set_remove (GomPropertySet *set,
                          GomProperty    *property)
 {
+	GomPropertySetReal *real = (GomPropertySetReal *)set;
 	gint i;
 
-	g_return_if_fail(set != NULL);
+	g_return_if_fail(real != NULL);
 	g_return_if_fail(property != NULL);
 
-	for (i = 0; i < set->n_properties; i++) {
-		if (set->properties[i] == property) {
-			set->properties[i] = set->properties[set->n_properties - 1];
-			set->n_properties--;
-			set->properties = g_realloc_n(set->properties, set->n_properties,
-			                              sizeof *set->properties);
+	for (i = 0; i < set->len; i++) {
+		if (real->properties[i] == property) {
+			real->properties[i] = real->properties[set->len - 1];
+			set->len--;
+			real->properties = g_realloc_n(real->properties, set->len,
+			                               sizeof *real->properties);
 			return;
 		}
 	}
@@ -280,14 +286,16 @@ gom_property_set_remove (GomPropertySet *set,
  * Side effects: None.
  */
 GomPropertySet*
-gom_property_set_ref (GomPropertySet *set) /* IN */
+gom_property_set_ref (GomPropertySet *set)
 {
-	g_return_val_if_fail(set != NULL, NULL);
-	g_return_val_if_fail(set->ref_count > 0, NULL);
+	GomPropertySetReal *real = (GomPropertySetReal *)set;
 
-	g_atomic_int_inc(&set->ref_count);
+	g_return_val_if_fail(real!= NULL, NULL);
+	g_return_val_if_fail(real->ref_count > 0, NULL);
 
-	return set;
+	g_atomic_int_inc(&real->ref_count);
+
+	return (GomPropertySet *)real;
 }
 
 /**
@@ -303,14 +311,16 @@ gom_property_set_ref (GomPropertySet *set) /* IN */
  *   reaches zero.
  */
 void
-gom_property_set_unref (GomPropertySet *set) /* IN */
+gom_property_set_unref (GomPropertySet *set)
 {
-	g_return_if_fail(set != NULL);
-	g_return_if_fail(set->ref_count > 0);
+	GomPropertySetReal *real = (GomPropertySetReal *)set;
 
-	if (g_atomic_int_dec_and_test(&set->ref_count)) {
+	g_return_if_fail(real != NULL);
+	g_return_if_fail(real->ref_count > 0);
+
+	if (g_atomic_int_dec_and_test(&real->ref_count)) {
 		gom_property_set_dispose(set);
-		g_slice_free(GomPropertySet, set);
+		g_slice_free(GomPropertySetReal, real);
 	}
 }
 
