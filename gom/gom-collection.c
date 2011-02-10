@@ -17,21 +17,26 @@
  */
 
 #include <glib/gi18n.h>
+#include <string.h>
 
+#include "gom-adapter.h"
 #include "gom-collection.h"
 #include "gom-query.h"
+#include "gom-resource.h"
 #include "gom-util.h"
 
 G_DEFINE_TYPE(GomCollection, gom_collection, G_TYPE_OBJECT)
 
 struct _GomCollectionPrivate
 {
+	GomAdapter *adapter;
 	GomQuery *query;
 };
 
 enum
 {
 	PROP_0,
+	PROP_ADAPTER,
 	PROP_QUERY,
 	LAST_PROP
 };
@@ -54,6 +59,7 @@ gom_collection_finalize (GObject *object)
 	GomCollectionPrivate *priv = GOM_COLLECTION(object)->priv;
 
 	gom_clear_object(&priv->query);
+	gom_clear_object(&priv->adapter);
 
 	G_OBJECT_CLASS(gom_collection_parent_class)->finalize(object);
 }
@@ -76,6 +82,9 @@ gom_collection_get_property (GObject    *object,
 	GomCollection *collection = GOM_COLLECTION(object);
 
 	switch (prop_id) {
+	case PROP_ADAPTER:
+		g_value_set_object(value, collection->priv->adapter);
+		break;
 	case PROP_QUERY:
 		g_value_set_object(value, collection->priv->query);
 		break;
@@ -102,6 +111,10 @@ gom_collection_set_property (GObject      *object,
 	GomCollection *collection = GOM_COLLECTION(object);
 
 	switch (prop_id) {
+	case PROP_ADAPTER:
+		gom_clear_object(&collection->priv->adapter);
+		collection->priv->adapter = g_value_dup_object(value);
+		break;
 	case PROP_QUERY:
 		gom_clear_object(&collection->priv->query);
 		collection->priv->query = g_value_dup_object(value);
@@ -136,9 +149,18 @@ gom_collection_class_init (GomCollectionClass *klass)
 		                    _("Query"),
 		                    _("The query of the collection"),
 		                    GOM_TYPE_QUERY,
-		                    G_PARAM_READWRITE);
+		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
 	g_object_class_install_property(object_class, PROP_QUERY,
 	                                gParamSpecs[PROP_QUERY]);
+
+	gParamSpecs[PROP_ADAPTER] =
+		g_param_spec_object("adapter",
+		                    _("Adapter"),
+		                    _("The collections adapter."),
+		                    GOM_TYPE_ADAPTER,
+		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+	g_object_class_install_property(object_class, PROP_ADAPTER,
+	                                gParamSpecs[PROP_ADAPTER]);
 }
 
 /**
