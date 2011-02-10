@@ -905,6 +905,19 @@ gom_resource_class_table (GomResourceClass *resource_class,
 	meta->table = g_strdup(table);
 }
 
+/**
+ * gom_resource_create:
+ * @resource_type: (in): A #GomResource based #GType.
+ * @adapter: (in): A #GomAdapter.
+ * @first_property: (in): The name of the first property to set.
+ *
+ * This acts similar to g_object_new(). It creates a new #GomResource
+ * with the properties specified and marks it as a new resource so that
+ * a new item is added to the adapter when gom_adapter_save() is called.
+ *
+ * Returns: A #GomResource which should be freed with g_object_unref().
+ * Side effects: None.
+ */
 gpointer
 gom_resource_create (GType        resource_type,
                      GomAdapter  *adapter,
