@@ -36,7 +36,9 @@ struct _GomQueryPrivate
 	GomPropertySet *fields;
 	GomCondition *condition;
 	GPtrArray *relations;
+	gboolean count_only;
 	gboolean unique;
+	gboolean reverse;
 	guint64 offset;
 	guint64 limit;
 	GType resource_type;
@@ -46,12 +48,14 @@ enum
 {
 	PROP_0,
 	PROP_CONDITION,
+	PROP_COUNT_ONLY,
 	PROP_DIRECTION,
 	PROP_FIELDS,
 	PROP_LIMIT,
 	PROP_OFFSET,
 	/* TODO: */PROP_RELATIONS,
 	PROP_RESOURCE_TYPE,
+	PROP_REVERSE,
 	PROP_UNIQUE,
 	LAST_PROP
 };
@@ -67,6 +71,8 @@ static void gom_query_get_property      (GObject           *object,
                                          GParamSpec        *pspec);
 static void gom_query_set_condition     (GomQuery          *query,
                                          GomCondition      *condition);
+static void gom_query_set_count_only    (GomQuery          *query,
+                                         gboolean           count_only);
 static void gom_query_set_direction     (GomQuery          *query,
                                          GomQueryDirection  direction);
 static void gom_query_set_fields        (GomQuery          *query,
@@ -81,6 +87,8 @@ static void gom_query_set_property      (GObject           *object,
                                          GParamSpec        *pspec);
 static void gom_query_set_resource_type (GomQuery          *query,
                                          GType              resource_type);
+static void gom_query_set_reverse       (GomQuery          *query,
+                                         gboolean           reverse);
 static void gom_query_set_unique        (GomQuery          *query,
                                          gboolean           unique);
 
@@ -102,11 +110,13 @@ gom_query_dup (GomQuery *query)
 
 	ret = g_object_new(GOM_TYPE_QUERY,
 	                   "condition", priv->condition,
+	                   "count-only", priv->count_only,
 	                   "direction", priv->direction,
 	                   "fields", priv->fields,
 	                   "limit", priv->limit,
 	                   "offset", priv->offset,
 	                   "resource-type", priv->resource_type,
+	                   "reverse", priv->reverse,
 	                   "unique", priv->unique,
 	                   NULL);
 
@@ -141,6 +151,15 @@ gom_query_class_init (GomQueryClass *klass)
 		                   G_PARAM_READWRITE);
 	g_object_class_install_property(object_class, PROP_CONDITION,
 	                                gParamSpecs[PROP_CONDITION]);
+
+	gParamSpecs[PROP_COUNT_ONLY] =
+		g_param_spec_boolean("count-only",
+		                     _("Count rows"),
+		                     _("Count the resulting rows from the query."),
+		                     FALSE,
+		                     G_PARAM_READWRITE);
+	g_object_class_install_property(object_class, PROP_COUNT_ONLY,
+	                                gParamSpecs[PROP_COUNT_ONLY]);
 
 	gParamSpecs[PROP_DIRECTION] =
 		g_param_spec_enum("direction",
@@ -191,6 +210,15 @@ gom_query_class_init (GomQueryClass *klass)
 		                   G_PARAM_READWRITE);
 	g_object_class_install_property(object_class, PROP_RESOURCE_TYPE,
 	                                gParamSpecs[PROP_RESOURCE_TYPE]);
+
+	gParamSpecs[PROP_REVERSE] =
+		g_param_spec_boolean("reverse",
+		                     _("Reverse"),
+		                     _("Reverse the result order of the query."),
+		                     FALSE,
+		                     G_PARAM_READWRITE);
+	g_object_class_install_property(object_class, PROP_REVERSE,
+	                                gParamSpecs[PROP_REVERSE]);
 
 	gParamSpecs[PROP_UNIQUE] =
 		g_param_spec_boolean("unique",
@@ -259,6 +287,9 @@ gom_query_get_property (GObject    *object,
 	case PROP_CONDITION:
 		g_value_set_boxed(value, query->priv->condition);
 		break;
+	case PROP_COUNT_ONLY:
+		g_value_set_boolean(value, query->priv->count_only);
+		break;
 	case PROP_DIRECTION:
 		g_value_set_enum(value, query->priv->direction);
 		break;
@@ -273,6 +304,9 @@ gom_query_get_property (GObject    *object,
 		break;
 	case PROP_RESOURCE_TYPE:
 		g_value_set_gtype(value, query->priv->resource_type);
+		break;
+	case PROP_REVERSE:
+		g_value_set_boolean(value, query->priv->reverse);
 		break;
 	case PROP_UNIQUE:
 		g_value_set_boolean(value, query->priv->unique);
@@ -306,16 +340,29 @@ gom_query_set_condition (GomQuery     *query,
 {
 	GomQueryPrivate *priv;
 
-	g_return_if_fail(condition != NULL);
+	g_return_if_fail(GOM_IS_QUERY(query));
 
 	priv = query->priv;
 
-	if (condition != priv->condition) {
-		gom_clear_pointer(&priv->condition, gom_condition_unref);
-		if (condition) {
-			priv->condition = gom_condition_ref(condition);
-		}
+	gom_clear_pointer(&priv->condition, gom_condition_unref);
+
+	if (condition) {
+		priv->condition = gom_condition_ref(condition);
 	}
+}
+
+static void
+gom_query_set_count_only (GomQuery *query,
+                          gboolean  count_only)
+{
+	GomQueryPrivate *priv;
+
+	g_return_if_fail(GOM_IS_QUERY(query));
+
+	priv = query->priv;
+
+	priv->count_only = count_only;
+	g_object_notify_by_pspec(G_OBJECT(query), gParamSpecs[PROP_COUNT_ONLY]);
 }
 
 static void
@@ -331,6 +378,7 @@ gom_query_set_direction (GomQuery          *query,
 	priv = query->priv;
 
 	priv->direction = direction;
+	g_object_notify_by_pspec(G_OBJECT(query), gParamSpecs[PROP_DIRECTION]);
 }
 
 static void
@@ -344,7 +392,10 @@ gom_query_set_fields (GomQuery       *query,
 	priv = query->priv;
 
 	gom_clear_pointer(&priv->fields, gom_property_set_unref);
-	priv->fields = gom_property_set_ref(set);
+
+	if (set) {
+		priv->fields = gom_property_set_ref(set);
+	}
 }
 
 static void
@@ -396,6 +447,9 @@ gom_query_set_property (GObject      *object,
 	case PROP_CONDITION:
 		gom_query_set_condition(query, g_value_get_boxed(value));
 		break;
+	case PROP_COUNT_ONLY:
+		gom_query_set_count_only(query, g_value_get_boolean(value));
+		break;
 	case PROP_DIRECTION:
 		gom_query_set_direction(query, g_value_get_enum(value));
 		break;
@@ -410,6 +464,9 @@ gom_query_set_property (GObject      *object,
 		break;
 	case PROP_RESOURCE_TYPE:
 		gom_query_set_resource_type(query, g_value_get_gtype(value));
+		break;
+	case PROP_REVERSE:
+		gom_query_set_reverse(query, g_value_get_boolean(value));
 		break;
 	case PROP_UNIQUE:
 		gom_query_set_unique(query, g_value_get_boolean(value));
@@ -431,6 +488,20 @@ gom_query_set_resource_type (GomQuery *query,
 
 	priv->resource_type = resource_type;
 	g_object_notify_by_pspec(G_OBJECT(query), gParamSpecs[PROP_RESOURCE_TYPE]);
+}
+
+static void
+gom_query_set_reverse (GomQuery *query,
+                       gboolean  reverse)
+{
+	GomQueryPrivate *priv;
+
+	g_return_if_fail(GOM_IS_QUERY(query));
+
+	priv = query->priv;
+
+	priv->reverse = reverse;
+	g_object_notify_by_pspec(G_OBJECT(query), gParamSpecs[PROP_REVERSE]);
 }
 
 static void
