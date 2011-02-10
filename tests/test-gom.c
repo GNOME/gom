@@ -312,6 +312,7 @@ test_gom_resource_update (void)
 
 	person = gom_resource_create(MOCK_TYPE_PERSON, GOM_ADAPTER(sqlite),
 	                             "name", "Christian Hergert",
+	                             "gender", MOCK_GENDER_MALE,
 	                             NULL);
 	if (!gom_resource_save(person, &error)) {
 		g_error("%s", error->message);
@@ -412,6 +413,7 @@ test_gom_collection_first (void)
 
 	ASSERT_PROP_UINT64(person, "id", 1);
 	ASSERT_PROP_STR(person, "name", "John Smith");
+	ASSERT_PROP_ENUM(person, "gender", MOCK_GENDER_MALE);
 
 	gom_adapter_sqlite_close(sqlite);
 
@@ -448,6 +450,7 @@ test_gom_collection_last (void)
 
 	ASSERT_PROP_UINT64(person, "id", 2);
 	ASSERT_PROP_STR(person, "name", "Christian Yogurt");
+	ASSERT_PROP_ENUM(person, "gender", MOCK_GENDER_MALE);
 
 	gom_adapter_sqlite_close(sqlite);
 
