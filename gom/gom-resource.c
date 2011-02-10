@@ -63,6 +63,9 @@ static void              _int64_to_date_time            (const GValue  *src_valu
 static void              _property_value_free           (gpointer       data);
 static GomPropertyValue* _property_value_new            (void);
 static void              gom_resource_finalize          (GObject       *object);
+static void              gom_resource_read_property     (GomResource   *resource,
+                                                         GQuark         property,
+                                                         GValue        *value);
 static void              gom_resource_real_get_property (GObject       *object,
                                                          guint          prop_id,
                                                          GValue        *value,
@@ -1085,16 +1088,112 @@ gom_resource_get_property (GObject    *object,
 
 	priv = resource->priv;
 
+	/*
+	 * If we currently have the value, retrieve it.
+	 */
 	name = g_quark_from_string(pspec->name);
 	if ((prop_value = g_hash_table_lookup(priv->properties, &name))) {
 		g_value_copy(&prop_value->value, value);
 		return;
 	}
 
+	/*
+	 * If we were loaded from the database, retrieve the property value.
+	 */
+	if (!priv->is_new) {
+		gom_resource_read_property(resource, name, value);
+		return;
+	}
+
+	/*
+	 * New item, lets get the default.
+	 */
 	meta = gom_resource_class_get_meta(GOM_RESOURCE_GET_CLASS(object));
 	if ((prop = gom_property_set_findq(meta->properties, name))) {
 		g_value_copy(&prop->default_value, value);
 	}
+}
+
+static void
+gom_resource_read_property (GomResource *resource,
+                            GQuark       property,
+                            GValue      *value)
+{
+	GomResourcePrivate *priv;
+	GomEnumerableIter iter;
+	GomPropertyValue *prop_value = NULL;
+	GomResourceClass *resource_class;
+	GomPropertySet *fields = NULL;
+	GomEnumerable *enumerable = NULL;
+	GomCondition *condition = NULL;
+	GomProperty *prop;
+	GomQuery *query = NULL;
+	GError *error = NULL;
+	GType resource_type;
+
+	g_return_if_fail(GOM_IS_RESOURCE(resource));
+	g_return_if_fail(property != 0);
+	g_return_if_fail(G_VALUE_TYPE(value) != G_TYPE_INVALID);
+
+	priv = resource->priv;
+
+	resource_class = GOM_RESOURCE_GET_CLASS(resource);
+	resource_type = G_TYPE_FROM_INSTANCE(resource);
+	fields = gom_resource_class_get_properties(resource_class);
+	prop = gom_property_set_findq(fields, property);
+	fields = NULL;
+
+	if (!prop) {
+		g_critical("Unknown property %s", g_quark_to_string(property));
+		return;
+	}
+
+	/*
+	 * TODO: Implement relations.
+	 */
+	if (g_type_is_a(prop->value_type, GOM_TYPE_RESOURCE)) {
+		//g_critical("Retrieving related resources not yet supported");
+		return;
+	} else if (g_type_is_a(prop->value_type, GOM_TYPE_COLLECTION)) {
+		//g_critical("Retrieving collection properties not yet supported");
+		return;
+	}
+
+	condition = gom_resource_get_condition(resource);
+	fields = gom_property_set_newv(1, &prop);
+	query = g_object_new(GOM_TYPE_QUERY,
+	                     "condition", condition,
+	                     "fields", fields,
+	                     "limit", G_GUINT64_CONSTANT(1),
+	                     "resource-type", resource_type,
+	                     NULL);
+
+	if (!gom_adapter_read(priv->adapter, query, &enumerable, &error)) {
+		g_critical("%s", error->message);
+		g_clear_error(&error);
+		goto failure;
+	}
+
+	if (gom_enumerable_get_n_columns(enumerable) != 1) {
+		g_critical("Received invalid number of columns for query.");
+		return;
+	}
+
+	if (gom_enumerable_iter_init(&iter, enumerable)) {
+		gom_enumerable_get_value(enumerable, &iter, 0, value);
+	}
+
+	prop_value = _property_value_new();
+	prop_value->name = property;
+	g_value_init(&prop_value->value, G_VALUE_TYPE(value));
+	g_value_copy(value, &prop_value->value);
+	g_hash_table_insert(priv->properties, &prop_value->name, prop_value);
+
+  failure:
+	gom_clear_object(&query);
+	gom_clear_object(&enumerable);
+	gom_clear_pointer(&condition, gom_condition_unref);
+	gom_clear_pointer(&fields, gom_property_set_unref);
 }
 
 /**

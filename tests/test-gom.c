@@ -411,6 +411,7 @@ test_gom_collection_first (void)
 	}
 
 	ASSERT_PROP_UINT64(person, "id", 1);
+	ASSERT_PROP_STR(person, "name", "John Smith");
 
 	gom_adapter_sqlite_close(sqlite);
 
@@ -446,7 +447,7 @@ test_gom_collection_last (void)
 	}
 
 	ASSERT_PROP_UINT64(person, "id", 2);
-	//ASSERT_PROP_STR(person, "name", "Christian Yogurt");
+	ASSERT_PROP_STR(person, "name", "Christian Yogurt");
 
 	gom_adapter_sqlite_close(sqlite);
 
