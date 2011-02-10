@@ -23,7 +23,6 @@
 #include "gom-condition.h"
 #include "gom-enumerable.h"
 #include "gom-enumerable-array.h"
-#include "gom-enumerable-resource.h"
 #include "gom-private.h"
 #include "gom-resource.h"
 #include "gom-util.h"
@@ -328,48 +327,60 @@ gom_resource_error_quark (void)
 
 /**
  * gom_resource_find:
- * @query: (in): A #GomQuery.
+ * @resource_type: (in): A #GomResource based #GType.
  * @adapter: (in): A #GomAdapter.
+ * @condition: (in) (allow-none): A #GomCondition or %NULL.
  * @error: (error): A location for a #GError, or %NULL.
  *
- * Locates a set of #GomResource<!-- -->'s based on @query from @adapter.
- * The resulting enumerable will contain a single column of type #GomResource.
- * See #GomEnumerable for more information on iterating data sets.
+ * Locates a set of #GomResource<!-- -->'s based on @condition from @adapter.
  *
- * Returns: A #GomEnumerable if successful; otherwise %NULL and @error is set.
+ * Returns: A #GomCollection which should be freed with g_object_unref().
  * Side effects: None.
  */
-GomEnumerable*
-gom_resource_find (GomQuery    *query,
-                   GomAdapter  *adapter,
-                   GError     **error)
+GomCollection*
+gom_resource_find (GType          resource_type,
+                   GomAdapter    *adapter,
+                   GomCondition  *condition,
+                   GError       **error)
 {
-	GomEnumerable *enumerable = NULL;
-	GomEnumerable *ret = NULL;
+	GomResourceClass *resource_class = NULL;
+	GomPropertySet *fields = NULL;
+	GomPropertySet *all = NULL;
+	GomCollection *ret = NULL;
+	GomProperty *prop;
+	GomQuery *query = NULL;
+	guint n_props;
+	gint i;
 
-	g_return_val_if_fail(GOM_IS_QUERY(query), NULL);
+	g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), NULL);
 	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), NULL);
 
-	/*
-	 * Get the resulting enumerable for the query from the adapter.
-	 * Ideally, the adapters will allow this to be as lazy as possible
-	 * to prevent abusing the underlying storage.
-	 */
-	if (!gom_adapter_read(adapter, query, &enumerable, error)) {
-		return NULL;
+	resource_class = g_type_class_ref(resource_type);
+	all = gom_resource_class_get_properties(resource_class);
+	n_props = gom_property_set_length(all);
+	fields = gom_property_set_newv(0, NULL);
+
+	for (i = 0; i < n_props; i++) {
+		prop = gom_property_set_get_nth(all, i);
+		if (prop->is_key || prop->is_eager) {
+			gom_property_set_add(fields, prop);
+		}
 	}
 
-	/*
-	 * Create a resource enumerator that can populate new instances of
-	 * GomResource with values from the underlying query and result
-	 * enumerable.
-	 */
-	ret = g_object_new(GOM_TYPE_ENUMERABLE_RESOURCE,
-	                   "enumerable", enumerable,
+	query = g_object_new(GOM_TYPE_QUERY,
+	                     "fields", fields,
+	                     "resource-type", resource_type,
+	                     "condition", condition,
+	                     NULL);
+
+	ret = g_object_new(GOM_TYPE_COLLECTION,
+	                   "adapter", adapter,
 	                   "query", query,
 	                   NULL);
 
-	g_object_unref(enumerable);
+	gom_clear_pointer(&resource_class, g_type_class_unref);
+	gom_clear_pointer(&fields, gom_property_set_unref);
+	gom_clear_object(&query);
 
 	return ret;
 }

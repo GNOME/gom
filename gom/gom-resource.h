@@ -22,7 +22,10 @@
 #include <glib-object.h>
 
 #include "gom-adapter.h"
+#include "gom-collection.h"
+#include "gom-condition.h"
 #include "gom-property.h"
+#include "gom-property-set.h"
 #include "gom-resource-macros.h"
 
 G_BEGIN_DECLS
@@ -100,8 +103,9 @@ gpointer                gom_resource_create                 (GType             r
 gboolean                gom_resource_delete                 (GomResource      *resource,
                                                              GError          **error);
 GQuark                  gom_resource_error_quark            (void) G_GNUC_CONST;
-GomEnumerable*          gom_resource_find                   (GomQuery         *query,
+GomCollection*          gom_resource_find                   (GType             resource_type,
                                                              GomAdapter       *adapter,
+                                                             GomCondition     *condition,
                                                              GError          **error);
 GType                   gom_resource_get_type               (void) G_GNUC_CONST;
 gboolean                gom_resource_is_clean               (GomResource      *resource);
