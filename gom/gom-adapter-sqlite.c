@@ -20,6 +20,7 @@
 
 #include "gom-adapter-sqlite.h"
 #include "gom-condition.h"
+#include "gom-enumerable-sqlite.h"
 #include "gom-resource.h"
 #include "gom-util.h"
 
@@ -48,6 +49,10 @@ enum
 
 static gboolean gom_adapter_sqlite_create          (GomAdapter        *adapter,
                                                     GomEnumerable     *enumerable,
+                                                    GError           **error);
+static gboolean gom_adapter_sqlite_create_read     (GomAdapterSqlite  *sqlite,
+                                                    GomQuery          *query,
+                                                    sqlite3_stmt     **stmt,
                                                     GError           **error);
 static gboolean gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
                                                     GomResource       *resource,
@@ -457,6 +462,126 @@ resource_to_hash (GomResource *resource)
 	g_free(values);
 
 	return hash;
+}
+
+static gboolean
+gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
+                                GomQuery          *query,
+                                sqlite3_stmt     **stmt,
+                                GError           **error)
+{
+	GomAdapterSqlitePrivate *priv;
+	GomPropertySet *fields = NULL;
+	GHashTableIter iter;
+	GomCondition *condition = NULL;
+	GomProperty *field;
+	const gchar *table = NULL;
+	const gchar *k;
+	GHashTable *hash = NULL;
+	gboolean count_only = FALSE;
+	gboolean ret = FALSE;
+	gboolean reverse = FALSE;
+	GString *str = NULL;
+	guint64 limit = 0;
+	guint64 offset = 0;
+	GValue *v;
+	GType resource_type = 0;
+	guint n_fields = 0;
+	gint i;
+
+	g_return_val_if_fail(GOM_IS_ADAPTER_SQLITE(sqlite), FALSE);
+	g_return_val_if_fail(GOM_IS_QUERY(query), FALSE);
+	g_return_val_if_fail(stmt != NULL, FALSE);
+	g_return_val_if_fail(*stmt == NULL, FALSE);
+
+	priv = sqlite->priv;
+
+	g_object_get(query,
+	             "count-only", &count_only,
+	             "condition", &condition,
+	             "fields", &fields,
+	             "limit", &limit,
+	             "offset", &offset,
+	             "resource-type", &resource_type,
+	             "reverse", &reverse,
+	             NULL);
+
+	if (!resource_type) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_INVALID_TYPE,
+		            "No resource-type was provided for the query.");
+		goto failure;
+	}
+
+	str = g_string_new("SELECT ");
+
+	if (count_only) {
+		g_string_append(str, "COUNT(*)");
+	} else {
+		n_fields = gom_property_set_length(fields);
+		for (i = 0; i < n_fields; i++) {
+			field = gom_property_set_get_nth(fields, i);
+			table = _get_table_name(field->owner_type);
+			g_string_append_printf(str, "'%s'.'%s', ", table,
+			                       g_quark_to_string(field->name));
+		}
+		g_string_truncate(str, str->len - 2);
+	}
+
+	table = _get_table_name(resource_type);
+	g_string_append_printf(str, " FROM %s ", table);
+
+	hash = g_hash_table_new_full(g_str_hash, g_str_equal,
+								 g_free, _g_value_free);
+
+	if (condition) {
+		g_string_append(str, " WHERE ");
+		gom_adapter_sqlite_append_condition(sqlite, condition, hash, str);
+	}
+
+	if (reverse) {
+		/*
+		 * TODO: This should probably do something different to reverse
+		 *       the result set.
+		 */
+		g_string_append(str, "ORDER BY ROWID DESC ");
+	}
+
+	if (!count_only) {
+		if (offset) {
+			g_string_append_printf(str, "OFFSET %"G_GUINT64_FORMAT" ", offset);
+		}
+		if (limit) {
+			g_string_append_printf(str, "LIMIT %"G_GUINT64_FORMAT" ", limit);
+		}
+	}
+
+	if (gLogSql) {
+		g_log("Gom", G_LOG_LEVEL_DEBUG, "%s", str->str);
+	}
+
+	if (!!sqlite3_prepare_v2(priv->sqlite, str->str, -1, stmt, NULL)) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_SQLITE,
+		            "SQLite failed to compile SQL: %s",
+		            sqlite3_errmsg(priv->sqlite));
+		goto failure;
+	}
+
+	g_hash_table_iter_init(&iter, hash);
+	while (g_hash_table_iter_next(&iter, (gpointer *)&k, (gpointer *)&v)) {
+		_bind_parameter(*stmt, k, v);
+	}
+
+	ret = TRUE;
+
+  failure:
+	g_string_free(str, TRUE);
+	gom_clear_pointer(&fields, gom_property_set_unref);
+	gom_clear_pointer(&hash, g_hash_table_destroy);
+	gom_clear_pointer(&condition, gom_condition_unref);
+
+	return ret;
 }
 
 static gboolean
@@ -959,7 +1084,7 @@ gom_adapter_sqlite_read (GomAdapter     *adapter,
 {
 	GomAdapterSqlitePrivate *priv;
 	GomAdapterSqlite *sqlite = (GomAdapterSqlite *)adapter;
-	gboolean ret = FALSE;
+	sqlite3_stmt *stmt = NULL;
 
 	g_return_val_if_fail(GOM_IS_ADAPTER_SQLITE(sqlite), FALSE);
 	g_return_val_if_fail(GOM_IS_QUERY(query), FALSE);
@@ -974,7 +1099,15 @@ gom_adapter_sqlite_read (GomAdapter     *adapter,
 		return FALSE;
 	}
 
-	return ret;
+	if (!gom_adapter_sqlite_create_read(sqlite, query, &stmt, error)) {
+		return FALSE;
+	}
+
+	*enumerable = g_object_new(GOM_TYPE_ENUMERABLE_SQLITE,
+	                           "statement", stmt,
+	                           NULL);
+
+	return TRUE;
 }
 
 static gboolean
