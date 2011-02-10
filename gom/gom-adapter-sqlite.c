@@ -87,13 +87,11 @@ static gboolean gLogSql;
 static const gchar *
 _get_table_name (GType type)
 {
-	GomResourceClassMeta *meta;
 	GomResourceClass *resource_class;
 	const gchar *table;
 
 	resource_class = g_type_class_ref(type);
-	meta = gom_resource_class_get_meta(resource_class);
-	table = meta->table ? meta->table : g_type_name(type);
+	table = resource_class->table;
 	g_type_class_unref(resource_class);
 
 	return table;
@@ -411,14 +409,12 @@ _bind_parameter (sqlite3_stmt *stmt,
 static GHashTable*
 resource_to_hash (GomResource *resource)
 {
-	GomResourceClassMeta *related_meta;
 	GomResourceClass *related_class;
 	GomPropertyValue **values;
 	GomProperty *prop;
 	GHashTable *hash;
 	GValue *value;
 	guint n_values;
-	guint n_props;
 	gchar *key;
 	gint i;
 	gint j;
@@ -432,11 +428,9 @@ resource_to_hash (GomResource *resource)
 	for (i = 0; i < n_values; i++) {
 		if (g_type_is_a(values[i]->value.g_type, GOM_TYPE_RESOURCE)) {
 			related_class = g_type_class_peek(values[i]->value.g_type);
-			related_meta = gom_resource_class_get_meta(related_class);
-			n_props = gom_property_set_length(related_meta->properties);
 
-			for (j = 0; j < n_props; j++) {
-				prop = gom_property_set_get_nth(related_meta->properties, j);
+			for (j = 0; j < related_class->properties->len; j++) {
+				prop = gom_property_set_get_nth(related_class->properties, j);
 				if (prop->is_key) {
 					key = g_strdup_printf("%s_%s",
 					                      g_quark_to_string(values[i]->name),
@@ -590,7 +584,6 @@ gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
                                     GError           **error)
 {
 	GomAdapterSqlitePrivate *priv;
-	GomResourceClassMeta *meta;
 	GomResourceClass *resource_class;
 	GHashTableIter iter;
 	sqlite3_stmt *stmt = NULL;
@@ -604,7 +597,6 @@ gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
 	GValue value = { 0 };
 	GType resource_type;
 	gchar *k;
-	guint n_props;
 	gint code;
 	gint i;
 
@@ -615,13 +607,10 @@ gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
 
 	resource_class = GOM_RESOURCE_GET_CLASS(resource);
 	resource_type = G_TYPE_FROM_CLASS(resource_class);
-	meta = gom_resource_class_get_meta(resource_class);
-
 	g_assert(resource_class);
-	g_assert(meta);
 
 	str = g_string_new("INSERT INTO ");
-	table_name = meta->table ? meta->table : g_type_name(resource_type);
+	table_name = _get_table_name(resource_type);
 	hash = resource_to_hash(resource);
 
 	g_assert(table_name);
@@ -692,9 +681,8 @@ gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
 	 * TODO: We need to figure out how we want to mark the properties as clean.
 	 *       Those that are not eager, should also be dropped.
 	 */
-	n_props = gom_property_set_length(meta->properties);
-	for (i = 0; i < n_props; i++) {
-		prop = gom_property_set_get_nth(meta->properties, i);
+	for (i = 0; i < resource_class->properties->len; i++) {
+		prop = gom_property_set_get_nth(resource_class->properties, i);
 		if (prop->is_key) {
 			if (prop->is_serial) {
 				insert_id = sqlite3_last_insert_rowid(priv->sqlite);
@@ -722,7 +710,6 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
                                  GType              resource_type,
                                  GError           **error)
 {
-	GomResourceClassMeta *meta;
 	GomResourceClass *relation_class;
 	GomResourceClass *resource_class;
 	GomPropertySet *relation_set;
@@ -731,29 +718,24 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 	const gchar *table_name;
 	gboolean ret = FALSE;
 	GString *str;
-	guint n_props = 0;
-	guint n_related_props = 0;
 	gint i;
 	gint j;
 
 	resource_class = g_type_class_ref(resource_type);
-	meta = gom_resource_class_get_meta(resource_class);
 	str = g_string_new("CREATE TABLE IF NOT EXISTS ");
 
-	table_name = meta->table ? meta->table : g_type_name(resource_type);
+	table_name = _get_table_name(resource_type);
 	g_string_append_printf(str, "%s (", table_name);
 
-	n_props = gom_property_set_length(meta->properties);
-	for (i = 0; i < n_props; i++) {
-		property = gom_property_set_get_nth(meta->properties, i);
+	for (i = 0; i < resource_class->properties->len; i++) {
+		property = gom_property_set_get_nth(resource_class->properties, i);
 
 		if (g_type_is_a(property->value_type, GOM_TYPE_RESOURCE)) {
 			if (property->relationship.relation == GOM_RELATION_ONE_TO_ONE ||
 			    property->relationship.relation == GOM_RELATION_MANY_TO_ONE) {
 				relation_class = g_type_class_ref(property->value_type);
 				relation_set = gom_resource_class_get_properties(relation_class);
-				n_related_props = gom_property_set_length(relation_set);
-				for (j = 0; j < n_related_props; j++) {
+				for (j = 0; j < relation_set->len; j++) {
 					related_prop = gom_property_set_get_nth(relation_set, j);
 					if (related_prop->is_key) {
 						g_string_append_printf(str, "'%s_%s' %s, ",
@@ -762,7 +744,7 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 											   gtype_to_sqltype(related_prop->value_type));
 					}
 				}
-				if (i + 1 >= n_props) {
+				if (i + 1 >= resource_class->properties->len) {
 					g_string_truncate(str, str->len - 2);
 				}
 				g_type_class_unref(relation_class);
@@ -782,7 +764,7 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 					g_string_append_printf(str, " UNIQUE");
 				}
 			}
-			if (i + 1 < n_props) {
+			if (i + 1 < resource_class->properties->len) {
 				g_string_append(str, ", ");
 			}
 		}
@@ -804,8 +786,6 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
                            GError        **error)
 {
 	GomAdapterSqlitePrivate *priv;
-	GomResourceClassMeta *meta;
-	GomResourceClass *resource_class;
 	GomAdapterSqlite *sqlite = (GomAdapterSqlite *)adapter;
 	GHashTableIter iter;
 	GomCondition *condition = NULL;
@@ -844,9 +824,7 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
 		             "resource-type", &resource_type,
 		             "condition", &condition,
 		             NULL);
-		resource_class = g_type_class_peek(resource_type);
-		meta = gom_resource_class_get_meta(resource_class);
-		table = meta->table ? meta->table : g_type_name(resource_type);
+		table = _get_table_name(resource_type);
 		g_string_append_printf(str, "%s WHERE ", table);
 		gom_adapter_sqlite_append_condition(sqlite, condition, hash, str);
 		gom_clear_pointer(&condition, gom_condition_unref);

@@ -41,7 +41,6 @@ G_BEGIN_DECLS
 
 typedef struct _GomResource          GomResource;
 typedef struct _GomResourceClass     GomResourceClass;
-typedef struct _GomResourceClassMeta GomResourceClassMeta;
 typedef struct _GomResourcePrivate   GomResourcePrivate;
 typedef enum   _GomResourceError     GomResourceError;
 
@@ -61,12 +60,11 @@ struct _GomResource
 struct _GomResourceClass
 {
 	GObjectClass parent_class;
-};
 
-struct _GomResourceClassMeta
-{
-	GType type;
-	gchar *table;
+	/*< private >*/
+	const gchar    *table;
+	GQuark          tableq;
+	GomPropertySet *keys;
 	GomPropertySet *properties;
 };
 
@@ -76,7 +74,6 @@ void                  gom_resource_class_belongs_to         (GomResourceClass  *
                                                              const gchar       *property_desc,
                                                              GType              resource_type,
                                                              ...) G_GNUC_NULL_TERMINATED;
-GomResourceClassMeta* gom_resource_class_get_meta           (GomResourceClass  *resource_class);
 GomPropertySet*       gom_resource_class_get_properties     (GomResourceClass  *resource_class);
 void                  gom_resource_class_has_a              (GomResourceClass  *resource_class,
                                                              const gchar       *property_name,

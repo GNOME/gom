@@ -27,8 +27,6 @@
 #include "gom-resource.h"
 #include "gom-util.h"
 
-G_DEFINE_TYPE(GomResource, gom_resource, G_TYPE_OBJECT)
-
 /*
  * Structures and enums.
  */
@@ -86,7 +84,7 @@ static gboolean          gom_resource_save_self         (GomResource   *resource
  */
 
 static GParamSpec *gParamSpecs[LAST_PROP];
-static GHashTable *gMetaByType;
+static gpointer    gom_resource_parent_class;
 
 /**
  * _date_time_to_uint64:
@@ -205,39 +203,6 @@ static GomPropertyValue*
 _property_value_new (void)
 {
 	return g_slice_new0(GomPropertyValue);
-}
-
-/**
- * gom_resource_class_get_meta:
- * @resource_class: (in): A #GomResourceClass.
- *
- * Retrieves the #GomResourceClassMeta for a particular class. If it is
- * not yet created, then it will be created and cached for later use.
- *
- * Returns: A #GomResourceClassMeta corresponding to @resource_class.
- * Side effects: None.
- */
-GomResourceClassMeta*
-gom_resource_class_get_meta (GomResourceClass *resource_class)
-{
-	GomResourceClassMeta *meta;
-	GType gtype;
-
-	g_return_val_if_fail(GOM_IS_RESOURCE_CLASS(resource_class), NULL);
-
-	gtype = G_TYPE_FROM_CLASS(resource_class);
-
-	/*
-	 * If the meta introspection has not yet been created, create it now.
-	 */
-	if (!(meta = g_hash_table_lookup(gMetaByType, &gtype))) {
-		meta = g_new0(GomResourceClassMeta, 1);
-		meta->type = gtype;
-		meta->properties = gom_property_set_newv(0, NULL);
-		g_hash_table_insert(gMetaByType, &meta->type, meta);
-	}
-
-	return meta;
 }
 
 /**
@@ -459,12 +424,8 @@ gom_resource_get_condition (GomResource *resource)
 GomPropertySet*
 gom_resource_class_get_properties (GomResourceClass *resource_class)
 {
-	GomResourceClassMeta *meta;
-
 	g_return_val_if_fail(GOM_IS_RESOURCE_CLASS(resource_class), NULL);
-
-	meta = gom_resource_class_get_meta(resource_class);
-	return meta->properties;
+	return resource_class->properties;
 }
 
 /**
@@ -497,7 +458,6 @@ gom_resource_class_has_many (GomResourceClass *resource_class,
                              GType             resource_type,
                              ...)
 {
-	GomResourceClassMeta *meta;
 	GomProperty *property;
 	const gchar *option;
 	va_list args;
@@ -513,7 +473,6 @@ gom_resource_class_has_many (GomResourceClass *resource_class,
 	g_return_if_fail(resource_type != GOM_TYPE_RESOURCE);
 
 	this_type = G_TYPE_FROM_CLASS(resource_class);
-	meta = gom_resource_class_get_meta(resource_class);
 
 	/*
 	 * Create a new property for the collection.
@@ -553,15 +512,11 @@ gom_resource_class_has_many (GomResourceClass *resource_class,
 	va_end(args);
 
 	/*
-	 * Add the property to the meta data.
-	 */
-	gom_property_set_add(meta->properties, property);
-
-	/*
 	 * Install the property on the GObjectClass.
 	 */
+	gom_property_set_add(resource_class->properties, property);
 	g_object_class_install_property(G_OBJECT_CLASS(resource_class),
-	                                gom_property_set_length(meta->properties),
+	                                resource_class->properties->len,
 	                                g_param_spec_object(property_name,
 	                                                    property_nick,
 	                                                    property_desc,
@@ -600,7 +555,6 @@ gom_resource_class_has_a (GomResourceClass *resource_class,
                           GType             resource_type,
                           ...)
 {
-	GomResourceClassMeta *meta;
 	GomProperty *property;
 	const gchar *option;
 	va_list args;
@@ -616,7 +570,6 @@ gom_resource_class_has_a (GomResourceClass *resource_class,
 	g_return_if_fail(resource_type != GOM_TYPE_RESOURCE);
 
 	this_type = G_TYPE_FROM_CLASS(resource_class);
-	meta = gom_resource_class_get_meta(resource_class);
 
 	/*
 	 * Create a new property for the relation.
@@ -657,15 +610,11 @@ gom_resource_class_has_a (GomResourceClass *resource_class,
 	va_end(args);
 
 	/*
-	 * Add property to the meta data.
-	 */
-	gom_property_set_add(meta->properties, property);
-
-	/*
 	 * Install the resource property on the GObjectClass.
 	 */
+	gom_property_set_add(resource_class->properties, property);
 	g_object_class_install_property(G_OBJECT_CLASS(resource_class),
-	                                gom_property_set_length(meta->properties),
+	                                resource_class->properties->len,
 	                                g_param_spec_object(property_name,
 	                                                    property_nick,
 	                                                    property_desc,
@@ -707,7 +656,6 @@ gom_resource_class_belongs_to (GomResourceClass *resource_class,
                                GType             resource_type,
                                ...)
 {
-	GomResourceClassMeta *meta;
 	GomProperty *property;
 	const gchar *option;
 	va_list args;
@@ -723,7 +671,6 @@ gom_resource_class_belongs_to (GomResourceClass *resource_class,
 	g_return_if_fail(resource_type != GOM_TYPE_RESOURCE);
 
 	this_type = G_TYPE_FROM_CLASS(resource_class);
-	meta = gom_resource_class_get_meta(resource_class);
 
 	property = g_new0(GomProperty, 1);
 	property->name = g_quark_from_string(property_name);
@@ -757,10 +704,9 @@ gom_resource_class_belongs_to (GomResourceClass *resource_class,
 
 	va_end(args);
 
-	gom_property_set_add(meta->properties, property);
-
+	gom_property_set_add(resource_class->properties, property);
 	g_object_class_install_property(G_OBJECT_CLASS(resource_class),
-	                                gom_property_set_length(meta->properties),
+	                                resource_class->properties->len,
 	                                g_param_spec_object(property_name,
 	                                                    property_nick,
 	                                                    property_desc,
@@ -778,15 +724,20 @@ gom_resource_class_belongs_to (GomResourceClass *resource_class,
  * Side effects: None.
  */
 static void
-gom_resource_class_init (GomResourceClass *resource_class)
+gom_resource_class_init (gpointer klass,
+                         gpointer data)
 {
+	GomResourceClass *resource_class;
 	GObjectClass *object_class;
 
-	object_class = G_OBJECT_CLASS(resource_class);
+	object_class = G_OBJECT_CLASS(klass);
 	object_class->finalize = gom_resource_finalize;
 	object_class->get_property = gom_resource_real_get_property;
 	object_class->set_property = gom_resource_real_set_property;
 	g_type_class_add_private(object_class, sizeof(GomResourcePrivate));
+
+	resource_class = GOM_RESOURCE_CLASS(klass);
+	gom_resource_parent_class = g_type_class_peek_parent(resource_class);
 
 	gParamSpecs[PROP_ADAPTER] =
 		g_param_spec_object("adapter",
@@ -806,12 +757,33 @@ gom_resource_class_init (GomResourceClass *resource_class)
 	g_object_class_install_property(object_class, PROP_IS_NEW,
 	                                gParamSpecs[PROP_IS_NEW]);
 
-	gMetaByType = g_hash_table_new_full(g_int_hash, g_int_equal, NULL, g_free);
-
 	g_value_register_transform_func(G_TYPE_DATE_TIME, G_TYPE_UINT64, _date_time_to_uint64);
 	g_value_register_transform_func(G_TYPE_DATE_TIME, G_TYPE_INT64, _date_time_to_int64);
 	g_value_register_transform_func(G_TYPE_UINT64, G_TYPE_DATE_TIME, _uint64_to_date_time);
 	g_value_register_transform_func(G_TYPE_INT64, G_TYPE_DATE_TIME, _int64_to_date_time);
+}
+
+static void
+gom_resource_base_init (gpointer klass)
+{
+	GomResourceClass *resource_class;
+
+	resource_class = GOM_RESOURCE_CLASS(klass);
+	resource_class->keys = gom_property_set_newv(0, NULL);
+	resource_class->properties = gom_property_set_newv(0, NULL);
+	resource_class->tableq =
+		g_quark_from_string(g_type_name(G_TYPE_FROM_CLASS(resource_class)));
+	resource_class->table = g_quark_to_string(resource_class->tableq);
+}
+
+static void
+gom_resource_base_finalize (gpointer klass)
+{
+	GomResourceClass *resource_class;
+
+	resource_class = GOM_RESOURCE_CLASS(klass);
+	gom_clear_pointer(&resource_class->keys, gom_property_set_unref);
+	gom_clear_pointer(&resource_class->properties, gom_property_set_unref);
 }
 
 /**
@@ -830,7 +802,6 @@ gom_resource_class_install_property (GomResourceClass *resource_class,
                                      GParamSpec       *param_spec,
                                      ...)
 {
-	GomResourceClassMeta *meta;
 	GomProperty *property;
 	const gchar *option;
 	va_list args;
@@ -842,7 +813,6 @@ gom_resource_class_install_property (GomResourceClass *resource_class,
 	g_return_if_fail(G_IS_PARAM_SPEC(param_spec));
 
 	this_type = G_TYPE_FROM_CLASS(resource_class);
-	meta = gom_resource_class_get_meta(resource_class);
 
 	property = g_new0(GomProperty, 1);
 	property->name = g_quark_from_string(param_spec->name);
@@ -886,10 +856,14 @@ gom_resource_class_install_property (GomResourceClass *resource_class,
 
 	va_end(args);
 
-	gom_property_set_add(meta->properties, property);
+	gom_property_set_add(resource_class->properties, property);
+
+	if (property->is_key) {
+		gom_property_set_add(resource_class->keys, property);
+	}
 
 	g_object_class_install_property(G_OBJECT_CLASS(resource_class),
-	                                gom_property_set_length(meta->properties),
+	                                resource_class->properties->len,
 	                                param_spec);
 }
 
@@ -909,14 +883,11 @@ void
 gom_resource_class_table (GomResourceClass *resource_class,
                           const gchar      *table)
 {
-	GomResourceClassMeta *meta;
-
 	g_return_if_fail(table != NULL);
 	g_return_if_fail(g_utf8_validate(table, -1, NULL));
 
-	meta = gom_resource_class_get_meta(resource_class);
-	g_free(meta->table);
-	meta->table = g_strdup(table);
+	resource_class->tableq = g_quark_from_string(table);
+	resource_class->table = g_quark_to_string(resource_class->tableq);
 }
 
 /**
@@ -1028,8 +999,11 @@ gom_resource_finalize (GObject *object)
  * Side effects: None.
  */
 static void
-gom_resource_init (GomResource *resource)
+gom_resource_init (GTypeInstance *instance,
+                   gpointer       g_class)
 {
+	GomResource *resource = (GomResource *)instance;
+
 	resource->priv =
 		G_TYPE_INSTANCE_GET_PRIVATE(resource,
 		                            GOM_TYPE_RESOURCE,
@@ -1077,8 +1051,8 @@ gom_resource_get_property (GObject    *object,
                            GValue     *value,
                            GParamSpec *pspec)
 {
-	GomResourceClassMeta *meta;
 	GomResourcePrivate *priv;
+	GomResourceClass *resource_class;
 	GomPropertyValue *prop_value;
 	GomProperty *prop;
 	GomResource *resource = (GomResource *)object;
@@ -1108,8 +1082,8 @@ gom_resource_get_property (GObject    *object,
 	/*
 	 * New item, lets get the default.
 	 */
-	meta = gom_resource_class_get_meta(GOM_RESOURCE_GET_CLASS(object));
-	if ((prop = gom_property_set_findq(meta->properties, name))) {
+	resource_class = GOM_RESOURCE_GET_CLASS(object);
+	if ((prop = gom_property_set_findq(resource_class->properties, name))) {
 		g_value_copy(&prop->default_value, value);
 	}
 }
@@ -1417,19 +1391,17 @@ static gboolean
 gom_resource_save_parents (GomResource  *resource,
                            GError      **error)
 {
-	GomResourceClassMeta *meta;
-	GomProperty *prop;
+	GomResourceClass *resource_class;
 	GomResource *related = NULL;
-	guint n_props;
+	GomProperty *prop;
 	gint i;
 
 	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
 
-	meta = gom_resource_class_get_meta(GOM_RESOURCE_GET_CLASS(resource));
-	n_props = gom_property_set_length(meta->properties);
+	resource_class = GOM_RESOURCE_GET_CLASS(resource);
 
-	for (i = 0; i < n_props; i++) {
-		prop = gom_property_set_get_nth(meta->properties, i);
+	for (i = 0; i < resource_class->properties->len; i++) {
+		prop = gom_property_set_get_nth(resource_class->properties, i);
 		if (prop->relationship.relation == GOM_RELATION_MANY_TO_ONE) {
 			g_object_get(resource,
 			             g_quark_to_string(prop->name), &related,
@@ -1468,4 +1440,29 @@ gom_resource_save (GomResource  *resource,
 	}
 
 	return FALSE;
+}
+
+GType
+gom_resource_get_type (void)
+{
+	static gsize initialized = FALSE;
+	static GType type_id = 0;
+	static GTypeInfo type_info = {
+		.class_size    = sizeof(GomResourceClass),
+		.base_init     = gom_resource_base_init,
+		.base_finalize = gom_resource_base_finalize,
+		.class_init    = gom_resource_class_init,
+		.instance_size = sizeof(GomResource),
+		.instance_init = gom_resource_init,
+	};
+
+	if (g_once_init_enter(&initialized)) {
+		type_id = g_type_register_static(G_TYPE_OBJECT,
+		                                 g_intern_static_string("GomResource"),
+		                                 &type_info,
+		                                 G_TYPE_FLAG_ABSTRACT);
+		g_once_init_leave(&initialized, TRUE);
+	}
+
+	return type_id;
 }
