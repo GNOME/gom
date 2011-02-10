@@ -446,6 +446,7 @@ test_gom_collection_last (void)
 	}
 
 	ASSERT_PROP_UINT64(person, "id", 2);
+	//ASSERT_PROP_STR(person, "name", "Christian Yogurt");
 
 	gom_adapter_sqlite_close(sqlite);
 
@@ -479,12 +480,16 @@ test_gom_collection_slice (void)
 
 	slice = gom_collection_slice(collection, 1, -1);
 	g_assert_cmpint(1, ==, gom_collection_count(slice));
+	gom_clear_object(&slice);
+
+	slice = gom_collection_slice(collection, 1, 2);
+	g_assert_cmpint(1, ==, gom_collection_count(slice));
+	gom_clear_object(&slice);
 
 	gom_adapter_sqlite_close(sqlite);
 
 	gom_clear_object(&sqlite);
 	gom_clear_object(&collection);
-	gom_clear_object(&slice);
 }
 
 gint
