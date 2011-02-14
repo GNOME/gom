@@ -1062,7 +1062,11 @@ gom_adapter_sqlite_read (GomAdapter     *adapter,
 {
 	GomAdapterSqlitePrivate *priv;
 	GomAdapterSqlite *sqlite = (GomAdapterSqlite *)adapter;
+	GomPropertySet *fields = NULL;
+	GomProperty *field;
 	sqlite3_stmt *stmt = NULL;
+	gboolean ret = FALSE;
+	gint i;
 
 	g_return_val_if_fail(GOM_IS_ADAPTER_SQLITE(sqlite), FALSE);
 	g_return_val_if_fail(GOM_IS_QUERY(query), FALSE);
@@ -1074,18 +1078,49 @@ gom_adapter_sqlite_read (GomAdapter     *adapter,
 		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
 		            GOM_ADAPTER_SQLITE_ERROR_NOT_OPEN,
 		            "Must open a database before reading.");
-		return FALSE;
+		goto failure;
+	}
+
+	g_object_get(query,
+	             "fields", &fields,
+	             NULL);
+
+	if (!fields) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_INVALID_TYPE,
+		            "No field specified in query.");
+		goto failure;
+	}
+
+	for (i = 0; i < fields->len; i++) {
+		field = gom_property_set_get_nth(fields, i);
+		if (g_type_is_a(field->value_type, GOM_TYPE_RESOURCE)) {
+			g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+			            GOM_ADAPTER_SQLITE_ERROR_INVALID_TYPE,
+			            "Attempt to retrieve a GomResource field.");
+			goto failure;
+		} else if (g_type_is_a(field->value_type, GOM_TYPE_COLLECTION)) {
+			g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+			            GOM_ADAPTER_SQLITE_ERROR_INVALID_TYPE,
+			            "Attempt to retrieve a GomCollection field.");
+			goto failure;
+		}
 	}
 
 	if (!gom_adapter_sqlite_create_read(sqlite, query, &stmt, error)) {
-		return FALSE;
+		goto failure;
 	}
 
 	*enumerable = g_object_new(GOM_TYPE_ENUMERABLE_SQLITE,
 	                           "statement", stmt,
 	                           NULL);
 
-	return TRUE;
+	ret = TRUE;
+
+  failure:
+	gom_clear_pointer(&fields, gom_property_set_unref);
+
+	return ret;
 }
 
 static gboolean
