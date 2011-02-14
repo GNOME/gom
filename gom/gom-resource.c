@@ -354,6 +354,49 @@ gom_resource_find (GType          resource_type,
 }
 
 /**
+ * gom_resource_find_first:
+ * @resource_type: (in): A #GomResource based #GType.
+ * @adapter: (in): A #GomAdapter.
+ * @condition: (in) (allow-none): A #GomCondition or %NULL.
+ * @error: (error): A location for a #GError, or %NULL.
+ *
+ * A convenience function that calls gom_resource_find() and returns the
+ * first result.
+ *
+ * If no resource was found, %NULL is returned and @error is set.
+ *
+ * Returns: A #GomResource if successful; otherwise %NULL.
+ * Side effects: None.
+ */
+gpointer
+gom_resource_find_first (GType          resource_type,
+                         GomAdapter    *adapter,
+                         GomCondition  *condition,
+                         GError       **error)
+{
+	GomCollection *collection = NULL;
+	GomResource *ret = NULL;
+
+	g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), NULL);
+	g_return_val_if_fail(adapter != NULL, NULL);
+
+	if ((collection = gom_resource_find(resource_type, adapter, condition, error))) {
+		if ((ret = gom_collection_first(collection))) {
+			g_assert(GOM_IS_RESOURCE(ret));
+		}
+	}
+
+	gom_clear_object(&collection);
+
+	if (!ret) {
+		g_set_error(error, GOM_RESOURCE_ERROR, GOM_RESOURCE_ERROR_NOT_FOUND,
+		            "No resource was found matching the query.");
+	}
+
+	return ret;
+}
+
+/**
  * gom_resource_get_condition:
  * @resource: (in): A #GomResource.
  *

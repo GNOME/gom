@@ -47,6 +47,7 @@ typedef enum   _GomResourceError     GomResourceError;
 enum _GomResourceError
 {
 	GOM_RESOURCE_ERROR_NO_ADAPTER = 1,
+	GOM_RESOURCE_ERROR_NOT_FOUND,
 };
 
 struct _GomResource
@@ -101,6 +102,10 @@ gboolean                gom_resource_delete                 (GomResource      *r
                                                              GError          **error);
 GQuark                  gom_resource_error_quark            (void) G_GNUC_CONST;
 GomCollection*          gom_resource_find                   (GType             resource_type,
+                                                             GomAdapter       *adapter,
+                                                             GomCondition     *condition,
+                                                             GError          **error);
+gpointer                gom_resource_find_first             (GType             resource_type,
                                                              GomAdapter       *adapter,
                                                              GomCondition     *condition,
                                                              GError          **error);
