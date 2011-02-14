@@ -523,12 +523,14 @@ test_gom_collection_get_nth (void)
 		g_error("Failed to get the zeroeth item in collection");
 	}
 	ASSERT_PROP_UINT64(person, "id", 1);
+	ASSERT_PROP_STR(person, "name", "John Smith");
 	gom_clear_object(&person);
 
 	if (!(person = gom_collection_get_nth(collection, 1))) {
 		g_error("Failed to get the zeroeth item in collection");
 	}
 	ASSERT_PROP_UINT64(person, "id", 2);
+	ASSERT_PROP_STR(person, "name", "Christian Yogurt");
 	gom_clear_object(&person);
 
 	gom_adapter_sqlite_close(sqlite);
