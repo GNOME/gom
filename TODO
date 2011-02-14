@@ -1,0 +1,21 @@
+----------------------------------------------------------------------------
+                            libgom TODO
+----------------------------------------------------------------------------
+
+* Lazy collections need to be implemented. This can be done in the property
+  getter to return a new collection with the appropriate query.
+
+* Lazy related objects. These should return an unsaved version of the
+  object if the source is unsaved as well. If saved, it should return a
+  lazy version of the related object.
+
+* After all the basics work, we should implement the ability to have a
+  pool of prepared statements for a given query.
+
+* This assumes we are single threaded currently. That is not good because
+  objects are tied to their adapter, which means they cannot traverse
+  between threads. That makes having an adapter for each thread also
+  un-realistic. Both in total connections to the database and managing
+  shared state. Having adapters hidden behind a repository object might
+  help both the threaded-adapter model and the object caching model.
+
