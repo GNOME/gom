@@ -19,3 +19,12 @@
   shared state. Having adapters hidden behind a repository object might
   help both the threaded-adapter model and the object caching model.
 
+* It is important that profiling can be done on particular sql queries.
+  However, to do that, we need to know what the query actually is. A way
+  to trace queries should be added. Something such as:
+
+   gom_trace_enable();
+   gom_trace_disable();
+
+ This might be extended to SQL explain as well.
+
