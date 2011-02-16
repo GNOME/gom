@@ -35,6 +35,7 @@ struct _GomQueryPrivate
 	GomQueryDirection direction;
 	GomPropertySet *fields;
 	GomCondition *condition;
+	GomProperty *join;
 	GPtrArray *relations;
 	gboolean count_only;
 	gboolean unique;
@@ -42,7 +43,6 @@ struct _GomQueryPrivate
 	guint64 offset;
 	guint64 limit;
 	GType resource_type;
-	GType join;
 };
 
 enum
@@ -79,7 +79,7 @@ static void gom_query_set_direction     (GomQuery          *query,
 static void gom_query_set_fields        (GomQuery          *query,
                                          GomPropertySet    *set);
 static void gom_query_set_join          (GomQuery          *query,
-                                         GType              join);
+                                         GomProperty       *join);
 static void gom_query_set_limit         (GomQuery          *query,
                                          guint64            limit);
 static void gom_query_set_offset        (GomQuery          *query,
@@ -186,11 +186,10 @@ gom_query_class_init (GomQueryClass *klass)
 	                                gParamSpecs[PROP_FIELDS]);
 
 	gParamSpecs[PROP_JOIN] =
-		g_param_spec_gtype("join",
-		                   _("Join"),
-		                   _("A type to join in the query."),
-		                   GOM_TYPE_RESOURCE,
-		                   G_PARAM_READWRITE);
+		g_param_spec_pointer("join",
+		                     _("Join"),
+		                     _("A property describing the join."),
+		                     G_PARAM_READWRITE);
 	g_object_class_install_property(object_class, PROP_JOIN,
 	                                gParamSpecs[PROP_JOIN]);
 
@@ -311,7 +310,7 @@ gom_query_get_property (GObject    *object,
 		g_value_set_boxed(value, query->priv->fields);
 		break;
 	case PROP_JOIN:
-		g_value_set_gtype(value, query->priv->join);
+		g_value_set_pointer(value, query->priv->join);
 		break;
 	case PROP_LIMIT:
 		g_value_set_uint64(value, query->priv->limit);
@@ -416,13 +415,12 @@ gom_query_set_fields (GomQuery       *query,
 }
 
 static void
-gom_query_set_join (GomQuery *query,
-                    GType     join)
+gom_query_set_join (GomQuery    *query,
+                    GomProperty *join)
 {
 	GomQueryPrivate *priv;
 
 	g_return_if_fail(GOM_IS_QUERY(query));
-	g_return_if_fail(!join || g_type_is_a(join, GOM_TYPE_RESOURCE));
 
 	priv = query->priv;
 
@@ -489,7 +487,7 @@ gom_query_set_property (GObject      *object,
 		gom_query_set_fields(query, g_value_get_boxed(value));
 		break;
 	case PROP_JOIN:
-		gom_query_set_join(query, g_value_get_gtype(value));
+		gom_query_set_join(query, g_value_get_pointer(value));
 		break;
 	case PROP_LIMIT:
 		gom_query_set_limit(query, g_value_get_uint64(value));

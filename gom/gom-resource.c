@@ -1208,7 +1208,7 @@ gom_resource_read_related_property (GomResource *resource,
 	query = g_object_new(GOM_TYPE_QUERY,
 	                     "condition", condition,
 	                     "fields", resource_class->keys,
-	                     "join", prop->value_type,
+	                     "join", prop,
 	                     "limit", G_GUINT64_CONSTANT(1),
 	                     "resource-type", prop->value_type,
 	                     NULL);

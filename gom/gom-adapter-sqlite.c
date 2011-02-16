@@ -474,10 +474,13 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
                                 GError           **error)
 {
 	GomAdapterSqlitePrivate *priv;
+	GomResourceClass *resource_class = NULL;
+	GomResourceClass *join_class = NULL;
 	GomPropertySet *fields = NULL;
 	GHashTableIter iter;
 	GomCondition *condition = NULL;
 	GomProperty *field;
+	GomProperty *join = NULL;
 	const gchar *table = NULL;
 	const gchar *k;
 	GHashTable *hash = NULL;
@@ -503,6 +506,7 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 	             "count-only", &count_only,
 	             "condition", &condition,
 	             "fields", &fields,
+	             "join", &join,
 	             "limit", &limit,
 	             "offset", &offset,
 	             "resource-type", &resource_type,
@@ -515,6 +519,8 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 		            "No resource-type was provided for the query.");
 		goto failure;
 	}
+
+	resource_class = g_type_class_ref(resource_type);
 
 	str = g_string_new("SELECT ");
 
@@ -533,6 +539,21 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 
 	table = _get_table_name(resource_type);
 	g_string_append_printf(str, " FROM %s ", table);
+
+	if (join) {
+		join_class = g_type_class_ref(join->owner_type);
+		g_string_append_printf(str, "LEFT JOIN %s ON ", join_class->table);
+		n_fields = gom_property_set_length(resource_class->keys);
+		for (i = 0; i < n_fields; i++) {
+			field = gom_property_set_get_nth(resource_class->keys, i);
+			g_string_append_printf(str, "'%s'.'%s_%s' = '%s'.'%s' ",
+			                       join_class->table,
+			                       g_quark_to_string(join->name),
+			                       g_quark_to_string(field->name),
+			                       resource_class->table,
+			                       g_quark_to_string(field->name));
+		}
+	}
 
 	hash = g_hash_table_new_full(g_str_hash, g_str_equal,
 								 g_free, _g_value_free);
@@ -583,6 +604,8 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 	gom_clear_pointer(&fields, gom_property_set_unref);
 	gom_clear_pointer(&hash, g_hash_table_destroy);
 	gom_clear_pointer(&condition, gom_condition_unref);
+	gom_clear_pointer(&join_class, g_type_class_unref);
+	gom_clear_pointer(&resource_class, g_type_class_unref);
 
 	return ret;
 }
