@@ -420,13 +420,6 @@ gom_resource_get_condition (GomResource *resource)
 
 	g_return_val_if_fail(GOM_IS_RESOURCE(resource), NULL);
 
-	/*
-	 * XXX: The MockOccupation is not getting saved, but getting
-	 *      requested from the MockPerson when it goes to save.
-	 *      Not good.
-	 */
-	g_debug("Retrieving condition for type %s", g_type_name(G_TYPE_FROM_INSTANCE(resource)));
-
 	priv = resource->priv;
 
 	resource_class = GOM_RESOURCE_GET_CLASS(resource);
