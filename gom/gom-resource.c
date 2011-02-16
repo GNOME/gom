@@ -1192,6 +1192,7 @@ gom_resource_read_related_property (GomResource *resource,
 	GomEnumerable *enumerable = NULL;
 	GomCondition *condition = NULL;
 	GomQuery *query = NULL;
+	GError *error = NULL;
 
 	g_return_if_fail(GOM_IS_RESOURCE(resource));
 	g_return_if_fail(resource->priv->adapter != NULL);
@@ -1213,12 +1214,18 @@ gom_resource_read_related_property (GomResource *resource,
 	                     "resource-type", prop->value_type,
 	                     NULL);
 
-	if (gom_adapter_read(priv->adapter, query, &enumerable, NULL)) {
-		if (gom_enumerable_iter_init(&iter, enumerable)) {
-			gom_enumerable_get_value(enumerable, &iter, 0, value);
-		}
+	if (!gom_adapter_read(priv->adapter, query, &enumerable, &error)) {
+		g_critical("%s", error->message);
+		g_error_free(error);
+		goto failure;
 	}
 
+	if (gom_enumerable_iter_init(&iter, enumerable)) {
+		g_debug("Got a result from the query");
+		gom_enumerable_get_value(enumerable, &iter, 0, value);
+	}
+
+  failure:
 	gom_clear_pointer(&resource_class, g_type_class_unref);
 	gom_clear_pointer(&condition, gom_condition_unref);
 	gom_clear_object(&enumerable);
