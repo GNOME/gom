@@ -1201,16 +1201,14 @@ gom_resource_read_related_property (GomResource *resource,
 
 	priv = resource->priv;
 
-	resource_class = GOM_RESOURCE_GET_CLASS(resource);
+	resource_class = g_type_class_ref(prop->value_type);
 
-	/*
-	 * TODO: Setup condition/joins.
-	 */
-	condition = NULL;
+	condition = gom_resource_get_condition(resource);
 
 	query = g_object_new(GOM_TYPE_QUERY,
 	                     "condition", condition,
 	                     "fields", resource_class->keys,
+	                     "join", prop->value_type,
 	                     "limit", G_GUINT64_CONSTANT(1),
 	                     "resource-type", prop->value_type,
 	                     NULL);
@@ -1221,6 +1219,7 @@ gom_resource_read_related_property (GomResource *resource,
 		}
 	}
 
+	gom_clear_pointer(&resource_class, g_type_class_unref);
 	gom_clear_pointer(&condition, gom_condition_unref);
 	gom_clear_object(&enumerable);
 	gom_clear_object(&query);

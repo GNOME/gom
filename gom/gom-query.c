@@ -42,6 +42,7 @@ struct _GomQueryPrivate
 	guint64 offset;
 	guint64 limit;
 	GType resource_type;
+	GType join;
 };
 
 enum
@@ -51,9 +52,9 @@ enum
 	PROP_COUNT_ONLY,
 	PROP_DIRECTION,
 	PROP_FIELDS,
+	PROP_JOIN,
 	PROP_LIMIT,
 	PROP_OFFSET,
-	/* TODO: */PROP_RELATIONS,
 	PROP_RESOURCE_TYPE,
 	PROP_REVERSE,
 	PROP_UNIQUE,
@@ -77,6 +78,8 @@ static void gom_query_set_direction     (GomQuery          *query,
                                          GomQueryDirection  direction);
 static void gom_query_set_fields        (GomQuery          *query,
                                          GomPropertySet    *set);
+static void gom_query_set_join          (GomQuery          *query,
+                                         GType              join);
 static void gom_query_set_limit         (GomQuery          *query,
                                          guint64            limit);
 static void gom_query_set_offset        (GomQuery          *query,
@@ -119,6 +122,8 @@ gom_query_dup (GomQuery *query)
 	                   "reverse", priv->reverse,
 	                   "unique", priv->unique,
 	                   NULL);
+
+	ret->priv->join = query->priv->join;
 
 	return ret;
 }
@@ -179,6 +184,15 @@ gom_query_class_init (GomQueryClass *klass)
 		                   G_PARAM_READWRITE);
 	g_object_class_install_property(object_class, PROP_FIELDS,
 	                                gParamSpecs[PROP_FIELDS]);
+
+	gParamSpecs[PROP_JOIN] =
+		g_param_spec_gtype("join",
+		                   _("Join"),
+		                   _("A type to join in the query."),
+		                   GOM_TYPE_RESOURCE,
+		                   G_PARAM_READWRITE);
+	g_object_class_install_property(object_class, PROP_JOIN,
+	                                gParamSpecs[PROP_JOIN]);
 
 	gParamSpecs[PROP_LIMIT] =
 		g_param_spec_uint64("limit",
@@ -296,6 +310,9 @@ gom_query_get_property (GObject    *object,
 	case PROP_FIELDS:
 		g_value_set_boxed(value, query->priv->fields);
 		break;
+	case PROP_JOIN:
+		g_value_set_gtype(value, query->priv->join);
+		break;
 	case PROP_LIMIT:
 		g_value_set_uint64(value, query->priv->limit);
 		break;
@@ -399,6 +416,21 @@ gom_query_set_fields (GomQuery       *query,
 }
 
 static void
+gom_query_set_join (GomQuery *query,
+                    GType     join)
+{
+	GomQueryPrivate *priv;
+
+	g_return_if_fail(GOM_IS_QUERY(query));
+	g_return_if_fail(!join || g_type_is_a(join, GOM_TYPE_RESOURCE));
+
+	priv = query->priv;
+
+	priv->join = join;
+	g_object_notify_by_pspec(G_OBJECT(query), gParamSpecs[PROP_JOIN]);
+}
+
+static void
 gom_query_set_limit (GomQuery *query,
                      guint64   limit)
 {
@@ -455,6 +487,9 @@ gom_query_set_property (GObject      *object,
 		break;
 	case PROP_FIELDS:
 		gom_query_set_fields(query, g_value_get_boxed(value));
+		break;
+	case PROP_JOIN:
+		gom_query_set_join(query, g_value_get_gtype(value));
 		break;
 	case PROP_LIMIT:
 		gom_query_set_limit(query, g_value_get_uint64(value));
