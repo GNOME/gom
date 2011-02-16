@@ -1191,8 +1191,14 @@ gom_resource_read_related_property (GomResource *resource,
 	GomResourceClass *resource_class;
 	GomEnumerable *enumerable = NULL;
 	GomCondition *condition = NULL;
+	GomProperty *field;
+	GParameter param;
 	GomQuery *query = NULL;
+	GObject *object = NULL;
 	GError *error = NULL;
+	GArray *params = NULL;
+	guint n_fields;
+	gint i;
 
 	g_return_if_fail(GOM_IS_RESOURCE(resource));
 	g_return_if_fail(resource->priv->adapter != NULL);
@@ -1221,13 +1227,39 @@ gom_resource_read_related_property (GomResource *resource,
 	}
 
 	if (gom_enumerable_iter_init(&iter, enumerable)) {
-		g_debug("Got a result from the query");
-		gom_enumerable_get_value(enumerable, &iter, 0, value);
+		n_fields = gom_property_set_length(resource_class->keys);
+		params = g_array_new(FALSE, FALSE, sizeof(GParameter));
+
+		memset(&param, 0, sizeof param);
+		param.name = "is-new";
+		g_value_init(&param.value, G_TYPE_BOOLEAN);
+		g_value_set_boolean(&param.value, FALSE);
+		g_array_append_val(params, param);
+
+		memset(&param, 0, sizeof param);
+		param.name = "adapter";
+		g_value_init(&param.value, GOM_TYPE_ADAPTER);
+		g_value_set_object(&param.value, priv->adapter);
+		g_array_append_val(params, param);
+
+		for (i = 0; i < n_fields; i++) {
+			field = gom_property_set_get_nth(resource_class->keys, i);
+
+			memset(&param, 0, sizeof param);
+			param.name = g_quark_to_string(field->name);
+			g_value_init(&param.value, field->value_type);
+			gom_enumerable_get_value(enumerable, &iter, i, &param.value);
+			g_array_append_val(params, param);
+		}
+		object = g_object_newv(prop->value_type, params->len,
+		                       (GParameter *)params->data);
+		g_value_set_object(value, object);
 	}
 
   failure:
 	gom_clear_pointer(&resource_class, g_type_class_unref);
 	gom_clear_pointer(&condition, gom_condition_unref);
+	gom_clear_pointer(&params, g_array_unref);
 	gom_clear_object(&enumerable);
 	gom_clear_object(&query);
 }
