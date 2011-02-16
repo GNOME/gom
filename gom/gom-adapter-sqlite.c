@@ -431,7 +431,7 @@ resource_to_hash (GomResource *resource)
 			related_class = g_type_class_peek(values[i]->value.g_type);
 
 			related = g_value_get_object(&values[i]->value);
-			if (!related || !gom_resource_is_dirty(related)) {
+			if (!related) {
 				continue;
 			}
 
