@@ -361,7 +361,11 @@ test_gom_collection_count (void)
 	}
 
 	count = gom_collection_count(collection);
-	g_assert_cmpint(count, ==, 2);
+	if (g_test_slow()) {
+		g_assert_cmpint(count, ==, 1002);
+	} else {
+		g_assert_cmpint(count, ==, 2);
+	}
 	gom_clear_object(&collection);
 
 	g_value_init(&val, G_TYPE_UINT64);
@@ -448,7 +452,11 @@ test_gom_collection_last (void)
 		g_error("Failed to get the last item in collection");
 	}
 
-	ASSERT_PROP_UINT64(person, "id", 2);
+	if (g_test_slow()) {
+		ASSERT_PROP_UINT64(person, "id", 1002);
+	} else {
+		ASSERT_PROP_UINT64(person, "id", 2);
+	}
 	ASSERT_PROP_STR(person, "name", "Christian Yogurt");
 	ASSERT_PROP_ENUM(person, "gender", MOCK_GENDER_MALE);
 
@@ -480,10 +488,18 @@ test_gom_collection_slice (void)
 	                                     NULL, &error))) {
 		g_error("%s", error->message);
 	}
-	g_assert_cmpint(2, ==, gom_collection_count(collection));
+	if (g_test_slow()) {
+		g_assert_cmpint(1002, ==, gom_collection_count(collection));
+	} else {
+		g_assert_cmpint(2, ==, gom_collection_count(collection));
+	}
 
 	slice = gom_collection_slice(collection, 1, -1);
-	g_assert_cmpint(1, ==, gom_collection_count(slice));
+	if (g_test_slow()) {
+		g_assert_cmpint(1001, ==, gom_collection_count(slice));
+	} else {
+		g_assert_cmpint(1, ==, gom_collection_count(slice));
+	}
 	gom_clear_object(&slice);
 
 	slice = gom_collection_slice(collection, 1, 2);
@@ -517,7 +533,11 @@ test_gom_collection_get_nth (void)
 	                                     NULL, &error))) {
 		g_error("%s", error->message);
 	}
-	g_assert_cmpint(2, ==, gom_collection_count(collection));
+	if (g_test_slow()) {
+		g_assert_cmpint(1002, ==, gom_collection_count(collection));
+	} else {
+		g_assert_cmpint(2, ==, gom_collection_count(collection));
+	}
 
 	if (!(person = gom_collection_get_nth(collection, 0))) {
 		g_error("Failed to get the zeroeth item in collection");
@@ -526,10 +546,10 @@ test_gom_collection_get_nth (void)
 	ASSERT_PROP_STR(person, "name", "John Smith");
 	gom_clear_object(&person);
 
-	if (!(person = gom_collection_get_nth(collection, 1))) {
+	if (!(person = gom_collection_get_nth(collection, g_test_slow() ? 1001 : 1))) {
 		g_error("Failed to get the zeroeth item in collection");
 	}
-	ASSERT_PROP_UINT64(person, "id", 2);
+	ASSERT_PROP_UINT64(person, "id", g_test_slow() ? 1002 : 2);
 	ASSERT_PROP_STR(person, "name", "Christian Yogurt");
 	gom_clear_object(&person);
 
