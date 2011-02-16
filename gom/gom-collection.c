@@ -247,7 +247,7 @@ gom_collection_count (GomCollection *collection)
 	}
 
 	if (limit) {
-		ret = MAX(limit, (ret - offset));
+		ret = MIN(limit, (ret - offset));
 	} else if (offset) {
 		ret = MAX(0, ((gint64)ret - (gint64)offset));
 	}
