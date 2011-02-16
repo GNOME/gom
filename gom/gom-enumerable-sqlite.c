@@ -52,13 +52,17 @@ gom_enumerable_sqlite_iter_init (GomEnumerable     *enumerable,
 {
 	GomEnumerableSqlitePrivate *priv;
 	GomEnumerableSqlite *sqlite = (GomEnumerableSqlite *)enumerable;
+	gboolean ret;
+	gint code;
 
 	g_return_val_if_fail(GOM_IS_ENUMERABLE_SQLITE(sqlite), FALSE);
 	g_return_val_if_fail(iter != NULL, FALSE);
 
 	priv = sqlite->priv;
 
-	return (SQLITE_ROW == sqlite3_step(priv->stmt));
+	ret = (SQLITE_ROW == (code = sqlite3_step(priv->stmt)));
+
+	return ret;
 }
 
 static gboolean
