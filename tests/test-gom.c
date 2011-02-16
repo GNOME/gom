@@ -566,6 +566,41 @@ test_gom_resource_find_first (void)
 	gom_clear_object(&sqlite);
 }
 
+static void
+test_gom_resource_lazy_related (void)
+{
+	GomAdapterSqlite *sqlite = NULL;
+	GomResource *person = NULL;
+	GomResource *occupation = NULL;
+	GError *error = NULL;
+
+	sqlite = g_object_new(GOM_TYPE_ADAPTER_SQLITE, NULL);
+
+	if (!gom_adapter_sqlite_load_from_file(sqlite, TEST_DB, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	if (!(person = gom_resource_find_first(MOCK_TYPE_PERSON,
+	                                       GOM_ADAPTER(sqlite),
+	                                       NULL, &error))) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	g_object_get(person, "occupation", &occupation, NULL);
+
+	g_assert(occupation != NULL);
+	ASSERT_PROP_STR(occupation, "name", "Software Engineer");
+
+	gom_adapter_sqlite_close(sqlite);
+	gom_clear_object(&sqlite);
+	gom_clear_object(&person);
+	gom_clear_object(&occupation);
+}
+
 gint
 main (gint   argc,
       gchar *argv[])
@@ -597,6 +632,8 @@ main (gint   argc,
 	                test_gom_resource_update);
 	ADD_FORKED_TEST("/Gom/Resource/find_first",
 	                test_gom_resource_find_first);
+	ADD_FORKED_TEST("/Gom/Resource/lazy_related",
+	                test_gom_resource_lazy_related);
 	ADD_FORKED_TEST("/Gom/Collection/count",
 	                test_gom_collection_count);
 	ADD_FORKED_TEST("/Gom/Collection/first",

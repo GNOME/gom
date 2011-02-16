@@ -412,6 +412,7 @@ resource_to_hash (GomResource *resource)
 	GomResourceClass *related_class;
 	GomPropertyValue **values;
 	GomProperty *prop;
+	GomResource *related;
 	GHashTable *hash;
 	GValue *value;
 	guint n_values;
@@ -429,6 +430,11 @@ resource_to_hash (GomResource *resource)
 		if (g_type_is_a(values[i]->value.g_type, GOM_TYPE_RESOURCE)) {
 			related_class = g_type_class_peek(values[i]->value.g_type);
 
+			related = g_value_get_object(&values[i]->value);
+			if (!related || !gom_resource_is_dirty(related)) {
+				continue;
+			}
+
 			for (j = 0; j < related_class->properties->len; j++) {
 				prop = gom_property_set_get_nth(related_class->properties, j);
 				if (prop->is_key) {
@@ -444,6 +450,9 @@ resource_to_hash (GomResource *resource)
 				}
 			}
 		} else if (G_VALUE_HOLDS(&values[i]->value, GOM_TYPE_COLLECTION)) {
+			/*
+			 * TODO: 
+			 */
 		} else {
 			key = g_strdup(g_quark_to_string(values[i]->name));
 			value = g_new0(GValue, 1);

@@ -408,14 +408,26 @@ gom_resource_find_first (GType          resource_type,
 static GomCondition*
 gom_resource_get_condition (GomResource *resource)
 {
+	GomResourcePrivate *priv;
 	GomResourceClass *resource_class;
+	GomPropertyValue *prop_value;
 	GomPropertySet *props;
 	GomCondition *condition = NULL;
 	GomProperty *prop;
 	GPtrArray *all;
-	GValue value = { 0 };
 	guint n_props;
 	gint i;
+
+	g_return_val_if_fail(GOM_IS_RESOURCE(resource), NULL);
+
+	/*
+	 * XXX: The MockOccupation is not getting saved, but getting
+	 *      requested from the MockPerson when it goes to save.
+	 *      Not good.
+	 */
+	g_debug("Retrieving condition for type %s", g_type_name(G_TYPE_FROM_INSTANCE(resource)));
+
+	priv = resource->priv;
 
 	resource_class = GOM_RESOURCE_GET_CLASS(resource);
 	props = gom_resource_class_get_properties(resource_class);
@@ -425,13 +437,11 @@ gom_resource_get_condition (GomResource *resource)
 	for (i = 0; i < n_props; i++) {
 		prop = gom_property_set_get_nth(props, i);
 		if (prop->is_key) {
-			g_value_init(&value, prop->value_type);
-			g_object_get_property(G_OBJECT(resource),
-			                      g_quark_to_string(prop->name),
-			                      &value);
-			condition = gom_condition_equal(prop, &value);
-			g_ptr_array_add(all, condition);
-			g_value_unset(&value);
+			if ((prop_value = g_hash_table_lookup(priv->properties, &prop->name))) {
+				g_assert(G_IS_VALUE(&prop_value->value));
+				condition = gom_condition_equal(prop, &prop_value->value);
+				g_ptr_array_add(all, condition);
+			}
 		}
 	}
 
@@ -1058,6 +1068,36 @@ gom_resource_init (GTypeInstance *instance,
 }
 
 /**
+ * gom_resource_is_dirty:
+ * @resource: (in): A #GomResource.
+ *
+ * Checks to see if a #GomResource has been dirtied.
+ *
+ * Returns: %TRUe if the resource is dirty; otherwise %FALSE.
+ * Side effects: None.
+ */
+gboolean
+gom_resource_is_dirty (GomResource *resource)
+{
+	GomResourcePrivate *priv;
+	GHashTableIter iter;
+	GomPropertyValue *prop_value;
+
+	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+
+	priv = resource->priv;
+
+	g_hash_table_iter_init(&iter, priv->properties);
+	while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&prop_value)) {
+		if (prop_value->is_dirty) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+/**
  * gom_resource_is_new:
  * @resource: (in): A #GomResource.
  *
@@ -1106,7 +1146,7 @@ gom_resource_get_property (GObject    *object,
 	priv = resource->priv;
 
 	/*
-	 * If we currently have the value, retrieve it.
+	 * If we currently have the value in our hashtable, retrieve it.
 	 */
 	name = g_quark_from_string(pspec->name);
 	if ((prop_value = g_hash_table_lookup(priv->properties, &name))) {
@@ -1123,12 +1163,29 @@ gom_resource_get_property (GObject    *object,
 	}
 
 	/*
-	 * New item, lets get the default.
+	 * New item, lets get the default and store it.
 	 */
 	resource_class = GOM_RESOURCE_GET_CLASS(object);
 	if ((prop = gom_property_set_findq(resource_class->properties, name))) {
-		g_value_copy(&prop->default_value, value);
+		prop_value = _property_value_new();
+		prop_value->name = name;
+		g_value_init(&prop_value->value, prop->value_type);
+		if (g_type_is_a(prop->value_type, GOM_TYPE_RESOURCE)) {
+			g_value_take_object(&prop_value->value,
+			                    g_object_new(prop->value_type,
+			                                 "adapter", priv->adapter,
+			                                 NULL));
+		} else if (g_type_is_a(prop->value_type, GOM_TYPE_COLLECTION)) {
+			/* TODO */
+		} else {
+			g_value_copy(&prop->default_value, &prop_value->value);
+		}
+		g_value_copy(&prop_value->value, value);
+		g_hash_table_insert(priv->properties, &prop_value->name, prop_value);
+		return;
 	}
+
+	G_OBJECT_WARN_INVALID_PROPERTY_ID(resource, prop_id, pspec);
 }
 
 static void
@@ -1393,8 +1450,7 @@ gom_resource_save_self (GomResource  *resource,
 			priv->is_new = FALSE;
 		}
 	} else {
-		props = gom_resource_class_get_properties(
-				GOM_RESOURCE_GET_CLASS(resource));
+		props = GOM_RESOURCE_GET_CLASS(resource)->properties;
 		n_props = gom_property_set_length(props);
 		set = gom_property_set_dup(props);
 		values = g_value_array_new(n_props);
@@ -1434,27 +1490,31 @@ static gboolean
 gom_resource_save_parents (GomResource  *resource,
                            GError      **error)
 {
+	GomResourcePrivate *priv;
 	GomResourceClass *resource_class;
+	GomPropertyValue *prop_value;
 	GomResource *related = NULL;
 	GomProperty *prop;
 	gint i;
 
 	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
 
+	priv = resource->priv;
+
 	resource_class = GOM_RESOURCE_GET_CLASS(resource);
 
 	for (i = 0; i < resource_class->properties->len; i++) {
 		prop = gom_property_set_get_nth(resource_class->properties, i);
 		if (prop->relationship.relation == GOM_RELATION_MANY_TO_ONE) {
-			g_object_get(resource,
-			             g_quark_to_string(prop->name), &related,
-			             NULL);
-			if (related) {
-				if (!gom_resource_save_self(related, error)) {
-					return FALSE;
+			prop_value = g_hash_table_lookup(priv->properties, &prop->name);
+			if (prop_value) {
+				related = g_value_get_object(&prop_value->value);
+				if (gom_resource_is_dirty(related)) {
+					if (!gom_resource_save_self(related, error)) {
+						return FALSE;
+					}
 				}
 			}
-			gom_clear_object(&related);
 		}
 	}
 
