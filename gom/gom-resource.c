@@ -1182,6 +1182,51 @@ gom_resource_get_property (GObject    *object,
 }
 
 static void
+gom_resource_read_related_property (GomResource *resource,
+                                    GomProperty *prop,
+                                    GValue      *value)
+{
+	GomResourcePrivate *priv;
+	GomEnumerableIter iter;
+	GomResourceClass *resource_class;
+	GomEnumerable *enumerable = NULL;
+	GomCondition *condition = NULL;
+	GomQuery *query = NULL;
+
+	g_return_if_fail(GOM_IS_RESOURCE(resource));
+	g_return_if_fail(resource->priv->adapter != NULL);
+	g_return_if_fail(g_type_is_a(prop->value_type, GOM_TYPE_RESOURCE));
+	g_return_if_fail(prop != NULL);
+	g_return_if_fail(value != NULL);
+
+	priv = resource->priv;
+
+	resource_class = GOM_RESOURCE_GET_CLASS(resource);
+
+	/*
+	 * TODO: Setup condition/joins.
+	 */
+	condition = NULL;
+
+	query = g_object_new(GOM_TYPE_QUERY,
+	                     "condition", condition,
+	                     "fields", resource_class->keys,
+	                     "limit", G_GUINT64_CONSTANT(1),
+	                     "resource-type", prop->value_type,
+	                     NULL);
+
+	if (gom_adapter_read(priv->adapter, query, &enumerable, NULL)) {
+		if (gom_enumerable_iter_init(&iter, enumerable)) {
+			gom_enumerable_get_value(enumerable, &iter, 0, value);
+		}
+	}
+
+	gom_clear_pointer(&condition, gom_condition_unref);
+	gom_clear_object(&enumerable);
+	gom_clear_object(&query);
+}
+
+static void
 gom_resource_read_property (GomResource *resource,
                             GQuark       property,
                             GValue      *value)
@@ -1215,14 +1260,13 @@ gom_resource_read_property (GomResource *resource,
 		return;
 	}
 
-	/*
-	 * TODO: Implement relations.
-	 */
 	if (g_type_is_a(prop->value_type, GOM_TYPE_RESOURCE)) {
-		//g_critical("Retrieving related resources not yet supported");
+		gom_resource_read_related_property(resource, prop, value);
 		return;
 	} else if (g_type_is_a(prop->value_type, GOM_TYPE_COLLECTION)) {
-		//g_critical("Retrieving collection properties not yet supported");
+		/*
+		 * TODO: 
+		 */
 		return;
 	}
 
