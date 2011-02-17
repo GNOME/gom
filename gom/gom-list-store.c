@@ -392,6 +392,7 @@ gom_list_store_iter_n_children (GtkTreeModel *tree_model,
 	GomEnumerable *enumerable = NULL;
 	GomListStore *store = (GomListStore *)tree_model;
 	GomQuery *query;
+	guint64 limit = 0;
 	GError *error = NULL;
 	GValue value = { 0 };
 	gint ret = 0;
@@ -412,6 +413,10 @@ gom_list_store_iter_n_children (GtkTreeModel *tree_model,
 
 	query = gom_query_dup(priv->query);
 
+	g_object_get(priv->query,
+	             "limit", &limit,
+	             NULL);
+
 	g_object_set(query,
 	             "count-only", TRUE,
 	             NULL);
@@ -427,6 +432,10 @@ gom_list_store_iter_n_children (GtkTreeModel *tree_model,
 		gom_enumerable_get_value(enumerable, &iter, 0, &value);
 		ret = g_value_get_int64(&value);
 		g_value_unset(&value);
+	}
+
+	if (limit) {
+		ret = MIN(limit, ret);
 	}
 
 	priv->n_children = ret;
