@@ -9,17 +9,18 @@ gint
 main (gint   argc,
       gchar *argv[])
 {
+	GtkTreeViewColumn *column;
+	GomResourceClass *klass;
+	GtkCellRenderer *cell;
+	GomPropertySet *fields;
+	GtkTreeModel *model;
+	GomProperty *occupation;
+	GomAdapter *adapter;
 	GtkWidget *scroller;
 	GtkWidget *treeview;
 	GtkWidget *window;
-	GtkTreeViewColumn *column;
-	GomPropertySet *fields;
-	GomProperty *occupation;
-	GomResourceClass *klass;
-	GomAdapter *adapter;
 	GomQuery *query;
 	GError *error = NULL;
-	GtkTreeModel *model;
 
 	gtk_init(&argc, &argv);
 
@@ -64,28 +65,43 @@ main (gint   argc,
 	                     NULL);
 
 	treeview = g_object_new(GTK_TYPE_TREE_VIEW,
+	                        "fixed-height-mode", TRUE,
 	                        "model", model,
 	                        "visible", TRUE,
 	                        NULL);
 	gtk_container_add(GTK_CONTAINER(scroller), treeview);
 
-	column = gtk_tree_view_column_new_with_attributes("Name",
-	                                                  gtk_cell_renderer_text_new(),
-	                                                  "text", 0,
-	                                                  NULL);
+	cell = gtk_cell_renderer_text_new();
+	gtk_cell_renderer_text_set_fixed_height_from_font(GTK_CELL_RENDERER_TEXT(cell), 1);
+	column = gtk_tree_view_column_new_with_attributes("Name", cell, "text", 0, NULL);
+	g_object_set(column,
+	             "min-width", 100,
+	             "resizable", TRUE,
+	             "sizing", GTK_TREE_VIEW_COLUMN_FIXED,
+	             NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
 
-	column = gtk_tree_view_column_new_with_attributes("Gender",
-	                                                  gtk_cell_renderer_text_new(),
-	                                                  "text", 1,
-	                                                  NULL);
+	cell = gtk_cell_renderer_text_new();
+	gtk_cell_renderer_text_set_fixed_height_from_font(GTK_CELL_RENDERER_TEXT(cell), 1);
+	column = gtk_tree_view_column_new_with_attributes("Gender", cell, "text", 1, NULL);
+	g_object_set(column,
+	             "min-width", 100,
+	             "resizable", TRUE,
+	             "sizing", GTK_TREE_VIEW_COLUMN_FIXED,
+	             NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
 
-	column = gtk_tree_view_column_new_with_attributes("Occupation",
-	                                                  gtk_cell_renderer_text_new(),
-	                                                  "text", 2,
-	                                                  NULL);
+	cell = gtk_cell_renderer_text_new();
+	gtk_cell_renderer_text_set_fixed_height_from_font(GTK_CELL_RENDERER_TEXT(cell), 1);
+	column = gtk_tree_view_column_new_with_attributes("Occupation", cell, "text", 2, NULL);
+	g_object_set(column,
+	             "min-width", 100,
+	             "resizable", TRUE,
+	             "sizing", GTK_TREE_VIEW_COLUMN_FIXED,
+	             NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+
+	g_signal_connect(window, "delete-event", gtk_main_quit, NULL);
 
 	return gtk_main(), 0;
 }
