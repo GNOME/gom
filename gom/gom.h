@@ -36,7 +36,6 @@ G_BEGIN_DECLS
 #include "gom-relationship.h"
 #include "gom-resource.h"
 #include "gom-resource-macros.h"
-#include "gom-util.h"
 
 #undef GOM_INSIDE
 
