@@ -621,6 +621,46 @@ test_gom_resource_lazy_related (void)
 	gom_clear_object(&occupation);
 }
 
+static void
+test_gom_resource_unique (void)
+{
+	GomAdapterSqlite *sqlite = NULL;
+	GomResource *person = NULL;
+	GError *error = NULL;
+
+	sqlite = g_object_new(GOM_TYPE_ADAPTER_SQLITE, NULL);
+
+	if (!gom_adapter_sqlite_load_from_file(sqlite, TEST_DB, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	person = gom_resource_create(MOCK_TYPE_OCCUPATION, GOM_ADAPTER(sqlite),
+	                             "name", "Double Dragon",
+	                             "industry", "Crime Fighting",
+	                             NULL);
+	if (!gom_resource_save(person, &error)) {
+		g_error("%s", error->message);
+		g_error_free(error);
+		g_assert_not_reached();
+	}
+
+	g_object_unref(person);
+
+	person = gom_resource_create(MOCK_TYPE_OCCUPATION, GOM_ADAPTER(sqlite),
+	                             "name", "Double Dragon",
+	                             "industry", "Crime Fighting",
+	                             NULL);
+	/*
+	 * Should fail, because of duplicated name.
+	 */
+	g_assert(!gom_resource_save(person, NULL));
+
+	gom_adapter_sqlite_close(sqlite);
+	gom_clear_object(&sqlite);
+}
+
 gint
 main (gint   argc,
       gchar *argv[])
@@ -654,6 +694,8 @@ main (gint   argc,
 	                test_gom_resource_find_first);
 	ADD_FORKED_TEST("/Gom/Resource/lazy_related",
 	                test_gom_resource_lazy_related);
+	ADD_FORKED_TEST("/Gom/Resource/unique",
+	                test_gom_resource_unique);
 	ADD_FORKED_TEST("/Gom/Collection/count",
 	                test_gom_collection_count);
 	ADD_FORKED_TEST("/Gom/Collection/first",
