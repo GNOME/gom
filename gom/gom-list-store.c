@@ -393,6 +393,7 @@ gom_list_store_iter_n_children (GtkTreeModel *tree_model,
 	GomListStore *store = (GomListStore *)tree_model;
 	GomQuery *query;
 	guint64 limit = 0;
+	guint64 offset = 0;
 	GError *error = NULL;
 	GValue value = { 0 };
 	gint ret = 0;
@@ -415,6 +416,7 @@ gom_list_store_iter_n_children (GtkTreeModel *tree_model,
 
 	g_object_get(priv->query,
 	             "limit", &limit,
+	             "offset", &offset,
 	             NULL);
 
 	g_object_set(query,
@@ -436,6 +438,14 @@ gom_list_store_iter_n_children (GtkTreeModel *tree_model,
 
 	if (limit) {
 		ret = MIN(limit, ret);
+	}
+
+	if (offset) {
+		if (offset >= ret) {
+			ret = 0;
+		} else {
+			ret -= offset;
+		}
 	}
 
 	priv->n_children = ret;
