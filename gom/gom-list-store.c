@@ -303,8 +303,12 @@ gom_list_store_get_value (GtkTreeModel *tree_model,
 		g_value_init(value, field->value_type);
 	}
 
+	gom_property_set_unref(fields);
+	fields = gom_property_set_newv(1, &field);
+
 	offset += GPOINTER_TO_INT(tree_iter->user_data);
 	g_object_set(query,
+	             "fields", fields,
 	             "offset", offset,
 	             "limit", G_GUINT64_CONSTANT(1),
 	             NULL);
@@ -316,7 +320,7 @@ gom_list_store_get_value (GtkTreeModel *tree_model,
 	}
 
 	if (gom_enumerable_iter_init(&iter, enumerable)) {
-		gom_enumerable_get_value(enumerable, &iter, column, value);
+		gom_enumerable_get_value(enumerable, &iter, 0, value);
 	}
 
   failure:
