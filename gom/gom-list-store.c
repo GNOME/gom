@@ -486,6 +486,7 @@ gom_list_store_iter_parent (GtkTreeModel *tree_model,
 	return FALSE;
 }
 
+#if GTK_CHECK_VERSION(2, 90, 0)
 static gboolean
 gom_list_store_iter_previous (GtkTreeModel *tree_model,
                               GtkTreeIter  *tree_iter)
@@ -495,6 +496,7 @@ gom_list_store_iter_previous (GtkTreeModel *tree_model,
 	}
 	return --tree_iter->user_data >= NULL;
 }
+#endif
 
 /**
  * gom_list_store_set_property:
@@ -540,5 +542,7 @@ gtk_tree_model_init (GtkTreeModelIface *iface)
 	iface->iter_next = gom_list_store_iter_next;
 	iface->iter_nth_child = gom_list_store_iter_nth_child;
 	iface->iter_parent = gom_list_store_iter_parent;
+#if GTK_CHECK_VERSION(2, 90, 0)
 	iface->iter_previous = gom_list_store_iter_previous;
+#endif
 }
