@@ -34,6 +34,10 @@ struct _GomPropertySet
 	guint len;
 };
 
+void            gom_property_set_add      (GomPropertySet  *set,
+                                           GomProperty     *property);
+void            gom_property_set_remove   (GomPropertySet  *set,
+                                           GomProperty     *property);
 GomPropertySet* gom_property_set_dup      (GomPropertySet  *set);
 GomProperty*    gom_property_set_find     (GomPropertySet  *set,
                                            const gchar     *name);

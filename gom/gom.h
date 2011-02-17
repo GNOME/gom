@@ -30,6 +30,7 @@ G_BEGIN_DECLS
 #include "gom-condition.h"
 #include "gom-collection.h"
 #include "gom-enumerable.h"
+#include "gom-list-store.h"
 #include "gom-property.h"
 #include "gom-property-set.h"
 #include "gom-query.h"

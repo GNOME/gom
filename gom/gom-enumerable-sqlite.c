@@ -126,7 +126,11 @@ gom_enumerable_sqlite_get_value (GomEnumerable     *enumerable,
 		g_value_set_double(&v, sqlite3_column_double(priv->stmt, column));
 		break;
 	case SQLITE_NULL:
-		g_critical("I don't know how to handle SQLITE_NULL yet");
+		if (!G_IS_VALUE(value)) {
+			g_critical("I don't know how to handle SQLITE_NULL yet");
+		} else {
+			g_value_init(&v, value->g_type);
+		}
 		break;
 	default:
 		break;
