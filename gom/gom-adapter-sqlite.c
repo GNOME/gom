@@ -363,6 +363,31 @@ _bind_parameter (sqlite3_stmt *stmt,
 	gchar *param_name;
 	gint column;
 
+	if (G_UNLIKELY(gLogSql)) {
+		gchar *msg = g_strdup_printf("%s => %s",
+		                             name, g_type_name(value->g_type));
+
+		switch (value->g_type) {
+		case G_TYPE_STRING:
+			g_log("Gom", G_LOG_LEVEL_DEBUG, "%s [%s]",
+			      msg, g_value_get_string(value));
+			break;
+		case G_TYPE_INT:
+			g_log("Gom", G_LOG_LEVEL_DEBUG, "%s [%d]",
+			      msg, g_value_get_int(value));
+			break;
+		case G_TYPE_INT64:
+			g_log("Gom", G_LOG_LEVEL_DEBUG, "%s [%"G_GINT64_FORMAT"]",
+			      msg, g_value_get_int64(value));
+			break;
+		default:
+			g_log("Gom", G_LOG_LEVEL_DEBUG, "%s", msg);
+			break;
+		}
+
+		g_free(msg);
+	}
+
 	/*
 	 * Get the index in the query for the named paramter.
 	 */
