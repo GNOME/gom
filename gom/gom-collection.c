@@ -244,6 +244,8 @@ gom_collection_count (GomCollection *collection)
 		gom_enumerable_get_value(enumerable, &iter, 0, &value);
 		ret = g_value_get_uint64(&value);
 		g_value_unset(&value);
+	} else {
+		g_critical("No result from adapter");
 	}
 
 	if (limit) {
