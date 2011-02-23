@@ -1207,7 +1207,6 @@ gom_adapter_sqlite_update (GomAdapter      *adapter,
 	gboolean ret = FALSE;
 	GString *str = NULL;
 	GValue *v = NULL;
-	GValue value = { 0 };
 	GType resource_type = 0;
 	guint n_props;
 	gint i;
@@ -1271,7 +1270,6 @@ gom_adapter_sqlite_update (GomAdapter      *adapter,
 		g_string_append_printf(str, "%s = :%s, ",
 		                       g_quark_to_string(prop->name),
 		                       g_quark_to_string(prop->name));
-		g_value_init(&value, prop->value_type);
 		v = g_value_array_get_nth(values, i);
 		v = _g_value_dup(v);
 		g_hash_table_insert(hash, g_strdup(g_quark_to_string(prop->name)), v);
