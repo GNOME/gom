@@ -703,7 +703,7 @@ gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
 	g_string_append(str, ");");
 
 	if (gLogSql) {
-		g_log("Gom", G_LOG_LEVEL_DEBUG, "%s", str->str);
+		g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s", str->str);
 	}
 
 	/*
@@ -899,7 +899,7 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
 	}
 
 	if (gLogSql) {
-		g_log("Gom", G_LOG_LEVEL_DEBUG, "%s", str->str);
+		g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s", str->str);
 	}
 
 	if (!!sqlite3_prepare_v2(priv->sqlite, str->str, -1, &stmt, NULL)) {
@@ -1011,7 +1011,7 @@ gom_adapter_sqlite_execute_sql (GomAdapterSqlite  *sqlite,
 	priv = sqlite->priv;
 
 	if (gLogSql) {
-		g_log("Gom", G_LOG_LEVEL_DEBUG, "%s", sql);
+		g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s", sql);
 	}
 
 	if (!!sqlite3_prepare_v2(priv->sqlite, sql, -1, &stmt, NULL)) {
@@ -1282,6 +1282,10 @@ gom_adapter_sqlite_update (GomAdapter      *adapter,
 	gom_adapter_sqlite_append_condition(sqlite, condition, hash, str);
 
 	g_string_append(str, ";");
+
+	if (gLogSql) {
+		g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s", str->str);
+	}
 
 	if (!!sqlite3_prepare_v2(priv->sqlite, str->str, -1, &stmt, NULL)) {
 		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
