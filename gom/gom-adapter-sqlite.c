@@ -413,13 +413,13 @@ _bind_parameter (sqlite3_stmt *stmt,
 		sqlite3_bind_int64(stmt, column, value->data[0].v_int64);
 		break;
 	case G_TYPE_FLOAT:
-		sqlite3_bind_double(stmt, column, value->data[0].v_float);
+		sqlite3_bind_double(stmt, column, g_value_get_float(value));
 		break;
 	case G_TYPE_DOUBLE:
-		sqlite3_bind_double(stmt, column, value->data[0].v_double);
+		sqlite3_bind_double(stmt, column, g_value_get_double(value));
 		break;
 	case G_TYPE_STRING:
-		sqlite3_bind_text(stmt, column, value->data[0].v_pointer, -1, NULL);
+		sqlite3_bind_text(stmt, column, g_value_get_string(value), -1, NULL);
 		break;
 	default:
 		if (value->g_type == G_TYPE_DATE_TIME) {
