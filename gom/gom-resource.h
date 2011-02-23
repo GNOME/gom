@@ -109,6 +109,7 @@ gpointer                gom_resource_find_first             (GType             r
                                                              GomAdapter       *adapter,
                                                              GomCondition     *condition,
                                                              GError          **error);
+GomCondition*           gom_resource_get_condition          (GomResource      *resource);
 GType                   gom_resource_get_type               (void) G_GNUC_CONST;
 gboolean                gom_resource_is_dirty               (GomResource      *resource);
 gboolean                gom_resource_is_new                 (GomResource      *resource);

@@ -405,7 +405,7 @@ gom_resource_find_first (GType          resource_type,
  * Returns: A #GomCondition.
  * Side effects: None.
  */
-static GomCondition*
+GomCondition *
 gom_resource_get_condition (GomResource *resource)
 {
 	GomResourcePrivate *priv;
