@@ -1527,17 +1527,16 @@ gom_resource_save_self (GomResource  *resource,
 	} else {
 		props = GOM_RESOURCE_GET_CLASS(resource)->properties;
 		n_props = gom_property_set_length(props);
-		set = gom_property_set_dup(props);
+		set = gom_property_set_newv(0, NULL);
 		values = g_value_array_new(n_props);
 		for (i = 0; i < n_props; i++) {
 			prop = gom_property_set_get_nth(props, i);
 			if ((value = g_hash_table_lookup(priv->properties, &prop->name))) {
 				if (value->is_dirty) {
 					g_value_array_append(values, &value->value);
-					continue;
+					gom_property_set_add(set, prop);
 				}
 			}
-			gom_property_set_remove(set, prop);
 		}
 		condition = gom_resource_get_condition(resource);
 		query = g_object_new(GOM_TYPE_QUERY,
