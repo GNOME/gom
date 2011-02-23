@@ -24,6 +24,9 @@
 #include "gom-resource.h"
 #include "gom-util.h"
 
+#undef G_LOG_DOMAIN
+#define G_LOG_DOMAIN "GomSqlite"
+
 G_DEFINE_TYPE(GomAdapterSqlite, gom_adapter_sqlite, GOM_TYPE_ADAPTER)
 
 /*
@@ -369,19 +372,19 @@ _bind_parameter (sqlite3_stmt *stmt,
 
 		switch (value->g_type) {
 		case G_TYPE_STRING:
-			g_log("Gom", G_LOG_LEVEL_DEBUG, "%s [%s]",
+			g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s [%s]",
 			      msg, g_value_get_string(value));
 			break;
 		case G_TYPE_INT:
-			g_log("Gom", G_LOG_LEVEL_DEBUG, "%s [%d]",
+			g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s [%d]",
 			      msg, g_value_get_int(value));
 			break;
 		case G_TYPE_INT64:
-			g_log("Gom", G_LOG_LEVEL_DEBUG, "%s [%"G_GINT64_FORMAT"]",
+			g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s [%"G_GINT64_FORMAT"]",
 			      msg, g_value_get_int64(value));
 			break;
 		default:
-			g_log("Gom", G_LOG_LEVEL_DEBUG, "%s", msg);
+			g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s", msg);
 			break;
 		}
 
