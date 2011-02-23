@@ -608,6 +608,8 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 		}
 	}
 
+	g_string_append(str, ";");
+
 	if (gLogSql) {
 		g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s", str->str);
 	}
