@@ -6,6 +6,6 @@ includedir=${exec_prefix}/include
 Name: Gom
 Description: GObject Data Mapper
 Version: @VERSION@
-Libs: -L${libdir}
+Libs: -L${libdir} -lgom-1.0
 Cflags: -I${includedir}/gom-1.0
 Requires: gobject-2.0
