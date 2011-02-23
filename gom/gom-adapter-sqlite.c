@@ -1266,13 +1266,15 @@ gom_adapter_sqlite_update (GomAdapter      *adapter,
 	g_string_append_printf(str, "%s SET ", table);
 
 	for (i = 0; i < n_props; i++) {
+		gchar *d;
 		prop = gom_property_set_get_nth(properties, i);
-		g_string_append_printf(str, "%s = :%s, ",
-		                       g_quark_to_string(prop->name),
-		                       g_quark_to_string(prop->name));
+		d = g_strdelimit(g_strdup(g_quark_to_string(prop->name)), "-", '_');
+		g_string_append_printf(str, "'%s' = :%s, ",
+		                       g_quark_to_string(prop->name), d);
 		v = g_value_array_get_nth(values, i);
 		v = _g_value_dup(v);
 		g_hash_table_insert(hash, g_strdup(g_quark_to_string(prop->name)), v);
+		g_free(d);
 	}
 
 	g_string_truncate(str, str->len - 2);
@@ -1296,7 +1298,9 @@ gom_adapter_sqlite_update (GomAdapter      *adapter,
 
 	g_hash_table_iter_init(&iter, hash);
 	while (g_hash_table_iter_next(&iter, (gpointer *)&k, (gpointer *)&v)) {
-		_bind_parameter(stmt, k, v);
+		gchar *d = g_strdelimit(g_strdup(k), "-", '_');
+		_bind_parameter(stmt, d, v);
+		g_free(d);
 	}
 
 	if (!(ret = (SQLITE_DONE == sqlite3_step(stmt)))) {
