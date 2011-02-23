@@ -609,7 +609,7 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 	}
 
 	if (gLogSql) {
-		g_log("Gom", G_LOG_LEVEL_DEBUG, "%s", str->str);
+		g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "%s", str->str);
 	}
 
 	if (!!sqlite3_prepare_v2(priv->sqlite, str->str, -1, stmt, NULL)) {
