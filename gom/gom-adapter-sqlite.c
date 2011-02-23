@@ -655,7 +655,7 @@ gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
 	 */
 	g_hash_table_iter_init(&iter, hash);
 	while (g_hash_table_iter_next(&iter, (gpointer *)&k, NULL)) {
-		g_string_append_printf(str, "%s, ", k);
+		g_string_append_printf(str, "'%s', ", k);
 	}
 	g_string_truncate(str, str->len - 2);
 
@@ -666,7 +666,9 @@ gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
 	 */
 	g_hash_table_iter_init(&iter, hash);
 	while (g_hash_table_iter_next(&iter, (gpointer *)&k, NULL)) {
-		g_string_append_printf(str, ":%s, ", k);
+		gchar *d = g_strdelimit(g_strdup(k), "-", '_');
+		g_string_append_printf(str, ":%s, ", d);
+		g_free(d);
 	}
 	g_string_truncate(str, str->len - 2);
 
@@ -692,7 +694,9 @@ gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
 	 */
 	g_hash_table_iter_init(&iter, hash);
 	while (g_hash_table_iter_next(&iter, (gpointer *)&k, (gpointer*)&v)) {
-		_bind_parameter(stmt, k, v);
+		gchar *d = g_strdelimit(g_strdup(k), "-", '_');
+		_bind_parameter(stmt, d, v);
+		g_free(d);
 	}
 
 	/*
