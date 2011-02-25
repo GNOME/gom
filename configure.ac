@@ -59,7 +59,7 @@ dnl ************************************************************************
 dnl Check for Required Modules
 dnl ************************************************************************
 PKG_CHECK_MODULES(GOBJECT, [gobject-2.0 >= 2.26])
-PKG_CHECK_MODULES(GTK3,    [gtk+-3.0 >= 2.91])
+PKG_CHECK_MODULES(GTK3,    [gtk+-3.0 >= 3.0.0])
 PKG_CHECK_MODULES(SQLITE3, [sqlite3 >= 3.6])
 
 
