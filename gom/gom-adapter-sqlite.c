@@ -64,7 +64,7 @@ static gboolean gom_adapter_sqlite_delete          (GomAdapter        *adapter,
                                                     GomCollection     *collection,
                                                     GError           **error);
 static gboolean gom_adapter_sqlite_ensure_table    (GomAdapterSqlite  *sqlite,
-                                                    GomResource       *resource,
+                                                    GType              resource_type,
                                                     GError           **error);
 static gboolean gom_adapter_sqlite_execute_sql     (GomAdapterSqlite  *sqlite,
                                                     const gchar       *sql,
@@ -339,7 +339,7 @@ gom_adapter_sqlite_create (GomAdapter     *adapter,
 				return FALSE;
 			}
 			if (!gom_adapter_sqlite_ensure_table(sqlite,
-			                                     g_value_get_object(&value),
+			                                     G_TYPE_FROM_INSTANCE(g_value_get_object(&value)),
 			                                     error)) {
 				g_value_unset(&value);
 				return FALSE;
@@ -548,6 +548,10 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 		goto failure;
 	}
 
+	if (!gom_adapter_sqlite_ensure_table(sqlite, resource_type, error)) {
+		goto failure;
+	}
+
 	resource_class = g_type_class_ref(resource_type);
 
 	str = g_string_new("SELECT ");
@@ -569,6 +573,9 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 	g_string_append_printf(str, " FROM %s ", table);
 
 	if (join) {
+		if (!gom_adapter_sqlite_ensure_table(sqlite, join->owner_type, error)) {
+			goto failure;
+		}
 		join_class = g_type_class_ref(join->owner_type);
 		g_string_append_printf(str, "LEFT JOIN %s ON ", join_class->table);
 		n_fields = gom_property_set_length(resource_class->keys);
@@ -936,14 +943,13 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
 
 static gboolean
 gom_adapter_sqlite_ensure_table (GomAdapterSqlite  *sqlite,
-                                 GomResource       *resource,
+                                 GType              resource_type,
                                  GError           **error)
 {
 	GomAdapterSqlitePrivate *priv;
-	GType resource_type;
 
 	g_return_val_if_fail(GOM_IS_ADAPTER_SQLITE(sqlite), FALSE);
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+	g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), FALSE);
 
 	priv = sqlite->priv;
 
@@ -953,8 +959,6 @@ gom_adapter_sqlite_ensure_table (GomAdapterSqlite  *sqlite,
 		            "Must open a database before creating tables.");
 		return FALSE;
 	}
-
-	resource_type = G_TYPE_FROM_INSTANCE(resource);
 
 	if (g_hash_table_lookup(priv->created_tables,
 	                        GINT_TO_POINTER(resource_type))) {
