@@ -58,6 +58,7 @@ AC_SUBST(GOM_VERSION)
 dnl **************************************************************************
 dnl Check for Required Modules
 dnl **************************************************************************
+PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.26])
 PKG_CHECK_MODULES(GOBJECT, [gobject-2.0 >= 2.26])
 PKG_CHECK_MODULES(SQLITE3, [sqlite3 >= 3.6])
 

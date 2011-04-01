@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -20,6 +20,7 @@
 #define GOM_RESOURCE_H
 
 #include <glib-object.h>
+#include <gio/gio.h>
 
 #include "gom-adapter.h"
 #include "gom-collection.h"
@@ -117,6 +118,13 @@ gboolean                gom_resource_reload                 (GomResource      *r
                                                              GError          **error);
 gboolean                gom_resource_save                   (GomResource      *resource,
                                                              GError          **error);
+void                    gom_resource_save_async             (GomResource      *resource,
+                                                             GCancellable     *cancellable,
+                                                             GAsyncReadyCallback callback,
+                                                             gpointer          user_data);
+gboolean                gom_resource_save_finish            (GomResource      *resource,
+															 GAsyncResult     *result,
+															 GError          **error);
 GomPropertyValue**      gom_resource_get_properties         (GomResource      *resource,
                                                              guint            *n_values) G_GNUC_WARN_UNUSED_RESULT;
 void                    gom_resource_get_property           (GObject          *object,

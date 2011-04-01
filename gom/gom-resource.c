@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -1303,7 +1303,7 @@ gom_resource_read_property (GomResource *resource,
 		return;
 	} else if (g_type_is_a(prop->value_type, GOM_TYPE_COLLECTION)) {
 		/*
-		 * TODO: 
+		 * TODO:
 		 */
 		return;
 	}
@@ -1617,6 +1617,40 @@ gom_resource_save (GomResource  *resource,
 	}
 
 	return FALSE;
+}
+
+void
+gom_resource_save_async (GomResource         *resource,
+                         GCancellable        *cancellable,
+                         GAsyncReadyCallback  callback,
+                         gpointer             user_data)
+{
+	GError *error = NULL;
+
+	g_return_if_fail(GOM_IS_RESOURCE(resource));
+	g_return_if_fail(!cancellable || G_IS_CANCELLABLE(cancellable));
+	g_return_if_fail(callback != NULL);
+
+	/*
+	 * TODO: Actually implement this.
+	 */
+	if (!gom_resource_save(resource, &error)) {
+		g_critical("%s", error->message);
+		g_error_free(error);
+	}
+
+	callback(G_OBJECT(resource), NULL, user_data);
+}
+
+gboolean
+gom_resource_save_finish (GomResource   *resource,
+                          GAsyncResult  *result,
+                          GError       **error)
+{
+	/*
+	 * TODO: Actually implement this.
+	 */
+	return TRUE;
 }
 
 GType

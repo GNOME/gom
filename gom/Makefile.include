@@ -46,12 +46,14 @@ libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-util.c
 #libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-list-store.c
 
 libgom_1_0_la_CPPFLAGS =
+libgom_1_0_la_CPPFLAGS += $(GIO_CFLAGS)
 libgom_1_0_la_CPPFLAGS += $(GOBJECT_CFLAGS)
 libgom_1_0_la_CPPFLAGS += $(GTK3_CFLAGS)
 libgom_1_0_la_CPPFLAGS += $(INCLUDE_CFLAGS)
 libgom_1_0_la_CPPFLAGS += $(SQLITE3_CFLAGS)
 
 libgom_1_0_la_LIBADD =
+libgom_1_0_la_LIBADD += $(GIO_LIBS)
 libgom_1_0_la_LIBADD += $(GOBJECT_LIBS)
 libgom_1_0_la_LIBADD += $(GTK3_LIBS)
 libgom_1_0_la_LIBADD += $(SQLITE3_LIBS)
@@ -61,7 +63,7 @@ INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_srcdir)/gom
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)/gom
 
 Gom-1.0.gir: libgom-1.0.la
-Gom_1_0_gir_INCLUDES = GObject-2.0
+Gom_1_0_gir_INCLUDES = Gio-2.0 GObject-2.0
 Gom_1_0_gir_CFLAGS = 
 Gom_1_0_gir_LIBS = libgom-1.0.la
 Gom_1_0_gir_FILES = $(libgom_1_0_la_SOURCES)
