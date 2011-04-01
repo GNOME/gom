@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include <gom/gom.h>
+#include <gom/gom-list-store.h>
 #include "mock/mock-occupation.h"
 #include "mock/mock-person.h"
 

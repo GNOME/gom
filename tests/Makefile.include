@@ -18,13 +18,13 @@ libmock_la_SOURCES += $(top_srcdir)/tests/mock/mock-occupation.c
 libmock_la_SOURCES += $(top_srcdir)/tests/mock/mock-person.c
 
 test_gom_CPPFLAGS =
+test_gom_CPPFLAGS += $(GIO_CFLAGS)
 test_gom_CPPFLAGS += $(GOBJECT_CFLAGS)
-test_gom_CPPFLAGS += $(GTK3_CFLAGS)
 test_gom_CPPFLAGS += $(INCLUDE_CFLAGS)
 
 test_gom_LDFLAGS =
+test_gom_LDFLAGS += $(GIO_LIBS)
 test_gom_LDFLAGS += $(GOBJECT_LIBS)
-test_gom_LDFLAGS += $(GTK3_LIBS)
 test_gom_LDFLAGS += $(top_builddir)/libgom-1.0.la
 test_gom_LDFLAGS += $(top_builddir)/libmock.la
 
@@ -40,13 +40,15 @@ if ENABLE_GTK
 noinst_PROGRAMS += test-gom-gtk
 
 test_gom_gtk_CPPFLAGS =
+test_gom_gtk_CPPFLAGS += $(GIO_CFLAGS)
 test_gom_gtk_CPPFLAGS += $(GOBJECT_CFLAGS)
-test_gom_gtk_CPPFLAGS += $(GTK3_CFLAGS)
+test_gom_gtk_CPPFLAGS += $(GTK_CFLAGS)
 test_gom_gtk_CPPFLAGS += $(INCLUDE_CFLAGS)
 
 test_gom_gtk_LDFLAGS =
+test_gom_gtk_LDFLAGS += $(GIO_LIBS)
 test_gom_gtk_LDFLAGS += $(GOBJECT_LIBS)
-test_gom_gtk_LDFLAGS += $(GTK3_LIBS)
+test_gom_gtk_LDFLAGS += $(GTK_LIBS)
 test_gom_gtk_LDFLAGS += $(top_builddir)/libgom-1.0.la
 test_gom_gtk_LDFLAGS += $(top_builddir)/libmock.la
 
@@ -56,5 +58,6 @@ test_gom_gtk_DEPENDENCIES += $(top_builddir)/libmock.la
 
 test_gom_gtk_SOURCES =
 test_gom_gtk_SOURCES += $(top_srcdir)/tests/test-gom-gtk.c
+test_gom_gtk_SOURCES += $(top_srcdir)/gom/gom-list-store.c
 
 endif
