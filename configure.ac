@@ -82,14 +82,35 @@ AC_ARG_ENABLE([debug],
 	      		      [enable_debug=debug_default])
 AS_CASE([$enable_debug],
 	[yes], [
-		test "$cflags_set" = set || CFLAGS="$CFLAGS -g"
-		GOM_DEBUG_CFLAGS="-DGOM_TRACE"
+		CFLAGS="$CFLAGS -g"
+		CFLAGS="$CFLAGS -Wall"
+		CFLAGS="$CFLAGS -Werror"
+		CFLAGS="$CFLAGS -Wold-style-definition"
+		CFLAGS="$CFLAGS -Wdeclaration-after-statement"
+		CFLAGS="$CFLAGS -Wredundant-decls"
+		CFLAGS="$CFLAGS -Wmissing-noreturn"
+		CFLAGS="$CFLAGS -Wcast-align"
+		CFLAGS="$CFLAGS -Wwrite-strings"
+		CFLAGS="$CFLAGS -Winline"
+		CFLAGS="$CFLAGS -Wformat-nonliteral"
+		CFLAGS="$CFLAGS -Wformat-security"
+		CFLAGS="$CFLAGS -Wswitch-enum"
+		CFLAGS="$CFLAGS -Wswitch-default"
+		CFLAGS="$CFLAGS -Winit-self"
+		CFLAGS="$CFLAGS -Wmissing-include-dirs"
+		CFLAGS="$CFLAGS -Wundef"
+		CFLAGS="$CFLAGS -Waggregate-return"
+		CFLAGS="$CFLAGS -Wmissing-format-attribute"
+		CFLAGS="$CFLAGS -Wnested-externs"
+		CFLAGS="$CFLAGS -Wshadow"
 	],
 	[minimum], [
-		GOM_DEBUG_CFLAGS="-DG_DISABLE_CAST_CHECKS"
+		CFLAGS="$CFLAGS -DG_DISABLE_CAST_CHECKS"
 	],
 	[no], [
-		GOM_DEBUG_CFLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS -DG_DISABLE_CAST_CHECKS"
+		CFLAGS="$CFLAGS -DG_DISABLE_ASSERT"
+		CFLAGS="$CFLAGS -DG_DISABLE_CHECKS"
+		CFLAGS="$CFLAGS -DG_DISABLE_CAST_CHECKS"
 	],
 	[AC_MSG_ERROR([Unknown argument to --enable-debug])]
 )

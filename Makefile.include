@@ -1,25 +1,3 @@
-WARNINGS =
-WARNINGS += -Wall
-WARNINGS += -Werror
-WARNINGS += -Wold-style-definition
-WARNINGS += -Wdeclaration-after-statement
-WARNINGS += -Wredundant-decls
-WARNINGS += -Wmissing-noreturn
-WARNINGS += -Wcast-align
-WARNINGS += -Wwrite-strings
-WARNINGS += -Winline
-WARNINGS += -Wformat-nonliteral
-WARNINGS += -Wformat-security
-WARNINGS += -Wswitch-enum
-WARNINGS += -Wswitch-default
-WARNINGS += -Winit-self
-WARNINGS += -Wmissing-include-dirs
-WARNINGS += -Wundef
-WARNINGS += -Waggregate-return
-WARNINGS += -Wmissing-format-attribute
-WARNINGS += -Wnested-externs
-WARNINGS += -Wshadow
-
 INCLUDE_CFLAGS =
 INCLUDE_CFLAGS += -DGETTEXT_PACKAGE=\""gom"\"
 INCLUDE_CFLAGS += -DPACKAGE_DATA_DIR=\""$(datadir)"\"
@@ -30,5 +8,3 @@ INCLUDE_CFLAGS += -DPACKAGE_SYSCONFDIR=\""$(sysconfdir)"\"
 INCLUDE_CFLAGS += -DGOM_COMPILATION
 INCLUDE_CFLAGS += -I$(top_srcdir)
 INCLUDE_CFLAGS += -I$(top_builddir)/gom
-INCLUDE_CFLAGS += $(GOM_DEBUG_CFLAGS)
-INCLUDE_CFLAGS += $(WARNINGS)
