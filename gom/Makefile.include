@@ -15,13 +15,14 @@ INST_H_FILES += $(top_srcdir)/gom/gom-condition.h
 INST_H_FILES += $(top_srcdir)/gom/gom-enumerable-array.h
 INST_H_FILES += $(top_srcdir)/gom/gom-enumerable.h
 INST_H_FILES += $(top_srcdir)/gom/gom-enumerable-sqlite.h
-INST_H_FILES += $(top_srcdir)/gom/gom-list-store.h
 INST_H_FILES += $(top_srcdir)/gom/gom-property.h
 INST_H_FILES += $(top_srcdir)/gom/gom-property-set.h
 INST_H_FILES += $(top_srcdir)/gom/gom-query.h
 INST_H_FILES += $(top_srcdir)/gom/gom-relationship.h
 INST_H_FILES += $(top_srcdir)/gom/gom-resource.h
 INST_H_FILES += $(top_srcdir)/gom/gom-resource-macros.h
+
+#INST_H_FILES += $(top_srcdir)/gom/gom-list-store.h
 
 NOINST_H_FILES =
 NOINST_H_FILES += $(top_srcdir)/gom/gom-private.h
@@ -37,10 +38,12 @@ libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-condition.c
 libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-enumerable-array.c
 libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-enumerable.c
 libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-enumerable-sqlite.c
-libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-list-store.c
 libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-property-set.c
 libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-query.c
 libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-resource.c
+libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-util.c
+
+#libgom_1_0_la_SOURCES += $(top_srcdir)/gom/gom-list-store.c
 
 libgom_1_0_la_CPPFLAGS =
 libgom_1_0_la_CPPFLAGS += $(GOBJECT_CFLAGS)
@@ -58,7 +61,7 @@ INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_srcdir)/gom
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)/gom
 
 Gom-1.0.gir: libgom-1.0.la
-Gom_1_0_gir_INCLUDES = GObject-2.0 Gtk-3.0
+Gom_1_0_gir_INCLUDES = GObject-2.0
 Gom_1_0_gir_CFLAGS = 
 Gom_1_0_gir_LIBS = libgom-1.0.la
 Gom_1_0_gir_FILES = $(libgom_1_0_la_SOURCES)

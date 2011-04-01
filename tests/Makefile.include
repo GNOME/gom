@@ -1,6 +1,6 @@
 
 noinst_PROGRAMS =
-noinst_PROGRAMS += test-gom test-gom-gtk
+noinst_PROGRAMS += test-gom
 
 noinst_LTLIBRARIES =
 noinst_LTLIBRARIES += libmock.la
@@ -35,6 +35,10 @@ test_gom_DEPENDENCIES += $(top_builddir)/libmock.la
 test_gom_SOURCES =
 test_gom_SOURCES += $(top_srcdir)/tests/test-gom.c
 
+if ENABLE_GTK
+
+noinst_PROGRAMS += test-gom-gtk
+
 test_gom_gtk_CPPFLAGS =
 test_gom_gtk_CPPFLAGS += $(GOBJECT_CFLAGS)
 test_gom_gtk_CPPFLAGS += $(GTK3_CFLAGS)
@@ -52,3 +56,5 @@ test_gom_gtk_DEPENDENCIES += $(top_builddir)/libmock.la
 
 test_gom_gtk_SOURCES =
 test_gom_gtk_SOURCES += $(top_srcdir)/tests/test-gom-gtk.c
+
+endif
