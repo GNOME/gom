@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -161,8 +161,8 @@ gom_condition_and (GomCondition *right,
 
 	condition = gom_condition_new();
 	condition->oper = gQuarkAnd;
-	condition->u.boolean.left = left;
-	condition->u.boolean.right = right;
+	condition->u.boolean.right = gom_condition_ref(right);
+	condition->u.boolean.left = gom_condition_ref(left);
 
 	return condition;
 }
@@ -187,8 +187,8 @@ gom_condition_or (GomCondition *right,
 
 	condition = gom_condition_new();
 	condition->oper = gQuarkOr;
-	condition->u.boolean.left = left;
-	condition->u.boolean.right = right;
+	condition->u.boolean.right = gom_condition_ref(right);
+	condition->u.boolean.left = gom_condition_ref(left);
 
 	return condition;
 }
