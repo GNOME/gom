@@ -441,7 +441,7 @@ gom_resource_get_condition (GomResource *resource)
 	condition = NULL;
 
 	if (all->len > 1) {
-		condition = g_ptr_array_index(all, 0);
+		condition = gom_condition_ref(g_ptr_array_index(all, 0));
 		for (i = 1; i < all->len; i++) {
 			condition = gom_condition_and(condition,
 			                              g_ptr_array_index(all, i));
@@ -453,6 +453,8 @@ gom_resource_get_condition (GomResource *resource)
 	}
 
 	gom_clear_pointer(&all, g_ptr_array_unref);
+
+	g_assert(condition->oper);
 
 	return condition;
 }
