@@ -192,6 +192,7 @@ gom_adapter_sqlite_append_condition (GomAdapterSqlite *sqlite,
 		field = g_quark_to_string(condition->u.equality.property->name);
 		table = _get_table_name(condition->u.equality.property->owner_type);
 		key = g_strdup_printf("%s_%s", table, field);
+		g_strdelimit(key, "-", '_');
 		value = _g_value_dup(&condition->u.equality.value);
 		g_string_append_printf(str, " '%s'.'%s' IS :%s ", table, field, key);
 		g_hash_table_insert(hash, key, value);
