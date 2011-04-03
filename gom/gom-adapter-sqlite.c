@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -479,7 +479,7 @@ resource_to_hash (GomResource *resource)
 			}
 		} else if (G_VALUE_HOLDS(&values[i]->value, GOM_TYPE_COLLECTION)) {
 			/*
-			 * TODO: 
+			 * TODO:
 			 */
 		} else {
 			key = g_strdup(g_quark_to_string(values[i]->name));
@@ -790,15 +790,19 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 	GomProperty *related_prop;
 	const gchar *table_name;
 	gboolean ret = FALSE;
+	gboolean has_key = FALSE;
 	GString *str;
+	GString *idx_str;
 	gint i;
 	gint j;
 
 	resource_class = g_type_class_ref(resource_type);
 	str = g_string_new("CREATE TABLE IF NOT EXISTS ");
+	idx_str = g_string_new("CREATE UNIQUE INDEX IF NOT EXISTS ");
 
 	table_name = _get_table_name(resource_type);
 	g_string_append_printf(str, "%s (", table_name);
+	g_string_append_printf(idx_str, "%s_pkey ON %s (", table_name, table_name);
 
 	for (i = 0; i < resource_class->properties->len; i++) {
 		property = gom_property_set_get_nth(resource_class->properties, i);
@@ -831,7 +835,7 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 			                       g_quark_to_string(property->name),
 			                       gtype_to_sqltype(property->value_type));
 			if (property->is_key) {
-				g_string_append_printf(str, " PRIMARY KEY");
+				has_key = TRUE;
 			} else {
 				if (property->is_unique) {
 					g_string_append_printf(str, " UNIQUE");
@@ -847,8 +851,20 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 
 	ret = gom_adapter_sqlite_execute_sql(sqlite, str->str, error);
 
+	if (has_key && ret) {
+		for (i = 0; i < resource_class->keys->len; i++) {
+			property = gom_property_set_get_nth(resource_class->keys, i);
+			g_string_append_printf(idx_str, "'%s', ",
+			                       g_quark_to_string(property->name));
+		}
+		g_string_truncate(idx_str, idx_str->len - 2);
+		g_string_append(idx_str, ");");
+		ret = gom_adapter_sqlite_execute_sql(sqlite, idx_str->str, error);
+	}
+
 	g_type_class_unref(resource_class);
 	g_string_free(str, TRUE);
+	g_string_free(idx_str, TRUE);
 
 	return ret;
 }
