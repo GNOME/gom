@@ -196,11 +196,24 @@ gom_adapter_sqlite_append_condition (GomAdapterSqlite *sqlite,
 		value = _g_value_dup(&condition->u.equality.value);
 		g_string_append_printf(str, " '%s'.'%s' IS :%s ", table, field, key);
 		g_hash_table_insert(hash, key, value);
-	} else if (gom_condition_is_a(condition, GOM_CONDITION_AND)) {
-		g_assert_not_reached(); /* TODO */
-	} else if (gom_condition_is_a(condition, GOM_CONDITION_OR)) {
-		g_assert_not_reached(); /* TODO */
+	} else if (gom_condition_is_a(condition, GOM_CONDITION_AND) ||
+	           gom_condition_is_a(condition, GOM_CONDITION_OR)) {
+		g_assert(condition->u.boolean.left->oper);
+		g_assert(condition->u.boolean.right->oper);
+		g_string_append(str, "(");
+		gom_adapter_sqlite_append_condition(sqlite, condition->u.boolean.left,
+		                                    hash, str);
+		if (gom_condition_is_a(condition, GOM_CONDITION_AND)) {
+			g_string_append(str, ") AND (");
+		} else {
+			g_string_append(str, ") OR (");
+		}
+		gom_adapter_sqlite_append_condition(sqlite, condition->u.boolean.right,
+		                                    hash, str);
+		g_string_append(str, ")");
 	} else {
+		g_critical("Invalid operator \"%s\"",
+		           g_quark_to_string(condition->oper));
 		g_assert_not_reached();
 	}
 
