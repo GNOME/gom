@@ -848,10 +848,12 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 			g_string_append_printf(str, "'%s' %s",
 			                       g_quark_to_string(property->name),
 			                       gtype_to_sqltype(property->value_type));
-			if (property->is_key) {
+			if (property->is_key && !property->is_serial) {
 				has_key = TRUE;
 			} else {
-				if (property->is_unique) {
+				if (property->is_key) {
+					g_string_append_printf(str, " PRIMARY KEY");
+				} else if (property->is_unique) {
 					g_string_append_printf(str, " UNIQUE");
 				}
 			}
