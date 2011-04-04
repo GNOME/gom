@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -48,15 +48,19 @@ struct _GomCollectionClass
 	GObjectClass parent_class;
 };
 
-GType          gom_collection_get_type (void) G_GNUC_CONST;
-guint64        gom_collection_count    (GomCollection *collection);
-gpointer       gom_collection_first    (GomCollection *collection);
-gpointer       gom_collection_get_nth  (GomCollection *collection,
-                                        guint64        nth);
-gpointer       gom_collection_last     (GomCollection *collection);
-GomCollection* gom_collection_slice    (GomCollection *collection,
-                                        gint64         begin,
-                                        gint64         end);
+GType          gom_collection_get_type        (void) G_GNUC_CONST;
+guint64        gom_collection_count           (GomCollection *collection);
+gpointer       gom_collection_first           (GomCollection *collection);
+gpointer       gom_collection_get_nth         (GomCollection *collection,
+                                               guint64        nth);
+gpointer       gom_collection_last            (GomCollection *collection);
+GomCollection *gom_collection_slice           (GomCollection *collection,
+                                               gint64         begin,
+                                               gint64         end);
+void           gom_collection_add_resource    (GomCollection *collection,
+                                               gpointer       resource);
+void           gom_collection_remove_resource (GomCollection *collection,
+                                               gpointer       resource);
 
 G_END_DECLS
 

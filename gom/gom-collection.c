@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -31,6 +31,9 @@ struct _GomCollectionPrivate
 {
 	GomAdapter *adapter;
 	GomQuery *query;
+
+	GPtrArray *to_add;
+	GPtrArray *to_remove;
 };
 
 enum
@@ -42,6 +45,34 @@ enum
 };
 
 static GParamSpec *gParamSpecs[LAST_PROP];
+
+/**
+ * gom_collection_add_resource:
+ * @collection: (in): A #GomCollection.
+ *
+ * Adds a resource to a collection. When the collection is saved, the resource
+ * will be joined to the parent resource through the many-to-many table (when
+ * used with SQLite).
+ *
+ * Returns: None.
+ * Side effects: A reference to resource is taken.
+ */
+void
+gom_collection_add_resource (GomCollection *collection,
+							 gpointer       resource)
+{
+	GomCollectionPrivate *priv;
+
+	g_return_if_fail(GOM_IS_COLLECTION(collection));
+	g_return_if_fail(GOM_IS_RESOURCE(resource));
+
+	priv = collection->priv;
+
+	if (!priv->to_add) {
+		priv->to_add = g_ptr_array_new_with_free_func(g_object_unref);
+	}
+	g_ptr_array_add(priv->to_add, g_object_ref(resource));
+}
 
 /**
  * gom_collection_finalize:
@@ -60,6 +91,8 @@ gom_collection_finalize (GObject *object)
 
 	gom_clear_object(&priv->query);
 	gom_clear_object(&priv->adapter);
+	gom_clear_pointer(&priv->to_add, g_ptr_array_unref);
+	gom_clear_pointer(&priv->to_remove, g_ptr_array_unref);
 
 	G_OBJECT_CLASS(gom_collection_parent_class)->finalize(object);
 }
