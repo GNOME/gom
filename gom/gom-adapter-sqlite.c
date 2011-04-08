@@ -794,6 +794,68 @@ gom_adapter_sqlite_create_resource (GomAdapterSqlite  *sqlite,
 	return ret;
 }
 
+static void
+gom_adapter_sqlite_create_m2m_table (GomAdapterSqlite *sqlite,
+                                     GType             resource_type,
+                                     GType             related_type)
+{
+	GomResourceClass *resource_class;
+	GomResourceClass *related_class;
+	GomProperty *property;
+	const gchar *related_name;
+	const gchar *resource_name;
+	GString *str;
+	gchar *table_name;
+	gint i;
+
+	g_return_if_fail(GOM_IS_ADAPTER_SQLITE(sqlite));
+	g_return_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
+	g_return_if_fail(g_type_is_a(related_type, GOM_TYPE_RESOURCE));
+
+	str = g_string_new("CREATE TABLE IF NOT EXISTS ");
+
+	resource_class = g_type_class_peek(resource_type);
+	related_class = g_type_class_peek(related_type);
+
+	resource_name = _get_table_name(resource_type);
+	related_name = _get_table_name(related_type);
+
+	if (g_strcmp0(resource_name, related_name) <= 0) {
+		table_name = g_strdup_printf("%s_%s", resource_name, related_name);
+	} else {
+		table_name = g_strdup_printf("%s_%s", related_name, resource_name);
+	}
+
+	g_string_append_printf(str, "%s (", table_name);
+
+	g_assert_cmpint(resource_class->keys->len, >, 0);
+	for (i = 0; i < resource_class->keys->len; i++) {
+		property = gom_property_set_get_nth(resource_class->keys, i);
+		g_string_append_printf(str, "'%s_%s' %s, ",
+							   resource_name,
+							   g_quark_to_string(property->name),
+							   gtype_to_sqltype(property->value_type));
+	}
+
+	g_assert_cmpint(related_class->keys->len, >, 0);
+	for (i = 0; i < related_class->keys->len; i++) {
+		property = gom_property_set_get_nth(related_class->keys, i);
+		g_string_append_printf(str, "'%s_%s' %s, ",
+							   related_name,
+							   g_quark_to_string(property->name),
+							   gtype_to_sqltype(property->value_type));
+	}
+
+	g_string_truncate(str, str->len - 2);
+
+	g_string_append(str, ");");
+
+	gom_adapter_sqlite_execute_sql(sqlite, str->str, NULL);
+
+	g_string_free(str, TRUE);
+	g_free(table_name);
+}
+
 gboolean
 gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
                                  GType              resource_type,
@@ -841,6 +903,8 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 					g_string_truncate(str, str->len - 2);
 				}
 				g_type_class_unref(relation_class);
+			} else if (property->relationship.relation == GOM_RELATION_MANY_TO_MANY) {
+				gom_adapter_sqlite_create_m2m_table(sqlite, resource_type, property->value_type);
 			} else {
 				/*
 				 * TODO: Handle colletions.
