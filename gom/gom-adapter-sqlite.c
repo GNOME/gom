@@ -843,6 +843,9 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 				/*
 				 * TODO: Handle colletions.
 				 */
+				if (property->relationship.relation == GOM_RELATION_MANY_TO_MANY) {
+					g_assert_not_reached();
+				}
 			}
 		} else {
 			g_string_append_printf(str, "'%s' %s",
