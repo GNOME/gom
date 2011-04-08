@@ -651,7 +651,9 @@ gom_adapter_sqlite_create_read (GomAdapterSqlite  *sqlite,
 	ret = TRUE;
 
   failure:
-	g_string_free(str, TRUE);
+	if (str) {
+		g_string_free(str, TRUE);
+	}
 	gom_clear_pointer(&fields, gom_property_set_unref);
 	gom_clear_pointer(&hash, g_hash_table_destroy);
 	gom_clear_pointer(&condition, gom_condition_unref);
