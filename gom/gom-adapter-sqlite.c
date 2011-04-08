@@ -25,7 +25,7 @@
 #include "gom-util.h"
 
 #undef G_LOG_DOMAIN
-#define G_LOG_DOMAIN "GomSqlite"
+#define G_LOG_DOMAIN "GomAdapterSqlite"
 
 G_DEFINE_TYPE(GomAdapterSqlite, gom_adapter_sqlite, GOM_TYPE_ADAPTER)
 
