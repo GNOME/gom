@@ -899,19 +899,9 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 											   gtype_to_sqltype(related_prop->value_type));
 					}
 				}
-				if (i + 1 >= resource_class->properties->len) {
-					g_string_truncate(str, str->len - 2);
-				}
 				g_type_class_unref(relation_class);
 			} else if (property->relationship.relation == GOM_RELATION_MANY_TO_MANY) {
 				gom_adapter_sqlite_create_m2m_table(sqlite, resource_type, property->value_type);
-			} else {
-				/*
-				 * TODO: Handle colletions.
-				 */
-				if (property->relationship.relation == GOM_RELATION_MANY_TO_MANY) {
-					g_assert_not_reached();
-				}
 			}
 		} else {
 			g_string_append_printf(str, "'%s' %s",
@@ -926,10 +916,12 @@ gom_adapter_sqlite_create_table (GomAdapterSqlite  *sqlite,
 					g_string_append_printf(str, " UNIQUE");
 				}
 			}
-			if (i + 1 < resource_class->properties->len) {
-				g_string_append(str, ", ");
-			}
+			g_string_append(str, ", ");
 		}
+	}
+
+	if (g_str_has_suffix(str->str, ", ")) {
+		g_string_truncate(str, str->len - 2);
 	}
 
 	g_string_append(str, ");");
