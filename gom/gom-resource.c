@@ -1164,15 +1164,26 @@ gom_resource_get_property (GObject    *object,
 	if ((prop = gom_property_set_findq(resource_class->properties, name))) {
 		prop_value = _property_value_new();
 		prop_value->name = name;
-		g_value_init(&prop_value->value, prop->value_type);
-		if (g_type_is_a(prop->value_type, GOM_TYPE_RESOURCE)) {
+		if (g_type_is_a(prop->value_type, GOM_TYPE_RESOURCE) &&
+		    (prop->relationship.relation == GOM_RELATION_ONE_TO_ONE)) {
+			g_value_init(&prop_value->value, prop->value_type);
 			g_value_take_object(&prop_value->value,
 			                    g_object_new(prop->value_type,
 			                                 "adapter", priv->adapter,
 			                                 NULL));
-		} else if (g_type_is_a(prop->value_type, GOM_TYPE_COLLECTION)) {
-			/* TODO */
+		} else if ((prop->relationship.relation == GOM_RELATION_ONE_TO_MANY) ||
+		           (prop->relationship.relation == GOM_RELATION_MANY_TO_MANY)) {
+
+			/*
+			 * TODO: Make this shit actually work!
+			 */
+			g_value_init(&prop_value->value, GOM_TYPE_COLLECTION);
+			g_value_take_object(&prop_value->value,
+			                    g_object_new(GOM_TYPE_COLLECTION,
+			                                 "adapter", priv->adapter,
+			                                 NULL));
 		} else {
+			g_value_init(&prop_value->value, prop->value_type);
 			g_value_copy(&prop->default_value, &prop_value->value);
 		}
 		g_value_copy(&prop_value->value, value);
