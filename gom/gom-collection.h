@@ -30,10 +30,18 @@ G_BEGIN_DECLS
 #define GOM_IS_COLLECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOM_TYPE_COLLECTION))
 #define GOM_IS_COLLECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GOM_TYPE_COLLECTION))
 #define GOM_COLLECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GOM_TYPE_COLLECTION, GomCollectionClass))
+#define GOM_COLLECTION_ERROR           (gom_collection_error_quark())
 
 typedef struct _GomCollection        GomCollection;
 typedef struct _GomCollectionClass   GomCollectionClass;
 typedef struct _GomCollectionPrivate GomCollectionPrivate;
+typedef enum   _GomCollectionError   GomCollectionError;
+
+enum _GomCollectionError
+{
+	GOM_COLLECTION_ERROR_ADAPTER = 1,
+};
+
 
 struct _GomCollection
 {
@@ -48,6 +56,7 @@ struct _GomCollectionClass
 	GObjectClass parent_class;
 };
 
+GQuark         gom_collection_error_quark     (void) G_GNUC_CONST;
 GType          gom_collection_get_type        (void) G_GNUC_CONST;
 guint64        gom_collection_count           (GomCollection *collection);
 gpointer       gom_collection_first           (GomCollection *collection);

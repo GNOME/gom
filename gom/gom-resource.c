@@ -50,34 +50,36 @@ enum
  * Forward declarations.
  */
 
-static void              _date_time_to_uint64           (const GValue  *src_value,
-                                                         GValue        *dst_value);
-static void              _date_time_to_int64            (const GValue  *src_value,
-                                                         GValue        *dst_value);
-static void              _uint64_to_date_time           (const GValue  *src_value,
-                                                         GValue        *dst_value);
-static void              _int64_to_date_time            (const GValue  *src_value,
-                                                         GValue        *dst_value);
-static void              _property_value_free           (gpointer       data);
+static void              _date_time_to_uint64           (const GValue   *src_value,
+                                                         GValue         *dst_value);
+static void              _date_time_to_int64            (const GValue   *src_value,
+                                                         GValue         *dst_value);
+static void              _uint64_to_date_time           (const GValue   *src_value,
+                                                         GValue         *dst_value);
+static void              _int64_to_date_time            (const GValue   *src_value,
+                                                         GValue         *dst_value);
+static void              _property_value_free           (gpointer        data);
 static GomPropertyValue* _property_value_new            (void);
-static void              gom_resource_finalize          (GObject       *object);
-static void              gom_resource_read_property     (GomResource   *resource,
-                                                         GQuark         property,
-                                                         GValue        *value);
-static void              gom_resource_real_get_property (GObject       *object,
-                                                         guint          prop_id,
-                                                         GValue        *value,
-                                                         GParamSpec    *pspec);
-static void              gom_resource_real_set_property (GObject       *object,
-                                                         guint          prop_id,
-                                                         const GValue  *value,
-                                                         GParamSpec    *pspec);
-static gboolean          gom_resource_save_children     (GomResource   *resource,
-                                                         GError       **error);
-static gboolean          gom_resource_save_parents      (GomResource   *resource,
-                                                         GError       **error);
-static gboolean          gom_resource_save_self         (GomResource   *resource,
-                                                         GError       **error);
+extern gboolean          gom_collection_save            (GomCollection  *collection,
+                                                         GError        **error);
+static void              gom_resource_finalize          (GObject        *object);
+static void              gom_resource_read_property     (GomResource    *resource,
+                                                         GQuark          property,
+                                                         GValue         *value);
+static void              gom_resource_real_get_property (GObject        *object,
+                                                         guint           prop_id,
+                                                         GValue         *value,
+                                                         GParamSpec     *pspec);
+static void              gom_resource_real_set_property (GObject        *object,
+                                                         guint           prop_id,
+                                                         const GValue   *value,
+                                                         GParamSpec     *pspec);
+static gboolean          gom_resource_save_children     (GomResource    *resource,
+                                                         GError        **error);
+static gboolean          gom_resource_save_parents      (GomResource    *resource,
+                                                         GError        **error);
+static gboolean          gom_resource_save_self         (GomResource    *resource,
+                                                         GError        **error);
 
 /*
  * Globals.
@@ -402,7 +404,7 @@ gom_resource_find_first (GType          resource_type,
  *
  * Retrieves a condition to uniquely identify this resource.
  *
- * Returns: A #GomCondition.
+ * Returns: A #GomCondition or %NULL if no condition is available.
  * Side effects: None.
  */
 GomCondition *
@@ -445,16 +447,14 @@ gom_resource_get_condition (GomResource *resource)
 		for (i = 1; i < all->len; i++) {
 			condition = gom_condition_and(condition,
 			                              g_ptr_array_index(all, i));
+			g_assert(condition->oper);
 		}
 	} else if (all->len == 1) {
 		condition = gom_condition_ref(g_ptr_array_index(all, 0));
-	} else {
-		g_assert_not_reached();
+		g_assert(condition->oper);
 	}
 
 	gom_clear_pointer(&all, g_ptr_array_unref);
-
-	g_assert(condition->oper);
 
 	return condition;
 }
@@ -1115,6 +1115,44 @@ gom_resource_is_new (GomResource *resource)
 }
 
 /**
+ * gom_resource_init_collection:
+ * @resource: (in): A #GomResource.
+ * @property: (in): A #GomProperty.
+ * @collection: (in): A #GomCollection.
+ *
+ * Initialize a #GomCollection used for many-to-many tables.
+ * This associates the proper condition once it is available.
+ *
+ * Returns: None.
+ * Side effects: None.
+ */
+static void
+gom_resource_init_collection (GomResource   *resource,
+                              GomProperty   *property,
+							  GomCollection *collection)
+{
+	GomCondition *cond;
+	GomQuery *query;
+
+	g_return_if_fail(GOM_IS_RESOURCE(resource));
+	g_return_if_fail(property != NULL);
+	g_return_if_fail(GOM_IS_COLLECTION(collection));
+
+	g_object_get(collection, "query", &query, NULL);
+	g_assert(query);
+
+	if ((cond = gom_resource_get_condition(resource))) {
+		/*
+		 * TODO: We need to translate these to the
+		 *       m2m table?
+		 */
+		g_object_set(query, "condition", cond, NULL);
+	}
+
+	g_clear_object(&query);
+}
+
+/**
  * gom_resource_set_property:
  * @object: (in): A #GObject.
  * @prop_id: (in): The property identifier.
@@ -1132,8 +1170,10 @@ gom_resource_get_property (GObject    *object,
 	GomResourcePrivate *priv;
 	GomResourceClass *resource_class;
 	GomPropertyValue *prop_value;
+	GomCollection *collection;
 	GomProperty *prop;
 	GomResource *resource = (GomResource *)object;
+	GomQuery *query;
 	GQuark name;
 
 	g_return_if_fail(GOM_IS_RESOURCE(resource));
@@ -1173,15 +1213,18 @@ gom_resource_get_property (GObject    *object,
 			                                 NULL));
 		} else if ((prop->relationship.relation == GOM_RELATION_ONE_TO_MANY) ||
 		           (prop->relationship.relation == GOM_RELATION_MANY_TO_MANY)) {
-
-			/*
-			 * TODO: Make this shit actually work!
-			 */
+			query = g_object_new(GOM_TYPE_QUERY,
+			                     "join", prop,
+			                     "resource-type", prop->value_type,
+			                     NULL);
+			collection = g_object_new(GOM_TYPE_COLLECTION,
+			                          "adapter", priv->adapter,
+			                          "query", query,
+			                          NULL);
+			gom_resource_init_collection(resource, prop, collection);
 			g_value_init(&prop_value->value, GOM_TYPE_COLLECTION);
-			g_value_take_object(&prop_value->value,
-			                    g_object_new(GOM_TYPE_COLLECTION,
-			                                 "adapter", priv->adapter,
-			                                 NULL));
+			g_value_take_object(&prop_value->value, collection);
+			g_object_unref(query);
 		} else {
 			g_value_init(&prop_value->value, prop->value_type);
 			g_value_copy(&prop->default_value, &prop_value->value);
@@ -1612,7 +1655,56 @@ static gboolean
 gom_resource_save_children (GomResource  *resource,
                             GError      **error)
 {
-	return TRUE;
+	GomResourcePrivate *priv;
+	GomResourceClass *resource_class;
+	GomPropertyValue *prop_value;
+	GomCollection *collection;
+	GomProperty *property;
+	GomQuery *query;
+	gboolean ret = FALSE;
+	gint i;
+
+	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+
+	priv = resource->priv;
+
+	resource_class = GOM_RESOURCE_GET_CLASS(resource);
+	g_assert(resource_class);
+
+	for (i = 0; i < resource_class->properties->len; i++) {
+		property = gom_property_set_get_nth(resource_class->properties, i);
+		g_assert(property);
+
+		if (g_type_is_a(property->value_type, GOM_TYPE_RESOURCE) &&
+		    (property->relationship.relation == GOM_RELATION_MANY_TO_MANY)) {
+			if ((prop_value = g_hash_table_lookup(priv->properties,
+			                                      &property->name))) {
+				g_assert(G_VALUE_HOLDS(&prop_value->value,
+				                       GOM_TYPE_COLLECTION));
+
+				collection = g_value_get_object(&prop_value->value);
+				g_assert(collection);
+
+				g_object_get(collection, "query", &query, NULL);
+
+				if (!query) {
+					gom_resource_init_collection(resource, property, collection);
+				}
+
+				g_clear_object(&query);
+
+				if (!gom_collection_save(collection, error)) {
+					goto failure;
+				}
+			}
+		}
+	}
+
+	ret = TRUE;
+
+  failure:
+
+	return ret;
 }
 
 gboolean

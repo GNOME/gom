@@ -47,6 +47,63 @@ enum
 static GParamSpec *gParamSpecs[LAST_PROP];
 
 /**
+ * gom_collection_save:
+ * @collection: (in): A #GomCollection.
+ * @error: (out): A location for a #GError, or %NULL.
+ *
+ * Saves the items within the collection. Currently, this is only
+ * implemented for many-to-many collections.
+ *
+ * Returns: %TRUE if successful; otherwise %FALSE and @error is set.
+ * Side effects: None.
+ */
+gboolean
+gom_collection_save (GomCollection  *collection,
+                     GError        **error)
+{
+	GomCollectionPrivate *priv;
+	GomResource *resource;
+	gboolean ret = TRUE;
+	gint i;
+
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), FALSE);
+
+	priv = collection->priv;
+
+	if (!priv->adapter) {
+		g_set_error(error, GOM_COLLECTION_ERROR, GOM_COLLECTION_ERROR_ADAPTER,
+					_("No adapter available for collection storage."));
+		return FALSE;
+	}
+
+	if (priv->query) {
+		if (priv->to_add) {
+			for (i = 0; i < priv->to_add->len; i++) {
+				resource = g_ptr_array_index(priv->to_add, i);
+				if (!gom_resource_save(resource, error)) {
+					return FALSE;
+				}
+			}
+			gom_clear_pointer(&priv->to_add, g_ptr_array_unref);
+		}
+
+		if (priv->to_remove) {
+			for (i = 0; i < priv->to_remove->len; i++) {
+				resource = g_ptr_array_index(priv->to_remove, i);
+				/*
+				 * XXX: Need to remove the items. Probably with a
+				 *      temporary collection with removed items.
+				 */
+				g_assert_not_reached();
+			}
+			gom_clear_pointer(&priv->to_remove, g_ptr_array_unref);
+		}
+	}
+
+	return ret;
+}
+
+/**
  * gom_collection_add_resource:
  * @collection: (in): A #GomCollection.
  *
@@ -504,9 +561,23 @@ gom_collection_get_nth (GomCollection *collection,
 		                                    &iter, query);
 	}
 
-failure:
+  failure:
 	gom_clear_object(&enumerable);
 	gom_clear_object(&query);
 
 	return ret;
+}
+
+/**
+ * gom_collection_error_quark:
+ *
+ * Error quark for #GomCollection.
+ *
+ * Returns: A #GQuark.
+ * Side effects: None.
+ */
+GQuark
+gom_collection_error_quark (void)
+{
+	return g_quark_from_static_string("gom-collection-error-quark");
 }
