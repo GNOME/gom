@@ -1129,7 +1129,7 @@ gom_resource_is_new (GomResource *resource)
 static void
 gom_resource_init_collection (GomResource   *resource,
                               GomProperty   *property,
-							  GomCollection *collection)
+                              GomCollection *collection)
 {
 	GomCondition *cond;
 	GomQuery *query;
