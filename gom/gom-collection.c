@@ -76,28 +76,32 @@ gom_collection_save (GomCollection  *collection,
 		return FALSE;
 	}
 
-	if (priv->query) {
-		if (priv->to_add) {
-			for (i = 0; i < priv->to_add->len; i++) {
-				resource = g_ptr_array_index(priv->to_add, i);
-				if (!gom_resource_save(resource, error)) {
-					return FALSE;
-				}
-			}
-			gom_clear_pointer(&priv->to_add, g_ptr_array_unref);
-		}
+	if (!priv->query) {
+		g_set_error(error, GOM_COLLECTION_ERROR, GOM_COLLECTION_ERROR_QUERY,
+		            _("No query available for collection storage."));
+		return FALSE;
+	}
 
-		if (priv->to_remove) {
-			for (i = 0; i < priv->to_remove->len; i++) {
-				resource = g_ptr_array_index(priv->to_remove, i);
-				/*
-				 * XXX: Need to remove the items. Probably with a
-				 *      temporary collection with removed items.
-				 */
-				g_assert_not_reached();
+	if (priv->to_add) {
+		for (i = 0; i < priv->to_add->len; i++) {
+			resource = g_ptr_array_index(priv->to_add, i);
+			if (!gom_resource_save(resource, error)) {
+				return FALSE;
 			}
-			gom_clear_pointer(&priv->to_remove, g_ptr_array_unref);
 		}
+		gom_clear_pointer(&priv->to_add, g_ptr_array_unref);
+	}
+
+	if (priv->to_remove) {
+		for (i = 0; i < priv->to_remove->len; i++) {
+			resource = g_ptr_array_index(priv->to_remove, i);
+			/*
+			 * XXX: Need to remove the items. Probably with a
+			 *      temporary collection with removed items.
+			 */
+			g_assert_not_reached();
+		}
+		gom_clear_pointer(&priv->to_remove, g_ptr_array_unref);
 	}
 
 	return ret;

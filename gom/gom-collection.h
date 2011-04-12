@@ -40,6 +40,7 @@ typedef enum   _GomCollectionError   GomCollectionError;
 enum _GomCollectionError
 {
 	GOM_COLLECTION_ERROR_ADAPTER = 1,
+	GOM_COLLECTION_ERROR_QUERY,
 };
 
 
