@@ -1105,13 +1105,8 @@ gom_resource_is_dirty (GomResource *resource)
 gboolean
 gom_resource_is_new (GomResource *resource)
 {
-	GomResourcePrivate *priv;
-
 	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
-
-	priv = resource->priv;
-
-	return priv->is_new;
+	return resource->priv->is_new;
 }
 
 /**
