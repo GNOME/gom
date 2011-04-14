@@ -1671,7 +1671,8 @@ gom_resource_save_children (GomResource  *resource,
 		g_assert(property);
 
 		if (g_type_is_a(property->value_type, GOM_TYPE_RESOURCE) &&
-		    (property->relationship.relation == GOM_RELATION_MANY_TO_MANY)) {
+		    ((property->relationship.relation == GOM_RELATION_MANY_TO_MANY) ||
+			 (property->relationship.relation == GOM_RELATION_ONE_TO_MANY))) {
 			if ((prop_value = g_hash_table_lookup(priv->properties,
 			                                      &property->name))) {
 				g_assert(G_VALUE_HOLDS(&prop_value->value,

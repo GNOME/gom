@@ -82,6 +82,10 @@ gom_collection_save (GomCollection  *collection,
 		return FALSE;
 	}
 
+	/*
+	 * TODO: M2M mappings?
+	 */
+
 	if (priv->to_add) {
 		for (i = 0; i < priv->to_add->len; i++) {
 			resource = g_ptr_array_index(priv->to_add, i);
