@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <glib/gi18n.h>
 #include <sqlite3.h>
 
 #include "gom-adapter-sqlite.h"
@@ -1318,6 +1319,13 @@ gom_adapter_sqlite_update (GomAdapter      *adapter,
 	g_return_val_if_fail(GOM_IS_COLLECTION(collection), FALSE);
 
 	priv = sqlite->priv;
+
+	if (!properties->len) {
+		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
+		            GOM_ADAPTER_SQLITE_ERROR_INVALID_PROPERTIES,
+		            _("No properties requested for update."));
+		return FALSE;
+	}
 
 	if (!priv->sqlite) {
 		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
