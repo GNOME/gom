@@ -123,8 +123,8 @@ void                    gom_resource_save_async             (GomResource      *r
                                                              GAsyncReadyCallback callback,
                                                              gpointer          user_data);
 gboolean                gom_resource_save_finish            (GomResource      *resource,
-															 GAsyncResult     *result,
-															 GError          **error);
+                                                             GAsyncResult     *result,
+                                                             GError          **error);
 GomPropertyValue**      gom_resource_get_properties         (GomResource      *resource,
                                                              guint            *n_values) G_GNUC_WARN_UNUSED_RESULT;
 void                    gom_resource_get_property           (GObject          *object,
