@@ -89,8 +89,10 @@ gom_collection_save (GomCollection  *collection,
 	if (priv->to_add) {
 		for (i = 0; i < priv->to_add->len; i++) {
 			resource = g_ptr_array_index(priv->to_add, i);
-			if (!gom_resource_save(resource, error)) {
-				return FALSE;
+			if (gom_resource_is_dirty(resource)) {
+				if (!gom_resource_save(resource, error)) {
+					return FALSE;
+				}
 			}
 		}
 		gom_clear_pointer(&priv->to_add, g_ptr_array_unref);
