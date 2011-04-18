@@ -208,6 +208,28 @@ _property_value_new (void)
 }
 
 /**
+ * _property_value_copy:
+ * @value: (in): A #GomPropertyValue.
+ *
+ * Performs a copy of @value and its contents.
+ *
+ * Returns: A #GomPropertyValue.
+ * Side effects: None.
+ */
+static GomPropertyValue*
+_property_value_copy (GomPropertyValue *value)
+{
+	GomPropertyValue *copy;
+
+	copy = _property_value_new();
+	copy->is_dirty = value->is_dirty;
+	copy->name = value->name;
+	g_value_init(&copy->value, value->value.g_type);
+	g_value_copy(&value->value, &copy->value);
+	return copy;
+}
+
+/**
  * gom_resource_delete:
  * @resource: (in): A #GomResource.
  *
@@ -1148,7 +1170,48 @@ gom_resource_init_collection (GomResource   *resource,
 }
 
 /**
- * gom_resource_set_property:
+ * gom_resource_merge:
+ * @resource: (in): A #GomResource.
+ * @other: (in): A #GomResource of the same type as @resource.
+ *
+ * Merges the modified properties from @other into @resource.
+ *
+ * Returns: None.
+ * Side effects: None.
+ */
+void
+gom_resource_merge (GomResource *resource,
+                    GomResource *other)
+{
+	GomResourcePrivate *priva;
+	GomResourcePrivate *privb;
+	GomPropertyValue *value;
+	GHashTableIter iter;
+	GType typea;
+	GType typeb;
+
+	g_return_if_fail(GOM_IS_RESOURCE(resource));
+	g_return_if_fail(GOM_IS_RESOURCE(other));
+
+	typea = G_TYPE_FROM_INSTANCE(resource);
+	typeb = G_TYPE_FROM_INSTANCE(other);
+	if (g_type_is_a(typeb, typea)) {
+		g_critical("Cannot merge resources of different types!");
+		return;
+	}
+
+	priva = resource->priv;
+	privb = other->priv;
+
+	g_hash_table_iter_init(&iter, privb->properties);
+	while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&value)) {
+		value = _property_value_copy(value);
+		g_hash_table_insert(priva->properties, &value->name, value);
+	}
+}
+
+/**
+ * gom_resource_get_property:
  * @object: (in): A #GObject.
  * @prop_id: (in): The property identifier.
  * @value: (out): The given property.

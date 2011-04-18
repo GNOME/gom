@@ -114,6 +114,8 @@ GomCondition*           gom_resource_get_condition          (GomResource      *r
 GType                   gom_resource_get_type               (void) G_GNUC_CONST;
 gboolean                gom_resource_is_dirty               (GomResource      *resource);
 gboolean                gom_resource_is_new                 (GomResource      *resource);
+void                    gom_resource_merge                  (GomResource      *resource,
+                                                             GomResource      *other);
 gboolean                gom_resource_reload                 (GomResource      *resource,
                                                              GError          **error);
 gboolean                gom_resource_save                   (GomResource      *resource,
