@@ -1195,7 +1195,7 @@ gom_resource_merge (GomResource *resource,
 
 	typea = G_TYPE_FROM_INSTANCE(resource);
 	typeb = G_TYPE_FROM_INSTANCE(other);
-	if (g_type_is_a(typeb, typea)) {
+	if (!g_type_is_a(typeb, typea)) {
 		g_critical("Cannot merge resources of different types!");
 		return;
 	}
