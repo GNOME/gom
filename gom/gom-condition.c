@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <glib-object.h>
+#include <gobject/gvaluecollector.h>
+
 #include "gom-condition.h"
 
 static GQuark gQuarkEqual;
@@ -114,29 +117,59 @@ gom_condition_is_a (GomCondition *condition,
 	return condition->oper == oper;
 }
 
-/**
- * gom_condition_equal:
- * @property: (in): A #GomProperty.
- * @value: (in): A #GValue.
- *
- * Creates a new #GomCondition checking that compares the property @property
- * with the value @value.
- *
- * Returns: A newly allocated #GomCondition that should be freed with
- *   gom_condition_unref().
- * Side effects: None.
- */
-GomCondition*
-gom_condition_equal (GomProperty  *property,
-                     const GValue *value)
+GomCondition *
+gom_condition_equal_value (GomProperty  *property,
+                           const GValue *value)
 {
 	GomCondition *condition;
+
+	g_return_val_if_fail(property != NULL, NULL);
+	g_return_val_if_fail(value != NULL, NULL);
 
 	condition = gom_condition_new();
 	condition->oper = gQuarkEqual;
 	condition->u.equality.property = property;
 	g_value_init(&condition->u.equality.value, G_VALUE_TYPE(value));
 	g_value_copy(value, &condition->u.equality.value);
+
+	return condition;
+}
+
+/**
+ * gom_condition_equal:
+ * @property: (in): A #GomProperty.
+ *
+ * Creates a new #GomCondition checking that compares the property @property
+ * with the value passed in. The value is a va_args style. The type
+ * should match that of property->value_type.
+ *
+ * Returns: A newly allocated #GomCondition that should be freed with
+ *   gom_condition_unref().
+ * Side effects: None.
+ */
+GomCondition *
+gom_condition_equal (GomProperty *property,
+                     ...)
+{
+	GomCondition *condition;
+	va_list args;
+	GValue value = { 0 };
+	gchar *err = NULL;
+
+	g_return_val_if_fail(property != NULL, NULL);
+
+	va_start(args, property);
+	G_VALUE_COLLECT_INIT(&value, property->value_type, args, 0, &err);
+	va_end(args);
+
+	if (err) {
+		g_critical("%s", err);
+		g_free(err);
+		return NULL;
+	}
+
+	condition = gom_condition_equal_value(property, &value);
+	g_value_unset(&value);
 
 	return condition;
 }

@@ -276,7 +276,7 @@ gom_resource_delete (GomResource  *resource,
 			g_object_get_property(G_OBJECT(resource),
 			                      g_quark_to_string(prop->name),
 			                      &value);
-			condition = gom_condition_equal(prop, &value);
+			condition = gom_condition_equal_value(prop, &value);
 			g_value_unset(&value);
 			conditions = conditions ?
 			             gom_condition_and(conditions, condition) :
@@ -456,7 +456,7 @@ gom_resource_get_condition (GomResource *resource)
 		if (prop->is_key) {
 			if ((prop_value = g_hash_table_lookup(priv->properties, &prop->name))) {
 				g_assert(G_IS_VALUE(&prop_value->value));
-				condition = gom_condition_equal(prop, &prop_value->value);
+				condition = gom_condition_equal_value(prop, &prop_value->value);
 				g_ptr_array_add(all, condition);
 			}
 		}

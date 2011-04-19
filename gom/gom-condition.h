@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -53,6 +53,8 @@ GType         gom_condition_get_type    (void) G_GNUC_CONST;
 GomCondition* gom_condition_and         (GomCondition *left,
                                          GomCondition *right);
 GomCondition* gom_condition_equal       (GomProperty  *property,
+                                         ...);
+GomCondition* gom_condition_equal_value (GomProperty  *property,
                                          const GValue *value);
 GomCondition* gom_condition_or          (GomCondition *left,
                                          GomCondition *right);
