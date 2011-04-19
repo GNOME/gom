@@ -70,14 +70,14 @@ struct _GomResourceClass
 	GomPropertySet *properties;
 };
 
-void                  gom_resource_class_belongs_to         (GomResourceClass  *resource_class,
+void                    gom_resource_class_belongs_to       (GomResourceClass  *resource_class,
                                                              const gchar       *property_name,
                                                              const gchar       *property_nick,
                                                              const gchar       *property_desc,
                                                              GType              resource_type,
                                                              ...) G_GNUC_NULL_TERMINATED;
-GomPropertySet*       gom_resource_class_get_properties     (GomResourceClass  *resource_class);
-void                  gom_resource_class_has_a              (GomResourceClass  *resource_class,
+GomPropertySet*         gom_resource_class_get_properties   (GomResourceClass  *resource_class);
+void                    gom_resource_class_has_a            (GomResourceClass  *resource_class,
                                                              const gchar       *property_name,
                                                              const gchar       *property_nick,
                                                              const gchar       *property_desc,
