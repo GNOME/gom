@@ -284,6 +284,13 @@ gom_adapter_sqlite_commit (GomAdapterSqlite  *sqlite,
 	return gom_adapter_sqlite_execute_sql(sqlite, sql, error);
 }
 
+void
+gom_adapter_sqlite_rollback (GomAdapterSqlite *sqlite)
+{
+	static const gchar sql[] = "ROLLBACK;";
+	gom_adapter_sqlite_execute_sql(sqlite, sql, NULL);
+}
+
 /**
  * gom_adapter_sqlite_close:
  * @sqlite: (in): A #GomAdapterSqlite.

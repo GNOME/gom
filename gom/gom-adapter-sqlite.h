@@ -74,6 +74,7 @@ gboolean gom_adapter_sqlite_create_table   (GomAdapterSqlite  *sqlite,
 void     gom_adapter_sqlite_begin          (GomAdapterSqlite  *sqlite);
 gboolean gom_adapter_sqlite_commit         (GomAdapterSqlite  *sqlite,
                                             GError           **error);
+void     gom_adapter_sqlite_rollback       (GomAdapterSqlite  *sqlite);
 
 G_END_DECLS
 
