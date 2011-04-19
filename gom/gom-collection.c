@@ -46,6 +46,13 @@ enum
 
 static GParamSpec *gParamSpecs[LAST_PROP];
 
+GPtrArray *
+gom_collection_get_additions (GomCollection *collection)
+{
+	g_return_val_if_fail(GOM_IS_COLLECTION(collection), NULL);
+	return collection->priv->to_add;
+}
+
 /**
  * gom_collection_save:
  * @collection: (in): A #GomCollection.

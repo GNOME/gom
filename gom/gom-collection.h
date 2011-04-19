@@ -71,6 +71,7 @@ void           gom_collection_add_resource    (GomCollection *collection,
                                                gpointer       resource);
 void           gom_collection_remove_resource (GomCollection *collection,
                                                gpointer       resource);
+GPtrArray     *gom_collection_get_additions   (GomCollection *collection);
 
 G_END_DECLS
 
