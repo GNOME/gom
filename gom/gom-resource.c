@@ -421,6 +421,28 @@ gom_resource_find_first (GType          resource_type,
 }
 
 /**
+ * gom_resource_find_property:
+ * @resource: (in): A #GomResource.
+ * @name: (in): The name of the property.
+ *
+ * Locates the #GomProperty for a given resource matching @name.
+ * This is a convenience function for retrieving the property from
+ * the class instance.
+ *
+ * Returns: A #GomProperty or %NULL.
+ * Side effects: None.
+ */
+GomProperty *
+gom_resource_find_property (GomResource *resource,
+                            const gchar *name)
+{
+	GomResourceClass *resource_class;
+	g_return_val_if_fail(GOM_IS_RESOURCE(resource), NULL);
+	resource_class = GOM_RESOURCE_GET_CLASS(resource);
+	return gom_property_set_find(resource_class->properties, name);
+}
+
+/**
  * gom_resource_get_condition:
  * @resource: (in): A #GomResource.
  *
