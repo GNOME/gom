@@ -1176,7 +1176,8 @@ gom_adapter_sqlite_init (GomAdapterSqlite *sqlite)
 		                            GOM_TYPE_ADAPTER_SQLITE,
 		                            GomAdapterSqlitePrivate);
 
-	sqlite->priv->created_tables = g_hash_table_new(g_int_hash, g_int_equal);
+	sqlite->priv->created_tables =
+		g_hash_table_new(g_direct_hash, g_direct_equal);
 }
 
 /**
