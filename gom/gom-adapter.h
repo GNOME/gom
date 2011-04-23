@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -57,15 +57,6 @@ struct _GomAdapterClass
 	                    GomEnumerable   *enumerable,
 	                    GError         **error);
 
-	/*
-	 * XXX:
-	 *
-	 * The query should have a set of properties for which it wants retrieved.
-	 * The query may also specify the joining for tables if necessary.
-	 *
-	 * The result enumerable will need to support columns that map directly
-	 * to the property offset in the query: ->get_value(iter, [0..idx], &val).
-	 */
 	gboolean (*read)   (GomAdapter      *adapter,
 	                    GomQuery        *query,
 	                    GomEnumerable  **results,
