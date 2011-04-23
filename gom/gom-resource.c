@@ -1444,14 +1444,16 @@ gom_resource_read_property (GomResource *resource,
 		return;
 	}
 
-	condition = gom_resource_get_condition(resource);
 	fields = gom_property_set_newv(1, &prop);
+	condition = gom_resource_get_condition(resource);
 	query = g_object_new(GOM_TYPE_QUERY,
 	                     "condition", condition,
 	                     "fields", fields,
 	                     "limit", G_GUINT64_CONSTANT(1),
 	                     "resource-type", resource_type,
 	                     NULL);
+	gom_condition_unref(condition);
+	gom_property_set_unref(fields);
 
 	if (!gom_adapter_read(priv->adapter, query, &enumerable, &error)) {
 		g_critical("%s", error->message);
@@ -1461,7 +1463,7 @@ gom_resource_read_property (GomResource *resource,
 
 	if (gom_enumerable_get_n_columns(enumerable) != 1) {
 		g_critical("Received invalid number of columns for query.");
-		return;
+		goto failure;
 	}
 
 	if (gom_enumerable_iter_init(&iter, enumerable)) {
@@ -1477,8 +1479,6 @@ gom_resource_read_property (GomResource *resource,
   failure:
 	gom_clear_object(&query);
 	gom_clear_object(&enumerable);
-	gom_clear_pointer(&condition, gom_condition_unref);
-	gom_clear_pointer(&fields, gom_property_set_unref);
 }
 
 /**
