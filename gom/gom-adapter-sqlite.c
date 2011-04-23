@@ -1155,6 +1155,7 @@ gom_adapter_sqlite_finalize (GObject *object)
 	GomAdapterSqlitePrivate *priv = GOM_ADAPTER_SQLITE(object)->priv;
 
 	gom_clear_pointer(&priv->sqlite, sqlite3_close);
+	g_hash_table_destroy(priv->created_tables);
 
 	G_OBJECT_CLASS(gom_adapter_sqlite_parent_class)->finalize(object);
 }
