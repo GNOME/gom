@@ -46,6 +46,12 @@ enum
 	LAST_PROP
 };
 
+enum
+{
+	SAVED,
+	LAST_SIGNAL
+};
+
 /*
  * Forward declarations.
  */
@@ -86,6 +92,7 @@ static gboolean          gom_resource_save_self         (GomResource    *resourc
  */
 
 static GParamSpec *gParamSpecs[LAST_PROP];
+static guint       gSignals[LAST_SIGNAL];
 static gpointer    gom_resource_parent_class;
 
 /**
@@ -848,6 +855,16 @@ gom_resource_class_init (gpointer klass,
 		                     G_PARAM_READWRITE);
 	g_object_class_install_property(object_class, PROP_IS_NEW,
 	                                gParamSpecs[PROP_IS_NEW]);
+
+	gSignals[SAVED] = g_signal_new("saved",
+	                               GOM_TYPE_RESOURCE,
+	                               G_SIGNAL_RUN_FIRST,
+	                               0,
+	                               NULL,
+	                               NULL,
+	                               g_cclosure_marshal_VOID__VOID,
+	                               G_TYPE_NONE,
+	                               0);
 
 	g_value_register_transform_func(G_TYPE_DATE_TIME, G_TYPE_UINT64, _date_time_to_uint64);
 	g_value_register_transform_func(G_TYPE_DATE_TIME, G_TYPE_INT64, _date_time_to_int64);
@@ -1797,6 +1814,7 @@ gom_resource_save (GomResource  *resource,
 	if (gom_resource_save_parents(resource, error)) {
 		if (gom_resource_save_self(resource, error)) {
 			if (gom_resource_save_children(resource, error)) {
+				g_signal_emit(resource, gSignals[SAVED], 0);
 				return TRUE;
 			}
 		}
