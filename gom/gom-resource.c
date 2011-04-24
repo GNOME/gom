@@ -195,6 +195,7 @@ _property_value_free (gpointer data)
 		if (G_IS_VALUE(&value->value)) {
 			g_value_unset(&value->value);
 		}
+		memset(value, 0, sizeof *value);
 		g_slice_free(GomPropertyValue, value);
 	}
 }
