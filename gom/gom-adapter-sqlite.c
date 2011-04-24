@@ -994,8 +994,8 @@ gom_adapter_sqlite_delete (GomAdapter     *adapter,
 
 	if (query) {
 		g_object_get(query,
-		             "resource-type", &resource_type,
 		             "condition", &condition,
+		             "resource-type", &resource_type,
 		             NULL);
 		table = _get_table_name(resource_type);
 		g_string_append_printf(str, "%s WHERE ", table);
@@ -1358,6 +1358,7 @@ gom_adapter_sqlite_update (GomAdapter      *adapter,
 	             "condition", &condition,
 	             "resource-type", &resource_type,
 	             NULL);
+	gom_clear_object(&query);
 
 	if (!condition) {
 		g_set_error(error, GOM_ADAPTER_SQLITE_ERROR,
@@ -1397,6 +1398,7 @@ gom_adapter_sqlite_update (GomAdapter      *adapter,
 	g_string_append(str, " WHERE ");
 
 	gom_adapter_sqlite_append_condition(sqlite, condition, hash, str);
+	gom_condition_unref(condition);
 
 	g_string_append(str, ";");
 
@@ -1432,9 +1434,7 @@ failure:
 		g_string_free(str, TRUE);
 	}
 	gom_clear_pointer(&stmt, sqlite3_finalize);
-	gom_clear_pointer(&condition, gom_condition_unref);
 	gom_clear_pointer(&hash, g_hash_table_unref);
-	gom_clear_object(&query);
 
 	return ret;
 }

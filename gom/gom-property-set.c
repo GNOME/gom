@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -41,17 +41,18 @@ static void
 gom_property_set_dispose (GomPropertySet *set)
 {
 	GomPropertySetReal *real = (GomPropertySetReal *)set;
+
 	g_free(real->properties);
+	real->properties = NULL;
+	real->n_properties = 0;
 }
 
 /**
  * gom_property_set_newv:
  * @n_properties: (in): The length of the array.
- * @properties: (transfer full) (array length=n_properties): The properties.
+ * @properties: (transfer none) (array length=n_properties): The properties.
  *
- * Creates a new #GomPropertySet using the array of properties. This method
- * claims ownership of the @properties array and should not be modified
- * by the caller after calling this function.
+ * Creates a new #GomPropertySet using the array of properties.
  *
  * Returns: #GomPropertySet which should be freed with gom_property_set_unref().
  * Side effects: None.
@@ -65,7 +66,12 @@ gom_property_set_newv (guint         n_properties,
 	real = g_slice_new0(GomPropertySetReal);
 	real->ref_count = 1;
 	real->n_properties = n_properties;
-	real->properties = properties;
+
+	if (n_properties) {
+		real->properties = g_new0(GomProperty *, n_properties);
+		memcpy(real->properties, properties,
+		       (sizeof *properties) * n_properties);
+	}
 
 	return (GomPropertySet *)real;
 }
@@ -102,7 +108,8 @@ gom_property_set_new (GomProperty *first_property,
 	va_end(args);
 
 	set = gom_property_set_newv(array->len, (GomProperty **)array->pdata);
-	g_ptr_array_free(array, FALSE);
+	g_ptr_array_free(array, TRUE);
+
 	return set;
 }
 

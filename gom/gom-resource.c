@@ -415,9 +415,8 @@ gom_resource_find_first (GType          resource_type,
 		if ((ret = gom_collection_first(collection))) {
 			g_assert(GOM_IS_RESOURCE(ret));
 		}
+		g_object_unref(collection);
 	}
-
-	gom_clear_object(&collection);
 
 	if (!ret) {
 		g_set_error(error, GOM_RESOURCE_ERROR, GOM_RESOURCE_ERROR_NOT_FOUND,
@@ -1203,9 +1202,10 @@ gom_resource_init_collection (GomResource   *resource,
 		 *       m2m table?
 		 */
 		g_object_set(query, "condition", cond, NULL);
+		gom_condition_unref(cond);
 	}
 
-	g_clear_object(&query);
+	gom_clear_object(&query);
 }
 
 /**

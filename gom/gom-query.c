@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -276,6 +276,12 @@ gom_query_direction_get_type (void)
 static void
 gom_query_finalize (GObject *object)
 {
+	GomQueryPrivate *priv = GOM_QUERY(object)->priv;
+
+	gom_clear_pointer(&priv->condition, gom_condition_unref);
+	gom_clear_pointer(&priv->relations, g_ptr_array_unref);
+	gom_clear_pointer(&priv->fields, gom_property_set_unref);
+
 	G_OBJECT_CLASS(gom_query_parent_class)->finalize(object);
 }
 
