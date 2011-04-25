@@ -1092,7 +1092,12 @@ gom_resource_finalize (GObject *object)
 {
 	GomResourcePrivate *priv = GOM_RESOURCE(object)->priv;
 
-	gom_clear_object(&priv->adapter);
+	if (priv->adapter) {
+		g_object_remove_weak_pointer(G_OBJECT(priv->adapter),
+		                             (gpointer *)&priv->adapter);
+		priv->adapter = NULL;
+	}
+
 	gom_clear_pointer(&priv->properties, g_hash_table_unref);
 
 	G_OBJECT_CLASS(gom_resource_parent_class)->finalize(object);
@@ -1573,6 +1578,39 @@ gom_resource_get_properties (GomResource *resource,
 }
 
 /**
+ * gom_resource_set_adapter:
+ * @resource: (in): A #GomResource.
+ * @adapter: (in): A #GomAdapter.
+ *
+ * Set the adapter for a given #GomResource.
+ *
+ * Returns: None.
+ * Side effects: Weak reference to adapter is taken.
+ */
+static void
+gom_resource_set_adapter (GomResource *resource,
+                          GomAdapter  *adapter)
+{
+	GomResourcePrivate *priv;
+
+	g_return_if_fail(GOM_IS_RESOURCE(resource));
+	g_return_if_fail(!adapter || GOM_IS_ADAPTER(adapter));
+
+	priv = resource->priv;
+
+	if (priv->adapter) {
+		g_object_remove_weak_pointer(G_OBJECT(priv->adapter),
+		                             (gpointer *)&priv->adapter);
+		priv->adapter = NULL;
+	}
+	if (adapter) {
+		priv->adapter = adapter;
+		g_object_add_weak_pointer(G_OBJECT(priv->adapter),
+		                          (gpointer *)&priv->adapter);
+	}
+}
+
+/**
  * gom_resource_real_set_property:
  * @object: (in): A #GObject.
  * @prop_id: (in): The property identifier.
@@ -1591,7 +1629,7 @@ gom_resource_real_set_property (GObject      *object,
 
 	switch (prop_id) {
 	case PROP_ADAPTER:
-		resource->priv->adapter = g_value_dup_object(value);
+		gom_resource_set_adapter(resource, g_value_get_object(value));
 		break;
 	case PROP_IS_NEW:
 		resource->priv->is_new = g_value_get_boolean(value);
