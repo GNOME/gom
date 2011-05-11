@@ -1862,27 +1862,61 @@ gom_resource_save (GomResource  *resource,
 	return FALSE;
 }
 
+static void
+gom_resource_save_thread_cb (GomAdapter *adapter,
+                             gpointer    user_data)
+{
+	GSimpleAsyncResult *simple = user_data;
+	GAsyncResult *result = user_data;
+	GCancellable *cancellable;
+	GomResource *resource;
+	GError *error = NULL;
+
+	g_assert(G_IS_ASYNC_RESULT(result));
+	g_assert(G_IS_SIMPLE_ASYNC_RESULT(simple));
+	resource = (GomResource *)g_async_result_get_source_object(result);
+	g_assert(GOM_IS_RESOURCE(resource));
+
+	cancellable = g_object_get_data(G_OBJECT(simple), "cancellable");
+	if (cancellable && g_cancellable_is_cancelled(cancellable)) {
+		g_simple_async_result_set_error(simple, GOM_RESOURCE_ERROR,
+		                                GOM_RESOURCE_ERROR_CANCELLED,
+		                                _("The save was cancelled."));
+		goto finish;
+	}
+
+	if (!gom_resource_save(resource, &error)) {
+		g_simple_async_result_take_error(simple, error);
+		goto finish;
+	}
+
+	g_simple_async_result_set_op_res_gboolean(simple, TRUE);
+
+finish:
+	g_simple_async_result_complete_in_idle(simple);
+}
+
 void
 gom_resource_save_async (GomResource         *resource,
                          GCancellable        *cancellable,
                          GAsyncReadyCallback  callback,
                          gpointer             user_data)
 {
-	GError *error = NULL;
+	GSimpleAsyncResult *simple;
 
 	g_return_if_fail(GOM_IS_RESOURCE(resource));
 	g_return_if_fail(!cancellable || G_IS_CANCELLABLE(cancellable));
 	g_return_if_fail(callback != NULL);
 
-	/*
-	 * TODO: Actually implement this.
-	 */
-	if (!gom_resource_save(resource, &error)) {
-		g_critical("%s", error->message);
-		g_error_free(error);
+	simple = g_simple_async_result_new(G_OBJECT(resource), callback,
+	                                   user_data, gom_resource_save_async);
+	if (cancellable) {
+		g_object_set_data(G_OBJECT(simple), "cancellable",
+		                  g_object_ref(cancellable));
 	}
-
-	callback(G_OBJECT(resource), NULL, user_data);
+	gom_adapter_call_in_thread(resource->priv->adapter,
+	                           gom_resource_save_thread_cb,
+	                           simple, g_object_unref);
 }
 
 gboolean
@@ -1890,10 +1924,17 @@ gom_resource_save_finish (GomResource   *resource,
                           GAsyncResult  *result,
                           GError       **error)
 {
-	/*
-	 * TODO: Actually implement this.
-	 */
-	return TRUE;
+	GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
+	gboolean ret;
+
+	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+	g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple), FALSE);
+
+	if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+		g_simple_async_result_propagate_error(simple, error);
+	}
+
+	return ret;
 }
 
 GType

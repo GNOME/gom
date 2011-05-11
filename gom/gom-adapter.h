@@ -41,6 +41,9 @@ typedef struct _GomAdapter        GomAdapter;
 typedef struct _GomAdapterClass   GomAdapterClass;
 typedef struct _GomAdapterPrivate GomAdapterPrivate;
 
+typedef void (*GomAdapterThreadFunc) (GomAdapter *adapter,
+                                      gpointer    user_data);
+
 struct _GomAdapter
 {
 	GObject parent;
@@ -73,22 +76,26 @@ struct _GomAdapterClass
 	                    GError         **error);
 };
 
-GType    gom_adapter_get_type (void) G_GNUC_CONST;
-gboolean gom_adapter_create   (GomAdapter      *adapter,
-                               GomEnumerable   *enumerable,
-                               GError         **error);
-gboolean gom_adapter_delete   (GomAdapter      *adapter,
-                               GomCollection   *collection,
-                               GError         **error);
-gboolean gom_adapter_read     (GomAdapter      *adapter,
-                               GomQuery        *query,
-                               GomEnumerable  **enumerable,
-                               GError         **error);
-gboolean gom_adapter_update   (GomAdapter      *adapter,
-                               GomPropertySet  *properties,
-                               GValueArray     *values,
-                               GomCollection   *collection,
-                               GError         **error);
+GType    gom_adapter_get_type       (void) G_GNUC_CONST;
+void     gom_adapter_call_in_thread (GomAdapter           *adapter,
+                                     GomAdapterThreadFunc  callback,
+                                     gpointer              user_data,
+                                     GDestroyNotify        notify);
+gboolean gom_adapter_create         (GomAdapter           *adapter,
+                                     GomEnumerable        *enumerable,
+                                     GError              **error);
+gboolean gom_adapter_delete         (GomAdapter           *adapter,
+                                     GomCollection        *collection,
+                                     GError              **error);
+gboolean gom_adapter_read           (GomAdapter           *adapter,
+                                     GomQuery             *query,
+                                     GomEnumerable       **enumerable,
+                                     GError              **error);
+gboolean gom_adapter_update         (GomAdapter           *adapter,
+                                     GomPropertySet       *properties,
+                                     GValueArray          *values,
+                                     GomCollection        *collection,
+                                     GError              **error);
 
 G_END_DECLS
 

@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -19,16 +19,92 @@
 #include "gom-adapter.h"
 #include "gom-resource.h"
 
+#define MAGIC_CLOSE GINT_TO_POINTER(1)
+
 G_DEFINE_ABSTRACT_TYPE(GomAdapter, gom_adapter, G_TYPE_OBJECT)
+
+struct _GomAdapterPrivate
+{
+	GAsyncQueue *queue;
+	GThread     *thread;
+};
+
+static gpointer
+gom_adapter_thread_func (gpointer user_data)
+{
+	GomAdapter *adapter = user_data;
+	GClosure *closure;
+	GValue value = { 0 };
+
+	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), NULL);
+
+	while (MAGIC_CLOSE != (closure = g_async_queue_pop(adapter->priv->queue))) {
+		g_value_init(&value, GOM_TYPE_ADAPTER);
+		g_value_set_object(&value, adapter);
+		g_closure_invoke(closure, NULL, 1, &value, NULL);
+		g_value_unset(&value);
+		g_closure_unref(closure);
+	}
+
+	return NULL;
+}
+
+static void
+gom_adapter_finalize (GObject *object)
+{
+	GomAdapterPrivate *priv = GOM_ADAPTER(object)->priv;
+
+	g_async_queue_push(priv->queue, MAGIC_CLOSE);
+	if (priv->thread) {
+		g_thread_join(priv->thread);
+	}
+	g_async_queue_unref(priv->queue);
+
+	G_OBJECT_CLASS(gom_adapter_parent_class)->finalize(object);
+}
 
 static void
 gom_adapter_class_init (GomAdapterClass *klass)
 {
+	GObjectClass *object_class;
+
+	object_class = G_OBJECT_CLASS(klass);
+	object_class->finalize = gom_adapter_finalize;
+	g_type_class_add_private(object_class, sizeof(GomAdapterPrivate));
 }
 
 static void
 gom_adapter_init (GomAdapter *adapter)
 {
+	GomAdapterPrivate *priv;
+	GError *error = NULL;
+
+	adapter->priv = priv =
+		G_TYPE_INSTANCE_GET_PRIVATE(adapter,
+		                           GOM_TYPE_ADAPTER,
+		                           GomAdapterPrivate);
+
+	priv->queue = g_async_queue_new();
+	priv->thread = g_thread_create(gom_adapter_thread_func,
+	                               adapter, TRUE, &error);
+	g_assert_no_error(error);
+}
+
+void
+gom_adapter_call_in_thread (GomAdapter           *adapter,
+                            GomAdapterThreadFunc  callback,
+                            gpointer              user_data,
+                            GDestroyNotify        notify)
+{
+	GClosure *closure;
+
+	g_return_if_fail(GOM_IS_ADAPTER(adapter));
+	g_return_if_fail(callback != NULL);
+
+	closure = g_cclosure_new(G_CALLBACK(callback), user_data,
+	                         (GClosureNotify)notify);
+	g_closure_set_marshal(closure, g_cclosure_marshal_VOID__VOID);
+	g_async_queue_push(adapter->priv->queue, closure);
 }
 
 /**

@@ -49,6 +49,7 @@ enum _GomResourceError
 {
 	GOM_RESOURCE_ERROR_NO_ADAPTER = 1,
 	GOM_RESOURCE_ERROR_NOT_FOUND,
+	GOM_RESOURCE_ERROR_CANCELLED,
 };
 
 struct _GomResource
