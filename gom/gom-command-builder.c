@@ -242,6 +242,15 @@ bind_params (GomCommand *command,
    }
 }
 
+/**
+ * gom_command_builder_build_select:
+ * @builder: (in): A #GomCommandBuilder.
+ *
+ * Builds a #GomCommand that will select all the rows matching the current
+ * query params.
+ *
+ * Returns: (transfer full): A #GomCommand.
+ */
 GomCommand *
 gom_command_builder_build_select (GomCommandBuilder *builder)
 {
@@ -278,6 +287,15 @@ gom_command_builder_build_select (GomCommandBuilder *builder)
    return command;
 }
 
+/**
+ * gom_command_builder_build_count:
+ * @builder: (in): A #GomCommandBuilder.
+ *
+ * Builds a new command that will count the number of rows matching the
+ * current query parameters.
+ *
+ * Returns: (transfer full): A #GomCommand.
+ */
 GomCommand *
 gom_command_builder_build_count (GomCommandBuilder *builder)
 {
@@ -315,6 +333,15 @@ gom_command_builder_build_count (GomCommandBuilder *builder)
    return command;
 }
 
+/**
+ * gom_command_builder_build_delete:
+ * @builder: (in): A #GomCommandBuilder.
+ *
+ * Builds a new #GomCommand to delete the rows matching the current query
+ * params.
+ *
+ * Returns: (transfer full): A #GomCommand.
+ */
 GomCommand *
 gom_command_builder_build_delete (GomCommandBuilder *builder)
 {
@@ -365,6 +392,15 @@ do_prop_on_insert (GParamSpec       *pspec,
 #undef BELONGS_TO_TYPE
 }
 
+/**
+ * gom_command_builder_build_insert:
+ * @builder: (in): A #GomCommandBuilder.
+ *
+ * Builds a new #GomCommand that will insert the parameters of the resource
+ * into the underlying database.
+ *
+ * Returns: (transfer full): A #GomCommand.
+ */
 GomCommand *
 gom_command_builder_build_insert (GomCommandBuilder *builder,
                                   GomResource       *resource)
@@ -441,6 +477,15 @@ gom_command_builder_build_insert (GomCommandBuilder *builder,
    return command;
 }
 
+/**
+ * gom_command_builder_build_update:
+ * @builder: (in): A #GomCommandBuilder.
+ *
+ * Builds a new #GomCommand that will update the contents stored for @resource
+ * in the underlying database.
+ *
+ * Returns: (transfer full): A #GomCommand.
+ */
 GomCommand *
 gom_command_builder_build_update (GomCommandBuilder *builder,
                                   GomResource       *resource)

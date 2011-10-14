@@ -60,6 +60,14 @@ gom_repository_new (GomAdapter *adapter)
                        NULL);
 }
 
+/**
+ * gom_repository_get_adapter:
+ * @repository: (in): A #GomRepository.
+ *
+ * Fetches the underlying adapter.
+ *
+ * Returns: (transfer none): A #GomAdapter.
+ */
 GomAdapter *
 gom_repository_get_adapter (GomRepository *repository)
 {
@@ -199,6 +207,20 @@ out:
    g_object_unref(simple);
 }
 
+/**
+ * gom_repository_migrate_async:
+ * @repository: (in): A #GomRepository.
+ * @version: (in): The version to migrate to.
+ * @migrator: (in) (scope async): A function to perform the migrations.
+ * @callback: (in): A callback to execute upon completion.
+ * @user_data: (in): User data for @callback.
+ *
+ * Asynchronously performs a migration on the underlying database. This will
+ * call @migrator from the SQLite thread for each migration to perform.
+ *
+ * Upon completion, @callback will be executed and it must call
+ * gom_repository_migrate_finish().
+ */
 void
 gom_repository_migrate_async (GomRepository         *repository,
                               guint                  version,
@@ -341,6 +363,16 @@ gom_repository_find_async (GomRepository       *repository,
    gom_adapter_queue_read(priv->adapter, gom_repository_find_cb, simple);
 }
 
+/**
+ * gom_repository_find_finish:
+ * @repository: (in): A #GomRepository.
+ * @result: (in): A #GAsyncResult.
+ * @error: (out): A location for a #GError, or %NULL.
+ *
+ * Completes an asynchronous request to fetch a group of resources.
+ *
+ * Returns: (transfer full): A #GomResourceGroup.
+ */
 GomResourceGroup *
 gom_repository_find_finish (GomRepository  *repository,
                             GAsyncResult   *result,

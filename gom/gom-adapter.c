@@ -30,6 +30,15 @@ struct _GomAdapterPrivate
    GAsyncQueue *queue;
 };
 
+/**
+ * gom_adapter_get_handle:
+ * @adapter: (in): A #GomAdapter.
+ *
+ * Fetches the sqlite3 structure used by the adapter.
+ *
+ * Returns: (transfer none): A handle to the #sqlite3 structure.
+ * Side effects: None.
+ */
 gpointer
 gom_adapter_get_handle (GomAdapter *adapter)
 {
@@ -100,6 +109,15 @@ dummy_cb (GObject      *object,
    /* Do nothing. */
 }
 
+/**
+ * gom_adapter_queue_write:
+ * @adapter: (in): A #GomAdapter.
+ * @callback: (in) (scope async): A callback to execute write queries on SQLite.
+ * @user_data: (in): User data for @callback.
+ *
+ * Queues a callback to be executed within the SQLite thwrite. The callback can
+ * perform reads and writes.
+ */
 void
 gom_adapter_queue_write (GomAdapter         *adapter,
                          GomAdapterCallback  callback,
@@ -122,6 +140,15 @@ gom_adapter_queue_write (GomAdapter         *adapter,
    g_async_queue_push(priv->queue, simple);
 }
 
+/**
+ * gom_adapter_queue_read:
+ * @adapter: (in): A #GomAdapter.
+ * @callback: (in) (scope async): A callback to execute read queries on SQLite.
+ * @user_data: (in): User data for @callback.
+ *
+ * Queues a callback to be executed within the SQLite thread. The callback is
+ * expected to perform reads only.
+ */
 void
 gom_adapter_queue_read (GomAdapter         *adapter,
                         GomAdapterCallback  callback,
@@ -137,7 +164,7 @@ gom_adapter_queue_read (GomAdapter         *adapter,
    priv = adapter->priv;
 
    simple = g_simple_async_result_new(G_OBJECT(adapter), dummy_cb, NULL,
-                                      gom_adapter_queue_write);
+                                      gom_adapter_queue_read);
    g_object_set_data(G_OBJECT(simple), "request", (gpointer)"queue-read");
    g_object_set_data(G_OBJECT(simple), "read-callback", callback);
    g_object_set_data(G_OBJECT(simple), "read-callback-data", user_data);

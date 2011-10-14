@@ -344,6 +344,17 @@ gom_resource_group_fetch_finish (GomResourceGroup  *group,
    return ret;
 }
 
+/**
+ * gom_resource_group_get_index:
+ * @group: (in): A #GomResourceGroup.
+ * @index_: (in): The index of the resource.
+ *
+ * Fetches the resource at @index_. You must have loaded that resource by
+ * calling gom_resource_group_fetch_async() with a range inclusive of the
+ * index.
+ *
+ * Returns: (transfer none): A #GomResource.
+ */
 GomResource *
 gom_resource_group_get_index (GomResourceGroup *group,
                               guint             index_)

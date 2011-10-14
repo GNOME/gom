@@ -194,6 +194,16 @@ get_table (GParamSpec *pspec,
    return table;
 }
 
+/**
+ * gom_filter_new_and:
+ * @left: (in): A #GomFilter.
+ * @right: (in): A #GomFilter.
+ *
+ * Creates a new filter that requires that both left and right filters
+ * equate to #TRUE.
+ *
+ * Returns: (transfer full): A #GomFilter.
+ */
 GomFilter *
 gom_filter_new_and (GomFilter *left,
                     GomFilter *right)
@@ -205,6 +215,34 @@ gom_filter_new_and (GomFilter *left,
 
    filter = g_object_new(GOM_TYPE_FILTER,
                          "mode", GOM_FILTER_AND,
+                         NULL);
+   filter->priv->left = g_object_ref(left);
+   filter->priv->right = g_object_ref(right);
+
+   return filter;
+}
+
+/**
+ * gom_filter_new_or:
+ * @left: (in): A #GomFilter.
+ * @right: (in): A #GomFilter.
+ *
+ * Creates a new filter that requires either the left or right filters
+ * equate to #TRUE.
+ *
+ * Returns: (transfer full): A #GomFilter.
+ */
+GomFilter *
+gom_filter_new_or (GomFilter *left,
+                   GomFilter *right)
+{
+   GomFilter *filter;
+
+   g_return_val_if_fail(GOM_IS_FILTER(left), NULL);
+   g_return_val_if_fail(GOM_IS_FILTER(right), NULL);
+
+   filter = g_object_new(GOM_TYPE_FILTER,
+                         "mode", GOM_FILTER_OR,
                          NULL);
    filter->priv->left = g_object_ref(left);
    filter->priv->right = g_object_ref(right);
