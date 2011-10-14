@@ -19,13 +19,7 @@
 #ifndef GOM_ADAPTER_H
 #define GOM_ADAPTER_H
 
-#include <glib-object.h>
-
-#include "gom-collection.h"
-#include "gom-enumerable.h"
-#include "gom-property.h"
-#include "gom-property-set.h"
-#include "gom-query.h"
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -36,66 +30,50 @@ G_BEGIN_DECLS
 #define GOM_IS_ADAPTER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOM_TYPE_ADAPTER))
 #define GOM_IS_ADAPTER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GOM_TYPE_ADAPTER))
 #define GOM_ADAPTER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GOM_TYPE_ADAPTER, GomAdapterClass))
+#define GOM_ADAPTER_ERROR           (gom_adapter_error_quark())
 
 typedef struct _GomAdapter        GomAdapter;
 typedef struct _GomAdapterClass   GomAdapterClass;
 typedef struct _GomAdapterPrivate GomAdapterPrivate;
+typedef enum   _GomAdapterError   GomAdapterError;
 
-typedef void (*GomAdapterThreadFunc) (GomAdapter *adapter,
-                                      gpointer    user_data);
+typedef void (*GomAdapterCallback) (GomAdapter *adapter,
+                                    gpointer    user_data);
+
+enum _GomAdapterError
+{
+   GOM_ADAPTER_ERROR_OPEN = 1,
+};
 
 struct _GomAdapter
 {
-	GObject parent;
+   GObject parent;
 
-	/*< private >*/
-	GomAdapterPrivate *priv;
+   /*< private >*/
+   GomAdapterPrivate *priv;
 };
 
 struct _GomAdapterClass
 {
-	GObjectClass parent_class;
-
-	gboolean (*create) (GomAdapter      *adapter,
-	                    GomEnumerable   *enumerable,
-	                    GError         **error);
-
-	gboolean (*read)   (GomAdapter      *adapter,
-	                    GomQuery        *query,
-	                    GomEnumerable  **results,
-	                    GError         **error);
-
-	gboolean (*update) (GomAdapter      *adapter,
-	                    GomPropertySet  *properties,
-	                    GValueArray     *values,
-	                    GomCollection   *collection,
-	                    GError         **error);
-
-	gboolean (*delete) (GomAdapter      *adapter,
-	                    GomCollection   *collection,
-	                    GError         **error);
+   GObjectClass parent_class;
 };
 
-GType    gom_adapter_get_type       (void) G_GNUC_CONST;
-void     gom_adapter_call_in_thread (GomAdapter           *adapter,
-                                     GomAdapterThreadFunc  callback,
-                                     gpointer              user_data,
-                                     GDestroyNotify        notify);
-gboolean gom_adapter_create         (GomAdapter           *adapter,
-                                     GomEnumerable        *enumerable,
-                                     GError              **error);
-gboolean gom_adapter_delete         (GomAdapter           *adapter,
-                                     GomCollection        *collection,
-                                     GError              **error);
-gboolean gom_adapter_read           (GomAdapter           *adapter,
-                                     GomQuery             *query,
-                                     GomEnumerable       **enumerable,
-                                     GError              **error);
-gboolean gom_adapter_update         (GomAdapter           *adapter,
-                                     GomPropertySet       *properties,
-                                     GValueArray          *values,
-                                     GomCollection        *collection,
-                                     GError              **error);
+GQuark   gom_adapter_error_quark (void) G_GNUC_CONST;
+gpointer gom_adapter_get_handle  (GomAdapter           *adapter);
+GType    gom_adapter_get_type    (void) G_GNUC_CONST;
+void     gom_adapter_open_async  (GomAdapter           *adapter,
+                                  const gchar          *filename,
+                                  GAsyncReadyCallback   callback,
+                                  gpointer              user_data);
+gboolean gom_adapter_open_finish (GomAdapter           *adapter,
+                                  GAsyncResult         *result,
+                                  GError              **error);
+void     gom_adapter_queue_read  (GomAdapter           *adapter,
+                                  GomAdapterCallback    callback,
+                                  gpointer              user_data);
+void     gom_adapter_queue_write (GomAdapter           *adapter,
+                                  GomAdapterCallback    callback,
+                                  gpointer              user_data);
 
 G_END_DECLS
 

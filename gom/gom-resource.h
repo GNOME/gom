@@ -19,15 +19,9 @@
 #ifndef GOM_RESOURCE_H
 #define GOM_RESOURCE_H
 
-#include <glib-object.h>
 #include <gio/gio.h>
 
-#include "gom-adapter.h"
-#include "gom-collection.h"
-#include "gom-condition.h"
-#include "gom-property.h"
-#include "gom-property-set.h"
-#include "gom-resource-macros.h"
+#include "gom-filter.h"
 
 G_BEGIN_DECLS
 
@@ -40,106 +34,59 @@ G_BEGIN_DECLS
 #define GOM_RESOURCE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GOM_TYPE_RESOURCE, GomResourceClass))
 #define GOM_RESOURCE_ERROR           (gom_resource_error_quark())
 
-typedef struct _GomResource          GomResource;
-typedef struct _GomResourceClass     GomResourceClass;
-typedef struct _GomResourcePrivate   GomResourcePrivate;
-typedef enum   _GomResourceError     GomResourceError;
+typedef struct _GomResource        GomResource;
+typedef struct _GomResourceClass   GomResourceClass;
+typedef struct _GomResourcePrivate GomResourcePrivate;
+typedef enum   _GomResourceError   GomResourceError;
 
 enum _GomResourceError
 {
-	GOM_RESOURCE_ERROR_NO_ADAPTER = 1,
-	GOM_RESOURCE_ERROR_NOT_FOUND,
-	GOM_RESOURCE_ERROR_CANCELLED,
+   GOM_RESOURCE_ERROR_CURSOR = 1,
 };
 
 struct _GomResource
 {
-	GObject parent;
+   GObject parent;
 
-	/*< private >*/
-	GomResourcePrivate *priv;
+   /*< private >*/
+   GomResourcePrivate *priv;
 };
 
 struct _GomResourceClass
 {
-	GObjectClass parent_class;
+   GObjectClass parent_class;
 
-	/*< private >*/
-	const gchar    *table;
-	GQuark          tableq;
-	GomPropertySet *keys;
-	GomPropertySet *properties;
+   gchar primary_key[64];
+   gchar table[64];
 };
 
-void                    gom_resource_class_belongs_to       (GomResourceClass  *resource_class,
-                                                             const gchar       *property_name,
-                                                             const gchar       *property_nick,
-                                                             const gchar       *property_desc,
-                                                             GType              resource_type,
-                                                             ...) G_GNUC_NULL_TERMINATED;
-GomPropertySet*         gom_resource_class_get_properties   (GomResourceClass  *resource_class);
-void                    gom_resource_class_has_a            (GomResourceClass  *resource_class,
-                                                             const gchar       *property_name,
-                                                             const gchar       *property_nick,
-                                                             const gchar       *property_desc,
-                                                             GType              resource_type,
-                                                             ...) G_GNUC_NULL_TERMINATED;
-void                    gom_resource_class_has_many         (GomResourceClass  *resource_class,
-                                                             const gchar       *property_name,
-                                                             const gchar       *property_nick,
-                                                             const gchar       *property_desc,
-                                                             GType              resource_type,
-                                                             ...) G_GNUC_NULL_TERMINATED;
-void                    gom_resource_class_table            (GomResourceClass  *resource_class,
-                                                             const gchar       *table);
-void                    gom_resource_class_install_property (GomResourceClass *resource_class,
-                                                             GParamSpec       *param_spec,
-                                                             ...) G_GNUC_NULL_TERMINATED;
-
-gpointer                gom_resource_create                 (GType             resource_type,
-                                                             GomAdapter       *adapter,
-                                                             const gchar      *first_property,
-                                                             ...) G_GNUC_NULL_TERMINATED;
-gboolean                gom_resource_delete                 (GomResource      *resource,
-                                                             GError          **error);
-GQuark                  gom_resource_error_quark            (void) G_GNUC_CONST;
-GomCollection*          gom_resource_find                   (GType             resource_type,
-                                                             GomAdapter       *adapter,
-                                                             GomCondition     *condition,
-                                                             GError          **error);
-gpointer                gom_resource_find_first             (GType             resource_type,
-                                                             GomAdapter       *adapter,
-                                                             GomCondition     *condition,
-                                                             GError          **error);
-GomProperty*            gom_resource_find_property          (GomResource      *resource,
-                                                             const gchar      *name);
-GomCondition*           gom_resource_get_condition          (GomResource      *resource);
-GType                   gom_resource_get_type               (void) G_GNUC_CONST;
-gboolean                gom_resource_is_dirty               (GomResource      *resource);
-gboolean                gom_resource_is_new                 (GomResource      *resource);
-void                    gom_resource_merge                  (GomResource      *resource,
-                                                             GomResource      *other);
-gboolean                gom_resource_reload                 (GomResource      *resource,
-                                                             GError          **error);
-gboolean                gom_resource_save                   (GomResource      *resource,
-                                                             GError          **error);
-void                    gom_resource_save_async             (GomResource      *resource,
-                                                             GCancellable     *cancellable,
-                                                             GAsyncReadyCallback callback,
-                                                             gpointer          user_data);
-gboolean                gom_resource_save_finish            (GomResource      *resource,
-                                                             GAsyncResult     *result,
-                                                             GError          **error);
-GomPropertyValue**      gom_resource_get_properties         (GomResource      *resource,
-                                                             guint            *n_values) G_GNUC_WARN_UNUSED_RESULT;
-void                    gom_resource_get_property           (GObject          *object,
-                                                             guint             prop_id,
-                                                             GValue           *value,
-                                                             GParamSpec       *pspec);
-void                    gom_resource_set_property           (GObject          *object,
-                                                             guint             prop_id,
-                                                             const GValue     *value,
-                                                             GParamSpec       *pspec);
+void              gom_resource_class_set_table       (GomResourceClass *resource_class,
+                                                      const gchar      *table);
+void              gom_resource_class_set_primary_key (GomResourceClass *resource_class,
+                                                      const gchar      *primary_key);
+void              gom_resource_delete_async          (GomResource          *resource,
+                                                      GAsyncReadyCallback   callback,
+                                                      gpointer              user_data);
+gboolean          gom_resource_delete_finish         (GomResource          *resource,
+                                                      GAsyncResult         *result,
+                                                      GError              **error);
+GQuark            gom_resource_error_quark           (void) G_GNUC_CONST;
+GType             gom_resource_get_type              (void) G_GNUC_CONST;
+void              gom_resource_save_async            (GomResource          *resource,
+                                                      GAsyncReadyCallback   callback,
+                                                      gpointer              user_data);
+gboolean          gom_resource_save_finish           (GomResource          *resource,
+                                                      GAsyncResult         *result,
+                                                      GError              **error);
+void              gom_resource_fetch_m2m_async       (GomResource          *resource,
+                                                      GType                 resource_type,
+                                                      const gchar          *m2m_table,
+                                                      GomFilter            *filter,
+                                                      GAsyncReadyCallback   callback,
+                                                      gpointer              user_data);
+gpointer          gom_resource_fetch_m2m_finish      (GomResource          *resource,
+                                                      GAsyncResult         *result,
+                                                      GError              **error);
 
 G_END_DECLS
 

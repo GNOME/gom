@@ -3,7 +3,7 @@ dnl Versioning Macros
 dnl **************************************************************************
 m4_define([gom_major_version], [0])
 m4_define([gom_minor_version], [1])
-m4_define([gom_micro_version], [1])
+m4_define([gom_micro_version], [9])
 m4_define([gom_version],
           [gom_major_version.gom_minor_version.gom_micro_version])
 m4_define([gom_binary_age], [m4_eval(100 * gom_minor_version +
@@ -61,13 +61,6 @@ dnl **************************************************************************
 PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.26])
 PKG_CHECK_MODULES(GOBJECT, [gobject-2.0 >= 2.26])
 PKG_CHECK_MODULES(SQLITE3, [sqlite3 >= 3.6])
-
-
-dnl **************************************************************************
-dnl Check for Optional Modules
-dnl **************************************************************************
-PKG_CHECK_MODULES(GTK, [gtk+-3.0 >= 3.0.0], [enable_gtk=yes], [enable_gtk=no])
-AM_CONDITIONAL(ENABLE_GTK, test "x$enable_gtk" = "xyes")
 
 
 dnl **************************************************************************

@@ -17,1064 +17,536 @@
  */
 
 #include <glib/gi18n.h>
-#include <gobject/gvaluecollector.h>
-#include <string.h>
+#include <sqlite3.h>
 
-#include "gom-condition.h"
-#include "gom-enumerable.h"
-#include "gom-enumerable-array.h"
-#include "gom-private.h"
+#include "gom-command.h"
+#include "gom-command-builder.h"
+#include "gom-filter.h"
+#include "gom-repository.h"
 #include "gom-resource.h"
-#include "gom-util.h"
 
-/*
- * Structures and enums.
- */
+G_DEFINE_ABSTRACT_TYPE(GomResource, gom_resource, G_TYPE_OBJECT)
 
 struct _GomResourcePrivate
 {
-	GomAdapter *adapter;
-	gboolean    is_new;
-	GHashTable *properties;
+   GomRepository *repository;
 };
 
 enum
 {
-	PROP_0,
-	PROP_ADAPTER,
-	PROP_IS_NEW,
-	LAST_PROP
+   PROP_0,
+   PROP_REPOSITORY,
+   LAST_PROP
 };
-
-enum
-{
-	SAVED,
-	LAST_SIGNAL
-};
-
-/*
- * Forward declarations.
- */
-
-static void              _date_time_to_uint64           (const GValue   *src_value,
-                                                         GValue         *dst_value);
-static void              _date_time_to_int64            (const GValue   *src_value,
-                                                         GValue         *dst_value);
-static void              _uint64_to_date_time           (const GValue   *src_value,
-                                                         GValue         *dst_value);
-static void              _int64_to_date_time            (const GValue   *src_value,
-                                                         GValue         *dst_value);
-static void              _property_value_free           (gpointer        data);
-static GomPropertyValue* _property_value_new            (void);
-extern gboolean          gom_collection_save            (GomCollection  *collection,
-                                                         GError        **error);
-static void              gom_resource_finalize          (GObject        *object);
-static void              gom_resource_read_property     (GomResource    *resource,
-                                                         GQuark          property,
-                                                         GValue         *value);
-static void              gom_resource_real_get_property (GObject        *object,
-                                                         guint           prop_id,
-                                                         GValue         *value,
-                                                         GParamSpec     *pspec);
-static void              gom_resource_real_set_property (GObject        *object,
-                                                         guint           prop_id,
-                                                         const GValue   *value,
-                                                         GParamSpec     *pspec);
-static gboolean          gom_resource_save_children     (GomResource    *resource,
-                                                         GError        **error);
-static gboolean          gom_resource_save_parents      (GomResource    *resource,
-                                                         GError        **error);
-static gboolean          gom_resource_save_self         (GomResource    *resource,
-                                                         GError        **error);
-
-/*
- * Globals.
- */
 
 static GParamSpec *gParamSpecs[LAST_PROP];
-static guint       gSignals[LAST_SIGNAL];
-static gpointer    gom_resource_parent_class;
+static GHashTable *gPropMaps;
 
-/**
- * _date_time_to_uint64:
- * @src_value: (in): A #GValue.
- * @dst_value: (in): A #GValue.
- *
- * Converts from a #GDateTime to a #guint64.
- *
- * Returns: None.
- * Side effects: None.
- */
+void
+gom_resource_class_set_primary_key (GomResourceClass *resource_class,
+                                    const gchar      *primary_key)
+{
+   g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(primary_key != NULL);
+
+   g_snprintf(resource_class->primary_key,
+              sizeof(resource_class->primary_key),
+              "%s", primary_key);
+}
+
+void
+gom_resource_class_set_table (GomResourceClass *resource_class,
+                              const gchar      *table)
+{
+   g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(table != NULL);
+
+   g_snprintf(resource_class->table,
+              sizeof(resource_class->table),
+              "%s", table);
+}
+
+GomRepository *
+gom_resource_get_repository (GomResource *resource)
+{
+   g_return_val_if_fail(GOM_IS_RESOURCE(resource), NULL);
+   return resource->priv->repository;
+}
+
 static void
-_date_time_to_uint64 (const GValue *src_value,
-                      GValue       *dst_value)
+gom_resource_set_repository (GomResource   *resource,
+                             GomRepository *repository)
 {
-	GDateTime *dt = g_value_get_boxed(src_value);
+   GomResourcePrivate *priv;
 
-	if (dt) {
-		dst_value->data[0].v_uint64 = g_date_time_to_unix(dt);
-	}
+   g_return_if_fail(GOM_IS_RESOURCE(resource));
+   g_return_if_fail(!repository || GOM_IS_REPOSITORY(repository));
+
+   priv = resource->priv;
+
+   if (priv->repository) {
+      g_object_remove_weak_pointer(G_OBJECT(priv->repository),
+                                   (gpointer  *)&priv->repository);
+      priv->repository = NULL;
+   }
+
+   if (repository) {
+      priv->repository = repository;
+      g_object_add_weak_pointer(G_OBJECT(priv->repository),
+                                (gpointer  *)&priv->repository);
+   }
+
+   g_object_notify_by_pspec(G_OBJECT(resource), gParamSpecs[PROP_REPOSITORY]);
 }
 
-/**
- * _date_time_to_int64:
- * @src_value: (in): A #GValue.
- * @dst_value: (in): A #GValue.
- *
- * Converts from a #GDateTime to a #gint64.
- *
- * Returns: None.
- * Side effects: None.
- */
 static void
-_date_time_to_int64 (const GValue *src_value,
-                     GValue       *dst_value)
+gom_resource_delete_cb (GomAdapter *adapter,
+                        gpointer    user_data)
 {
-	GDateTime *dt = g_value_get_boxed(src_value);
+   GSimpleAsyncResult *simple = user_data;
+   GomCommandBuilder *builder;
+   gpointer resource;
+   GType resource_type;
 
-	if (dt) {
-		dst_value->data[0].v_uint64 = g_date_time_to_unix(dt);
-	}
+   g_return_if_fail(GOM_IS_ADAPTER(adapter));
+   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
+
+   resource = g_async_result_get_source_object(G_ASYNC_RESULT(simple));
+   g_assert(GOM_IS_RESOURCE(resource));
+   resource_type = G_TYPE_FROM_INSTANCE(resource);
+
+   builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
+                          "adapter", adapter,
+                          NULL);
+
+   do {
+      GomResourceClass *klass;
+      GParamSpec *pspec;
+      GomCommand *command;
+      GomFilter *filter;
+      GValueArray *values;
+      GError *error = NULL;
+      GValue value = { 0 };
+      gchar *sql;
+
+      klass = g_type_class_peek(resource_type);
+      g_assert(GOM_IS_RESOURCE_CLASS(klass));
+
+      pspec = g_object_class_find_property(G_OBJECT_CLASS(klass),
+                                           klass->primary_key);
+      g_assert(pspec);
+
+      g_value_init(&value, pspec->value_type);
+      g_object_get_property(resource, klass->primary_key, &value);
+      sql = g_strdup_printf("'%s'.'%s' = ?", klass->table, klass->primary_key);
+      values = g_value_array_new(1);
+      g_value_array_append(values, &value);
+      filter = gom_filter_new_sql(sql, values);
+      g_free(sql);
+      g_value_array_free(values);
+      g_value_unset(&value);
+      g_object_set(builder,
+                   "filter", filter,
+                   "resource-type", resource_type,
+                   NULL);
+      g_object_unref(filter);
+
+      command = gom_command_builder_build_delete(builder);
+      if (!gom_command_execute(command, NULL, &error)) {
+         g_object_unref(command);
+         g_simple_async_result_take_error(simple, error);
+         goto out;
+      }
+      g_object_unref(command);
+   } while ((resource_type = g_type_parent(resource_type)) != GOM_TYPE_RESOURCE);
+
+   g_simple_async_result_set_op_res_gboolean(simple, TRUE);
+
+out:
+   g_simple_async_result_complete_in_idle(simple);
+   g_object_unref(builder);
+   g_object_unref(simple);
 }
 
-/**
- * _uint64_to_date_time:
- * @src_value: (in): A #GValue.
- * @dst_value: (in): A #GValue.
- *
- * Converts from a #guint64 to a #GDateTime.
- *
- * Returns: None.
- * Side effects: None.
- */
-static void
-_uint64_to_date_time (const GValue *src_value,
-                      GValue       *dst_value)
+void
+gom_resource_delete_async (GomResource         *resource,
+                           GAsyncReadyCallback  callback,
+                           gpointer             user_data)
 {
-	GDateTime *dt;
+   GomResourcePrivate *priv;
+   GSimpleAsyncResult *simple;
+   GomAdapter *adapter;
 
-	dt = g_date_time_new_from_unix_utc(src_value->data[0].v_uint64);
-	g_value_take_boxed(dst_value, dt);
+   g_return_if_fail(GOM_IS_RESOURCE(resource));
+
+   priv = resource->priv;
+
+   if (!priv->repository) {
+      g_warning("Cannot delete resource, no repository set!");
+      return;
+   }
+
+   simple = g_simple_async_result_new(G_OBJECT(resource), callback, user_data,
+                                      gom_resource_delete_async);
+   adapter = gom_repository_get_adapter(priv->repository);
+   g_assert(GOM_IS_ADAPTER(adapter));
+   gom_adapter_queue_write(adapter, gom_resource_delete_cb, simple);
 }
 
-/**
- * _int64_to_date_time:
- * @src_value: (in): A #GValue.
- * @dst_value: (in): A #GValue.
- *
- * Converts from a #gint64 to a #GDateTime.
- *
- * Returns: None.
- * Side effects: None.
- */
-static void
-_int64_to_date_time (const GValue *src_value,
-                     GValue       *dst_value)
-{
-	GDateTime *dt;
-
-	dt = g_date_time_new_from_unix_utc(src_value->data[0].v_uint64);
-	g_value_take_boxed(dst_value, dt);
-}
-
-/**
- * _property_value_free:
- * @data: (in): A #GomPropertyValue or %NULL.
- *
- * #GDestroyNotify typed function to unset and free a #GomPropertyValue.
- *
- * Returns: None.
- * Side effects: @data is freed if it is a valid pointer.
- */
-static void
-_property_value_free (gpointer data)
-{
-	GomPropertyValue *value = (GomPropertyValue *)data;
-
-	if (value) {
-		if (G_IS_VALUE(&value->value)) {
-			g_value_unset(&value->value);
-		}
-		memset(value, 0, sizeof *value);
-		g_slice_free(GomPropertyValue, value);
-	}
-}
-
-/**
- * _property_value_new:
- *
- * Allocates a new #GomPropertyValue. Use _property_value_free() to free
- * the structure.
- *
- * Returns: A new #GomPropertyValue.
- * Side effects: None.
- */
-static GomPropertyValue*
-_property_value_new (void)
-{
-	return g_slice_new0(GomPropertyValue);
-}
-
-/**
- * _property_value_copy:
- * @value: (in): A #GomPropertyValue.
- *
- * Performs a copy of @value and its contents.
- *
- * Returns: A #GomPropertyValue.
- * Side effects: None.
- */
-static GomPropertyValue*
-_property_value_copy (GomPropertyValue *value)
-{
-	GomPropertyValue *copy;
-
-	copy = _property_value_new();
-	copy->is_dirty = value->is_dirty;
-	copy->name = value->name;
-	g_value_init(&copy->value, value->value.g_type);
-	g_value_copy(&value->value, &copy->value);
-	return copy;
-}
-
-/**
- * gom_resource_delete:
- * @resource: (in): A #GomResource.
- *
- * Deletes a resource from the underlying data store.
- *
- * Returns: %TRUE if successful; otherwise %FALSE and @error is set.
- * Side effects: None.
- */
 gboolean
-gom_resource_delete (GomResource  *resource,
-                     GError      **error)
+gom_resource_delete_finish (GomResource   *resource,
+                            GAsyncResult  *result,
+                            GError       **error)
 {
-	GomResourcePrivate *priv;
-	GomResourceClass *resource_class;
-	GomPropertySet *set;
-	GomCollection *collection;
-	GomCondition *condition = NULL;
-	GomCondition *conditions = NULL;
-	GomProperty *prop;
-	GomQuery *query;
-	gboolean ret = FALSE;
-	GValue value = { 0 };
-	GType resource_type;
-	guint n_props;
-	gint i;
+   GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
+   gboolean ret;
 
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+   g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+   g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple), FALSE);
 
-	priv = resource->priv;
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
 
-	if (priv->is_new) {
-		return TRUE;
-	}
+   return ret;
+}
 
-	resource_type = G_TYPE_FROM_INSTANCE(resource);
-	resource_class = g_type_class_peek(resource_type);
-	set = gom_resource_class_get_properties(resource_class);
-	n_props = gom_property_set_length(set);
+static gboolean
+is_dynamic_pkey (GType type)
+{
+   GomResourceClass *klass;
+   GParamSpec *pspec;
+   gboolean ret = FALSE;
 
-	for (i = 0; i < n_props; i++) {
-		prop = gom_property_set_get_nth(set, i);
-		if (prop->is_key) {
-			g_value_init(&value, prop->value_type);
-			g_object_get_property(G_OBJECT(resource),
-			                      g_quark_to_string(prop->name),
-			                      &value);
-			condition = gom_condition_equal_value(prop, &value);
-			g_value_unset(&value);
-			conditions = conditions ?
-			             gom_condition_and(conditions, condition) :
-			             gom_condition_ref(condition);
-			gom_condition_unref(condition);
-		}
-	}
+   g_assert(type);
+   g_assert(g_type_is_a(type, GOM_TYPE_RESOURCE));
 
-	query = g_object_new(GOM_TYPE_QUERY,
-	                     "condition", condition,
-	                     "limit", G_GUINT64_CONSTANT(1),
-	                     "resource-type", resource_type,
-	                     NULL);
-	collection = g_object_new(GOM_TYPE_COLLECTION,
-	                          "query", query,
-	                          NULL);
+   klass = g_type_class_ref(type);
+   g_assert(GOM_IS_RESOURCE_CLASS(klass));
 
-	ret = gom_adapter_delete(priv->adapter, collection, error);
+   pspec = g_object_class_find_property(G_OBJECT_CLASS(klass), klass->primary_key);
+   g_assert(pspec);
 
-	gom_clear_object(&query);
-	gom_clear_object(&collection);
-	gom_clear_pointer(&conditions, gom_condition_unref);
+   switch (pspec->value_type) {
+   case G_TYPE_INT:
+   case G_TYPE_INT64:
+   case G_TYPE_UINT:
+   case G_TYPE_UINT64:
+      ret = TRUE;
+      break;
+   default:
+      break;
+   }
 
-	return ret;
+   g_type_class_unref(klass);
+
+   return ret;
+}
+
+static void
+set_pkey (GomResource *resource,
+          GValue      *value)
+{
+   GParamSpec *pspec;
+   GValue dst_value = { 0 };
+
+   pspec = g_object_class_find_property(G_OBJECT_GET_CLASS(resource),
+                                        GOM_RESOURCE_GET_CLASS(resource)->primary_key);
+   g_assert(pspec);
+   g_value_init(&dst_value, pspec->value_type);
+   g_value_transform(value, &dst_value);
+   g_object_set_property(G_OBJECT(resource), pspec->name, &dst_value);
+   g_value_unset(&dst_value);
+}
+
+static gboolean
+has_primary_key (GomResource *resource)
+{
+   GomResourceClass *klass;
+   GParamSpec *pspec;
+   gboolean ret;
+   GValue value = { 0 };
+
+   g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+
+   klass = GOM_RESOURCE_GET_CLASS(resource);
+
+   pspec = g_object_class_find_property(G_OBJECT_CLASS(klass),
+                                        klass->primary_key);
+   g_assert(pspec);
+
+   g_value_init(&value, pspec->value_type);
+   g_object_get_property(G_OBJECT(resource), klass->primary_key, &value);
+   ret = !value.data[0].v_pointer;
+   g_value_unset(&value);
+
+   return ret;
+}
+
+static void
+gom_resource_save_cb (GomAdapter *adapter,
+                      gpointer    user_data)
+{
+   GSimpleAsyncResult *simple = user_data;
+   GomCommandBuilder *builder;
+   gboolean is_insert;
+   gpointer resource;
+   gint64 row_id = -1;
+   GSList *types = NULL;
+   GSList *iter;
+   GType resource_type;
+
+   g_return_if_fail(GOM_IS_ADAPTER(adapter));
+   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
+
+   resource = g_async_result_get_source_object(G_ASYNC_RESULT(simple));
+   g_assert(GOM_IS_RESOURCE(resource));
+
+   resource_type = G_TYPE_FROM_INSTANCE(resource);
+   g_assert(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
+
+   builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
+                          "adapter", adapter,
+                          NULL);
+
+   is_insert = has_primary_key(resource);
+
+   do {
+      types = g_slist_prepend(types, GINT_TO_POINTER(resource_type));
+   } while ((resource_type = g_type_parent(resource_type)) != GOM_TYPE_RESOURCE);
+
+   for (iter = types; iter; iter = iter->next) {
+      GomCommand *command;
+      GError *error = NULL;
+
+      resource_type = GPOINTER_TO_INT(iter->data);
+
+      g_object_set(builder,
+                   "resource-type", resource_type,
+                   NULL);
+
+      if (is_insert) {
+         command = gom_command_builder_build_insert(builder, resource);
+      } else {
+         command = gom_command_builder_build_update(builder, resource);
+      }
+
+      if (!gom_command_execute(command, NULL, &error)) {
+         g_simple_async_result_take_error(simple, error);
+         g_object_unref(command);
+         goto out;
+      }
+
+      if (is_insert && row_id == -1 && is_dynamic_pkey(resource_type)) {
+         sqlite3 *handle = gom_adapter_get_handle(adapter);
+         GValue value = { 0 };
+
+         row_id = sqlite3_last_insert_rowid(handle);
+         g_value_init(&value, G_TYPE_INT64);
+         g_value_set_int64(&value, row_id);
+         set_pkey(resource, &value);
+         g_value_unset(&value);
+      }
+
+      g_object_unref(command);
+   }
+
+   g_simple_async_result_set_op_res_gboolean(simple, TRUE);
+
+out:
+   g_slist_free(types);
+   g_simple_async_result_complete_in_idle(simple);
+   g_object_unref(builder);
+   g_object_unref(simple);
+}
+
+void
+gom_resource_save_async (GomResource         *resource,
+                         GAsyncReadyCallback  callback,
+                         gpointer             user_data)
+{
+   GomResourcePrivate *priv;
+   GSimpleAsyncResult *simple;
+   GomAdapter *adapter;
+
+   g_return_if_fail(GOM_IS_RESOURCE(resource));
+   g_return_if_fail(callback != NULL);
+
+   priv = resource->priv;
+
+   if (!priv->repository) {
+      g_warning("Cannot save resource, no repository set!");
+      return;
+   }
+
+   simple = g_simple_async_result_new(G_OBJECT(resource), callback, user_data,
+                                      gom_resource_save_async);
+   adapter = gom_repository_get_adapter(priv->repository);
+   g_assert(GOM_IS_ADAPTER(adapter));
+   gom_adapter_queue_write(adapter, gom_resource_save_cb, simple);
+}
+
+gboolean
+gom_resource_save_finish (GomResource   *resource,
+                          GAsyncResult  *result,
+                          GError       **error)
+{
+   GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
+   gboolean ret;
+
+   g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+   g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple), FALSE);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+
+   return ret;
+}
+
+static void
+gom_resource_fetch_m2m_cb (GomAdapter *adapter,
+                           gpointer    user_data)
+{
+   GSimpleAsyncResult *simple = user_data;
+   GomCommandBuilder *builder = NULL;
+   GomResourceGroup *group;
+   GomRepository *repository;
+   const gchar *m2m_table;
+   GomResource *resource;
+   GomCommand *command = NULL;
+   GomCursor *cursor = NULL;
+   GomFilter *filter = NULL;
+   GError *error = NULL;
+   guint count = 0;
+   GType resource_type;
+
+   g_return_if_fail(GOM_IS_ADAPTER(adapter));
+   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
+
+   m2m_table = g_object_get_data(G_OBJECT(simple), "m2m-table");
+   resource_type = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(simple),
+                                                     "resource-type"));
+   filter = g_object_get_data(G_OBJECT(simple), "filter");
+   resource = GOM_RESOURCE(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
+   repository = gom_resource_get_repository(resource);
+
+   g_assert(GOM_IS_RESOURCE(resource));
+   g_assert(m2m_table);
+   g_assert(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
+   g_assert(!filter || GOM_IS_FILTER(filter));
+   g_assert(GOM_IS_REPOSITORY(repository));
+
+   builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
+                          "adapter", adapter,
+                          "filter", filter,
+                          "resource-type", resource_type,
+                          "m2m-table", m2m_table,
+                          "m2m-type", G_TYPE_FROM_INSTANCE(resource),
+                          NULL);
+
+   command = gom_command_builder_build_count(builder);
+
+   if (!gom_command_execute(command, &cursor, &error)) {
+      g_simple_async_result_take_error(simple, error);
+      goto out;
+   }
+
+   if (!gom_cursor_next(cursor)) {
+      g_simple_async_result_set_error(simple, GOM_RESOURCE_ERROR,
+                                      GOM_RESOURCE_ERROR_CURSOR,
+                                      _("No result was returned from the cursor."));
+      goto out;
+   }
+
+   count = gom_cursor_get_column_int64(cursor, 0);
+   group = g_object_new(GOM_TYPE_RESOURCE_GROUP,
+                        "adapter", adapter,
+                        "count", count,
+                        "filter", filter,
+                        "m2m-table", m2m_table,
+                        "m2m-type", G_TYPE_FROM_INSTANCE(resource),
+                        "repository", repository,
+                        "resource-type", resource_type,
+                        NULL);
+
+   g_simple_async_result_set_op_res_gpointer(simple, group, g_object_unref);
+
+out:
+   g_clear_object(&command);
+   g_clear_object(&cursor);
+   g_clear_object(&builder);
+
+   g_simple_async_result_complete_in_idle(simple);
+   g_object_unref(simple);
+}
+
+void
+gom_resource_fetch_m2m_async (GomResource          *resource,
+                              GType                 resource_type,
+                              const gchar          *m2m_table,
+                              GomFilter            *filter,
+                              GAsyncReadyCallback   callback,
+                              gpointer              user_data)
+{
+   GSimpleAsyncResult *simple;
+   GomRepository *repository;
+   GomAdapter *adapter;
+
+   g_return_if_fail(GOM_IS_RESOURCE(resource));
+   g_return_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
+   g_return_if_fail(m2m_table != NULL);
+   g_return_if_fail(callback != NULL);
+
+   repository = gom_resource_get_repository(resource);
+   g_assert(GOM_IS_REPOSITORY(repository));
+
+   adapter = gom_repository_get_adapter(repository);
+   g_assert(GOM_IS_ADAPTER(adapter));
+
+   simple = g_simple_async_result_new(G_OBJECT(resource), callback, user_data,
+                                      gom_resource_fetch_m2m_async);
+   g_object_set_data(G_OBJECT(simple), "resource-type",
+                     GINT_TO_POINTER(resource_type));
+   g_object_set_data_full(G_OBJECT(simple), "m2m-table",
+                          g_strdup(m2m_table), g_free);
+   if (filter) {
+      g_object_set_data_full(G_OBJECT(simple), "filter",
+                             g_object_ref(filter), g_object_unref);
+   }
+
+   gom_adapter_queue_read(adapter,
+                          gom_resource_fetch_m2m_cb,
+                          simple);
 }
 
 /**
- * gom_resource_error_quark:
+ * gom_resource_fetch_m2m_finish:
+ * @resource: (in): A #GomResource.
+ * @result: (in): A #GAsyncResult.
+ * @error: (out): A location for a #GError, or %NULL.
  *
- * Retrieves the error quark for #GomResourceError<!-- -->'s.
+ * Completes the asynchronous request to fetch a group of resources that
+ * are related to the resource through a many-to-many table.
  *
- * Returns: A #GQuark.
- * Side effects: None.
- */
-GQuark
-gom_resource_error_quark (void)
-{
-	return g_quark_from_string("gom_resource_error_quark");
-}
-
-/**
- * gom_resource_find:
- * @resource_type: (in): A #GomResource based #GType.
- * @adapter: (in): A #GomAdapter.
- * @condition: (in) (allow-none): A #GomCondition or %NULL.
- * @error: (error): A location for a #GError, or %NULL.
- *
- * Locates a set of #GomResource<!-- -->'s based on @condition from @adapter.
- *
- * Returns: A #GomCollection which should be freed with g_object_unref().
- * Side effects: None.
- */
-GomCollection*
-gom_resource_find (GType          resource_type,
-                   GomAdapter    *adapter,
-                   GomCondition  *condition,
-                   GError       **error)
-{
-	GomResourceClass *resource_class = NULL;
-	GomPropertySet *fields = NULL;
-	GomPropertySet *all = NULL;
-	GomCollection *ret = NULL;
-	GomProperty *prop;
-	GomQuery *query = NULL;
-	guint n_props;
-	gint i;
-
-	g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), NULL);
-	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), NULL);
-
-	resource_class = g_type_class_ref(resource_type);
-	all = gom_resource_class_get_properties(resource_class);
-	n_props = gom_property_set_length(all);
-	fields = gom_property_set_newv(0, NULL);
-
-	for (i = 0; i < n_props; i++) {
-		prop = gom_property_set_get_nth(all, i);
-		if (prop->is_key || prop->is_eager) {
-			gom_property_set_add(fields, prop);
-		}
-	}
-
-	query = g_object_new(GOM_TYPE_QUERY,
-	                     "fields", fields,
-	                     "resource-type", resource_type,
-	                     "condition", condition,
-	                     NULL);
-
-	ret = g_object_new(GOM_TYPE_COLLECTION,
-	                   "adapter", adapter,
-	                   "query", query,
-	                   NULL);
-
-	gom_clear_pointer(&resource_class, g_type_class_unref);
-	gom_clear_pointer(&fields, gom_property_set_unref);
-	gom_clear_object(&query);
-
-	return ret;
-}
-
-/**
- * gom_resource_find_first:
- * @resource_type: (in): A #GomResource based #GType.
- * @adapter: (in): A #GomAdapter.
- * @condition: (in) (allow-none): A #GomCondition or %NULL.
- * @error: (error): A location for a #GError, or %NULL.
- *
- * A convenience function that calls gom_resource_find() and returns the
- * first result.
- *
- * If no resource was found, %NULL is returned and @error is set.
- *
- * Returns: A #GomResource if successful; otherwise %NULL.
- * Side effects: None.
+ * Returns: (type GomResourceGroup*) (transfer full): A #GomResourceGroup.
  */
 gpointer
-gom_resource_find_first (GType          resource_type,
-                         GomAdapter    *adapter,
-                         GomCondition  *condition,
-                         GError       **error)
+gom_resource_fetch_m2m_finish (GomResource   *resource,
+                               GAsyncResult  *result,
+                               GError       **error)
 {
-	GomCollection *collection = NULL;
-	GomResource *ret = NULL;
+   GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
+   GomResourceGroup *group;
 
-	g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), NULL);
-	g_return_val_if_fail(adapter != NULL, NULL);
+   g_return_val_if_fail(GOM_IS_RESOURCE(resource), NULL);
+   g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(result), NULL);
 
-	if ((collection = gom_resource_find(resource_type, adapter, condition, error))) {
-		if ((ret = gom_collection_first(collection))) {
-			g_assert(GOM_IS_RESOURCE(ret));
-		}
-		g_object_unref(collection);
-	}
+   if (!(group = g_simple_async_result_get_op_res_gpointer(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
 
-	if (!ret) {
-		g_set_error(error, GOM_RESOURCE_ERROR, GOM_RESOURCE_ERROR_NOT_FOUND,
-		            "No resource was found matching the query.");
-	}
-
-	return ret;
-}
-
-/**
- * gom_resource_find_property:
- * @resource: (in): A #GomResource.
- * @name: (in): The name of the property.
- *
- * Locates the #GomProperty for a given resource matching @name.
- * This is a convenience function for retrieving the property from
- * the class instance.
- *
- * Returns: A #GomProperty or %NULL.
- * Side effects: None.
- */
-GomProperty *
-gom_resource_find_property (GomResource *resource,
-                            const gchar *name)
-{
-	GomResourceClass *resource_class;
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), NULL);
-	resource_class = GOM_RESOURCE_GET_CLASS(resource);
-	return gom_property_set_find(resource_class->properties, name);
-}
-
-/**
- * gom_resource_get_condition:
- * @resource: (in): A #GomResource.
- *
- * Retrieves a condition to uniquely identify this resource.
- *
- * Returns: A #GomCondition or %NULL if no condition is available.
- * Side effects: None.
- */
-GomCondition *
-gom_resource_get_condition (GomResource *resource)
-{
-	GomResourcePrivate *priv;
-	GomResourceClass *resource_class;
-	GomPropertyValue *prop_value;
-	GomPropertySet *props;
-	GomCondition *condition = NULL;
-	GomProperty *prop;
-	GPtrArray *all;
-	guint n_props;
-	gint i;
-
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), NULL);
-
-	priv = resource->priv;
-
-	resource_class = GOM_RESOURCE_GET_CLASS(resource);
-	props = gom_resource_class_get_properties(resource_class);
-	all = g_ptr_array_new_with_free_func((GDestroyNotify)gom_condition_unref);
-	n_props = gom_property_set_length(props);
-
-	for (i = 0; i < n_props; i++) {
-		prop = gom_property_set_get_nth(props, i);
-		if (prop->is_key) {
-			if ((prop_value = g_hash_table_lookup(priv->properties, &prop->name))) {
-				g_assert(G_IS_VALUE(&prop_value->value));
-				condition = gom_condition_equal_value(prop, &prop_value->value);
-				g_ptr_array_add(all, condition);
-			}
-		}
-	}
-
-	condition = NULL;
-
-	if (all->len > 1) {
-		condition = gom_condition_ref(g_ptr_array_index(all, 0));
-		for (i = 1; i < all->len; i++) {
-			condition = gom_condition_and(condition,
-			                              g_ptr_array_index(all, i));
-			g_assert(condition->oper);
-		}
-	} else if (all->len == 1) {
-		condition = gom_condition_ref(g_ptr_array_index(all, 0));
-		g_assert(condition->oper);
-	}
-
-	gom_clear_pointer(&all, g_ptr_array_unref);
-
-	return condition;
-}
-
-/**
- * gom_resource_class_get_properties:
- * @resource_class: (in): A #GomResourceClass.
- *
- * Retrieves a #GomPropertySet containing all the registered properties
- * for the given #GomResourceClass.
- *
- * Returns: A #GomPropertySet or %NULL if no properties are registered.
- * Side effects: None.
- */
-GomPropertySet*
-gom_resource_class_get_properties (GomResourceClass *resource_class)
-{
-	g_return_val_if_fail(GOM_IS_RESOURCE_CLASS(resource_class), NULL);
-	return resource_class->properties;
-}
-
-/**
- * gom_resource_class_has_many:
- * @resource_class: (in): A #GomResourceClass.
- * @property_name: (in): The property name.
- * @property_nick: (in): The property nick.
- * @property_desc: (in): The property description.
- * @resource_type: (in): The #GType of the related type.
- * ...: (in): Optional two-part tuples of special options, followed by %NULL.
- *
- * Configures a "has-many" property for the #GomResource based class.
- * Additionally, various options can be specified at the end of the
- * paramter list such has "many-to-many".
- *
- * [[
- * gom_resource_class_has_many(klass, "name", "name", "name", FOO_TYPE_BAZ,
- *                             "many-to-many", TRUE,
- *                             NULL);
- * ]]
- *
- * Returns: None.
- * Side effects: None.
- */
-void
-gom_resource_class_has_many (GomResourceClass *resource_class,
-                             const gchar      *property_name,
-                             const gchar      *property_nick,
-                             const gchar      *property_desc,
-                             GType             resource_type,
-                             ...)
-{
-	GomProperty *property;
-	const gchar *option;
-	va_list args;
-	GValue value = { 0 };
-	GType this_type;
-	gchar *errstr = NULL;
-
-	g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
-	g_return_if_fail(property_name != NULL);
-	g_return_if_fail(property_nick != NULL);
-	g_return_if_fail(property_desc != NULL);
-	g_return_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
-	g_return_if_fail(resource_type != GOM_TYPE_RESOURCE);
-
-	this_type = G_TYPE_FROM_CLASS(resource_class);
-
-	/*
-	 * Create a new property for the collection.
-	 */
-	property = g_new0(GomProperty, 1);
-	property->name = g_quark_from_string(property_name);
-	property->owner_type = this_type;
-	property->value_type = resource_type;
-	g_value_init(&property->default_value, GOM_TYPE_COLLECTION);
-	property->relationship.relation = GOM_RELATION_ONE_TO_MANY;
-
-	va_start(args, resource_type);
-
-	/*
-	 * Handle additional key/value options.
-	 */
-	while ((option = va_arg(args, const gchar *))) {
-		if (!g_strcmp0(option, "many-to-many")) {
-			G_VALUE_COLLECT_INIT(&value, G_TYPE_BOOLEAN, args, 0, &errstr);
-			if (errstr) {
-				g_error("%s", errstr); /* Fatal */
-				g_assert_not_reached();
-				g_free(errstr);
-				return;
-			}
-			if (g_value_get_boolean(&value)) {
-				property->relationship.relation = GOM_RELATION_MANY_TO_MANY;
-			}
-			g_value_unset(&value);
-		} else {
-			g_error("Unknown has_many option %s", option); /* Fatal */
-			g_assert_not_reached();
-			break;
-		}
-	}
-
-	va_end(args);
-
-	/*
-	 * Install the property on the GObjectClass.
-	 */
-	gom_property_set_add(resource_class->properties, property);
-	g_object_class_install_property(G_OBJECT_CLASS(resource_class),
-	                                resource_class->properties->len,
-	                                g_param_spec_object(property_name,
-	                                                    property_nick,
-	                                                    property_desc,
-	                                                    GOM_TYPE_COLLECTION,
-	                                                    G_PARAM_READABLE));
-}
-
-/**
- * gom_resource_class_has_a:
- * @resource_class: (in): A #GomResourceClass.
- * @property_name: (in): The property name.
- * @property_nick: (in): The property nick.
- * @property_desc: (in): The property description.
- * @resource_type: (in): The #GType of the related type.
- *
- * Adds a new property in @resource_class for the related resource of type
- * @resource_type. @property_name will be used as the name of the property.
- *
- * A one-to-one mapping can be achieved by marking the particular field
- * as unique.
- *
- * [[
- * gom_resource_class_has_a(my_class, "child", "child", "child", FOO_TYPE_BAR,
- *                          "unique", TRUE,
- *                          NULL);
- * ]]
- *
- * Returns: None.
- * Side effects: A new property is installed on @resource_class.
- */
-void
-gom_resource_class_has_a (GomResourceClass *resource_class,
-                          const gchar      *property_name,
-                          const gchar      *property_nick,
-                          const gchar      *property_desc,
-                          GType             resource_type,
-                          ...)
-{
-	GomProperty *property;
-	const gchar *option;
-	va_list args;
-	GValue value = { 0 };
-	GType this_type;
-	gchar *errstr = NULL;
-
-	g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
-	g_return_if_fail(property_name != NULL);
-	g_return_if_fail(property_nick != NULL);
-	g_return_if_fail(property_desc != NULL);
-	g_return_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
-	g_return_if_fail(resource_type != GOM_TYPE_RESOURCE);
-
-	this_type = G_TYPE_FROM_CLASS(resource_class);
-
-	/*
-	 * Create a new property for the relation.
-	 */
-	property = g_new0(GomProperty, 1);
-	property->name = g_quark_from_string(property_name);
-	property->owner_type = this_type;
-	property->value_type = resource_type;
-	g_value_init(&property->default_value, resource_type);
-	property->relationship.relation = GOM_RELATION_MANY_TO_ONE;
-
-	va_start(args, resource_type);
-
-	/*
-	 * Handle additional va_arg options.
-	 */
-	while ((option = va_arg(args, const gchar *))) {
-		if (!g_strcmp0(option, "unique")) {
-			G_VALUE_COLLECT_INIT(&value, G_TYPE_BOOLEAN, args, 0, &errstr);
-			if (errstr) {
-				g_error("%s", errstr); /* Fatal */
-				g_assert_not_reached();
-				g_free(errstr);
-				return;
-			}
-			if (g_value_get_boolean(&value)) {
-				property->relationship.relation = GOM_RELATION_ONE_TO_ONE;
-				property->is_unique = TRUE;
-			}
-			g_value_unset(&value);
-		} else {
-			g_error("Unknown has_a option %s", option); /* Fatal */
-			g_assert_not_reached();
-			break;
-		}
-	}
-
-	va_end(args);
-
-	/*
-	 * Install the resource property on the GObjectClass.
-	 */
-	gom_property_set_add(resource_class->properties, property);
-	g_object_class_install_property(G_OBJECT_CLASS(resource_class),
-	                                resource_class->properties->len,
-	                                g_param_spec_object(property_name,
-	                                                    property_nick,
-	                                                    property_desc,
-	                                                    resource_type,
-	                                                    G_PARAM_READWRITE));
-}
-
-/**
- * gom_resource_class_belongs_to:
- * @resource_class: (in): A #GomResourceClass.
- * @property_name: (in): The property name.
- * @property_nick: (in): The property nick.
- * @property_desc: (in): The property description.
- * @resource_type: (in): The #GType of the related type.
- *
- * Registers a "belongs-to" relationship.
- *
- * Adds a new property in @resource_class for the related resource of type
- * @resource_type. @property_name will be used as the name of the property.
- *
- * A one-to-one mapping can be achieved by marking the particular field
- * as unique.
- *
- * [[
- * gom_resource_class_belongs_to(my_class, "child", "child", "child",
- *                               FOO_TYPE_BAR,
- *                               "unique", TRUE,
- *                               NULL);
- * ]]
- *
- * Returns: None.
- * Side effects: A new property is installed on @resource_class.
- */
-void
-gom_resource_class_belongs_to (GomResourceClass *resource_class,
-                               const gchar      *property_name,
-                               const gchar      *property_nick,
-                               const gchar      *property_desc,
-                               GType             resource_type,
-                               ...)
-{
-	GomProperty *property;
-	const gchar *option;
-	va_list args;
-	GValue value = { 0 };
-	GType this_type;
-	gchar *errstr = NULL;
-
-	g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
-	g_return_if_fail(property_name != NULL);
-	g_return_if_fail(property_nick != NULL);
-	g_return_if_fail(property_desc != NULL);
-	g_return_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
-	g_return_if_fail(resource_type != GOM_TYPE_RESOURCE);
-
-	this_type = G_TYPE_FROM_CLASS(resource_class);
-
-	property = g_new0(GomProperty, 1);
-	property->name = g_quark_from_string(property_name);
-	property->owner_type = this_type;
-	property->value_type = resource_type;
-	g_value_init(&property->default_value, resource_type);
-	property->relationship.relation = GOM_RELATION_MANY_TO_ONE;
-
-	va_start(args, resource_type);
-
-	while ((option = va_arg(args, const gchar *))) {
-		if (!g_strcmp0(option, "unique")) {
-			G_VALUE_COLLECT_INIT(&value, G_TYPE_BOOLEAN, args, 0, &errstr);
-			if (errstr) {
-				g_error("%s", errstr); /* Fatal */
-				g_assert_not_reached();
-				g_free(errstr);
-				return;
-			}
-			if (g_value_get_boolean(&value)) {
-				property->relationship.relation = GOM_RELATION_ONE_TO_ONE;
-				property->is_unique = TRUE;
-			}
-			g_value_unset(&value);
-		} else {
-			g_error("Unknown belongs_to option %s", option); /* Fatal */
-			g_assert_not_reached();
-			break;
-		}
-	}
-
-	va_end(args);
-
-	gom_property_set_add(resource_class->properties, property);
-	g_object_class_install_property(G_OBJECT_CLASS(resource_class),
-	                                resource_class->properties->len,
-	                                g_param_spec_object(property_name,
-	                                                    property_nick,
-	                                                    property_desc,
-	                                                    resource_type,
-	                                                    G_PARAM_READWRITE));
-}
-
-/**
- * gom_resource_class_init:
- * @resource_class: (in): A #GomResourceClass.
- *
- * Initializes the #GomResourceClass and prepares the vtable.
- *
- * Returns: None.
- * Side effects: None.
- */
-static void
-gom_resource_class_init (gpointer klass,
-                         gpointer data)
-{
-	GomResourceClass *resource_class;
-	GObjectClass *object_class;
-
-	object_class = G_OBJECT_CLASS(klass);
-	object_class->finalize = gom_resource_finalize;
-	object_class->get_property = gom_resource_real_get_property;
-	object_class->set_property = gom_resource_real_set_property;
-	g_type_class_add_private(object_class, sizeof(GomResourcePrivate));
-
-	resource_class = GOM_RESOURCE_CLASS(klass);
-	gom_resource_parent_class = g_type_class_peek_parent(resource_class);
-
-	gParamSpecs[PROP_ADAPTER] =
-		g_param_spec_object("adapter",
-		                    _("Adapter"),
-		                    _("The resources adapter."),
-		                    GOM_TYPE_ADAPTER,
-		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
-	g_object_class_install_property(object_class, PROP_ADAPTER,
-	                                gParamSpecs[PROP_ADAPTER]);
-
-	gParamSpecs[PROP_IS_NEW] =
-		g_param_spec_boolean("is-new",
-		                     _("Is New"),
-		                     _("If this is a newly created object not yet persisted."),
-		                     FALSE,
-		                     G_PARAM_READWRITE);
-	g_object_class_install_property(object_class, PROP_IS_NEW,
-	                                gParamSpecs[PROP_IS_NEW]);
-
-	gSignals[SAVED] = g_signal_new("saved",
-	                               GOM_TYPE_RESOURCE,
-	                               G_SIGNAL_RUN_FIRST,
-	                               0,
-	                               NULL,
-	                               NULL,
-	                               g_cclosure_marshal_VOID__VOID,
-	                               G_TYPE_NONE,
-	                               0);
-
-	g_value_register_transform_func(G_TYPE_DATE_TIME, G_TYPE_UINT64, _date_time_to_uint64);
-	g_value_register_transform_func(G_TYPE_DATE_TIME, G_TYPE_INT64, _date_time_to_int64);
-	g_value_register_transform_func(G_TYPE_UINT64, G_TYPE_DATE_TIME, _uint64_to_date_time);
-	g_value_register_transform_func(G_TYPE_INT64, G_TYPE_DATE_TIME, _int64_to_date_time);
-}
-
-static void
-gom_resource_base_init (gpointer klass)
-{
-	GomResourceClass *resource_class;
-
-	resource_class = GOM_RESOURCE_CLASS(klass);
-	resource_class->keys = gom_property_set_newv(0, NULL);
-	resource_class->properties = gom_property_set_newv(0, NULL);
-	resource_class->tableq =
-		g_quark_from_string(g_type_name(G_TYPE_FROM_CLASS(resource_class)));
-	resource_class->table = g_quark_to_string(resource_class->tableq);
-}
-
-static void
-gom_resource_base_finalize (gpointer klass)
-{
-	GomResourceClass *resource_class;
-
-	resource_class = GOM_RESOURCE_CLASS(klass);
-	gom_clear_pointer(&resource_class->keys, gom_property_set_unref);
-	gom_clear_pointer(&resource_class->properties, gom_property_set_unref);
-}
-
-/**
- * gom_resource_class_install_property:
- * @resource_class: (in): A #GomResourceClass.
- * @param_spec: (in): A #GParamSpec.
- *
- * Adds a new property to the #GomResourceClass. The property is installed
- * and registered wth the resouce.
- *
- * Returns: None.
- * Side effects: None.
- */
-void
-gom_resource_class_install_property (GomResourceClass *resource_class,
-                                     GParamSpec       *param_spec,
-                                     ...)
-{
-	GomProperty *property;
-	const gchar *option;
-	va_list args;
-	GValue value = { 0 };
-	GType this_type;
-	gchar *errmsg = NULL;
-
-	g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
-	g_return_if_fail(G_IS_PARAM_SPEC(param_spec));
-
-	this_type = G_TYPE_FROM_CLASS(resource_class);
-
-	property = g_new0(GomProperty, 1);
-	property->name = g_quark_from_string(param_spec->name);
-	property->owner_type = this_type;
-	property->value_type = param_spec->value_type;
-	g_value_init(&property->default_value, property->value_type);
-
-	va_start(args, param_spec);
-
-	while ((option = va_arg(args, const gchar *))) {
-		if (!g_strcmp0(option, "default")) {
-			G_VALUE_COLLECT(&property->default_value, args, 0, &errmsg);
-		} else if (!g_strcmp0(option, "unique")) {
-			G_VALUE_COLLECT_INIT(&value, G_TYPE_BOOLEAN, args, 0, &errmsg);
-			property->is_unique = g_value_get_boolean(&value);
-			g_value_unset(&value);
-		} else if (!g_strcmp0(option, "key")) {
-			G_VALUE_COLLECT_INIT(&value, G_TYPE_BOOLEAN, args, 0, &errmsg);
-			property->is_key = g_value_get_boolean(&value);
-			g_value_unset(&value);
-		} else if (!g_strcmp0(option, "serial")) {
-			G_VALUE_COLLECT_INIT(&value, G_TYPE_BOOLEAN, args, 0, &errmsg);
-			property->is_serial = g_value_get_boolean(&value);
-			g_value_unset(&value);
-		} else if (!g_strcmp0(option, "eager")) {
-			G_VALUE_COLLECT_INIT(&value, G_TYPE_BOOLEAN, args, 0, &errmsg);
-			property->is_eager = g_value_get_boolean(&value);
-			g_value_unset(&value);
-		} else {
-			g_error("Invalid property option %s", option);
-			g_assert_not_reached();
-			break;
-		}
-		if (errmsg) {
-			g_error("%s", errmsg);
-			g_assert_not_reached();
-			g_free(errmsg);
-			break;
-		}
-	}
-
-	va_end(args);
-
-	gom_property_set_add(resource_class->properties, property);
-
-	if (property->is_key) {
-		gom_property_set_add(resource_class->keys, property);
-	}
-
-	g_object_class_install_property(G_OBJECT_CLASS(resource_class),
-	                                resource_class->properties->len,
-	                                param_spec);
-}
-
-/**
- * gom_resource_class_table:
- * @resource_class: (in): A #GomResourceClass.
- * @table: (in): The name of the table to store items.
- *
- * Sets the name of the table in which to store instances of the
- * #GomResource based class. This may mean different things based on the
- * particular adapter used.
- *
- * Returns: None.
- * Side effects: None.
- */
-void
-gom_resource_class_table (GomResourceClass *resource_class,
-                          const gchar      *table)
-{
-	g_return_if_fail(table != NULL);
-	g_return_if_fail(g_utf8_validate(table, -1, NULL));
-
-	resource_class->tableq = g_quark_from_string(table);
-	resource_class->table = g_quark_to_string(resource_class->tableq);
-}
-
-/**
- * gom_resource_create:
- * @resource_type: (in): A #GomResource based #GType.
- * @adapter: (in): A #GomAdapter.
- * @first_property: (in): The name of the first property to set.
- *
- * This acts similar to g_object_new(). It creates a new #GomResource
- * with the properties specified and marks it as a new resource so that
- * a new item is added to the adapter when gom_adapter_save() is called.
- *
- * Returns: A #GomResource which should be freed with g_object_unref().
- * Side effects: None.
- */
-gpointer
-gom_resource_create (GType        resource_type,
-                     GomAdapter  *adapter,
-                     const gchar *first_property,
-                     ...)
-{
-	GObjectClass *klass;
-	const gchar *property;
-	GParamSpec *pspec;
-	GParameter param = { 0 };
-	gpointer ret = NULL;
-	va_list args;
-	GArray *params;
-	gchar *errstr = NULL;
-	gint i;
-
-	if (!first_property) {
-		return g_object_new(resource_type, "adapter", adapter, NULL);
-	}
-
-	klass = g_type_class_ref(resource_type);
-	params = g_array_new(FALSE, FALSE, sizeof(GParameter));
-
-	param.name = "adapter";
-	g_value_init(&param.value, GOM_TYPE_ADAPTER);
-	g_value_set_object(&param.value, adapter);
-	g_array_append_val(params, param);
-
-	va_start(args, first_property);
-
-	property = first_property;
-
-	do {
-		pspec = g_object_class_find_property(klass, property);
-		g_assert(pspec);
-		memset(&param, 0, sizeof param);
-		param.name = property;
-		G_VALUE_COLLECT_INIT(&param.value, pspec->value_type, args, 0, &errstr);
-		if (errstr) {
-			g_error("Failed to read property %s value", param.name);
-			g_free(errstr);
-			g_assert_not_reached();
-		}
-		g_array_append_val(params, param);
-	} while ((property = va_arg(args, const gchar *)));
-
-	va_end(args);
-
-	ret = g_object_newv(resource_type, params->len,
-	                    (GParameter *)params->data);
-
-	for (i = 0; i < params->len; i++) {
-		param = g_array_index(params, GParameter, i);
-		g_value_unset(&param.value);
-	}
-
-	g_array_free(params, TRUE);
-
-	if (ret) {
-		GOM_RESOURCE(ret)->priv->is_new = TRUE;
-	}
-
-	return ret;
+   return group ? g_object_ref(group) : NULL;
 }
 
 /**
@@ -1083,176 +555,12 @@ gom_resource_create (GType        resource_type,
  *
  * Finalizer for a #GomResource instance.  Frees any resources held by
  * the instance.
- *
- * Returns: None.
- * Side effects: None.
  */
 static void
 gom_resource_finalize (GObject *object)
 {
-	GomResourcePrivate *priv = GOM_RESOURCE(object)->priv;
-
-	if (priv->adapter) {
-		g_object_remove_weak_pointer(G_OBJECT(priv->adapter),
-		                             (gpointer *)&priv->adapter);
-		priv->adapter = NULL;
-	}
-
-	gom_clear_pointer(&priv->properties, g_hash_table_unref);
-
-	G_OBJECT_CLASS(gom_resource_parent_class)->finalize(object);
-}
-
-/**
- * gom_resource_init:
- * @resource: (in): A #GomResource.
- *
- * Initializes the newly created #GomResource instance.
- *
- * Returns: None.
- * Side effects: None.
- */
-static void
-gom_resource_init (GTypeInstance *instance,
-                   gpointer       g_class)
-{
-	GomResource *resource = (GomResource *)instance;
-
-	resource->priv =
-		G_TYPE_INSTANCE_GET_PRIVATE(resource,
-		                            GOM_TYPE_RESOURCE,
-		                            GomResourcePrivate);
-
-	resource->priv->properties =
-		g_hash_table_new_full(g_int_hash, g_int_equal,
-		                      NULL, _property_value_free);
-}
-
-/**
- * gom_resource_is_dirty:
- * @resource: (in): A #GomResource.
- *
- * Checks to see if a #GomResource has been dirtied.
- *
- * Returns: %TRUe if the resource is dirty; otherwise %FALSE.
- * Side effects: None.
- */
-gboolean
-gom_resource_is_dirty (GomResource *resource)
-{
-	GomResourcePrivate *priv;
-	GHashTableIter iter;
-	GomPropertyValue *prop_value;
-
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
-
-	priv = resource->priv;
-
-	g_hash_table_iter_init(&iter, priv->properties);
-	while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&prop_value)) {
-		if (prop_value->is_dirty) {
-			return TRUE;
-		}
-	}
-
-	return FALSE;
-}
-
-/**
- * gom_resource_is_new:
- * @resource: (in): A #GomResource.
- *
- * Checks if the resource is new; meaning it has never been saved to, or
- * loaded from, the adapter.
- *
- * Returns: %TRUE if the resource is new; otherwise %FALSE.
- * Side effects: None.
- */
-gboolean
-gom_resource_is_new (GomResource *resource)
-{
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
-	return resource->priv->is_new;
-}
-
-/**
- * gom_resource_init_collection:
- * @resource: (in): A #GomResource.
- * @property: (in): A #GomProperty.
- * @collection: (in): A #GomCollection.
- *
- * Initialize a #GomCollection used for many-to-many tables.
- * This associates the proper condition once it is available.
- *
- * Returns: None.
- * Side effects: None.
- */
-static void
-gom_resource_init_collection (GomResource   *resource,
-                              GomProperty   *property,
-                              GomCollection *collection)
-{
-	GomCondition *cond;
-	GomQuery *query;
-
-	g_return_if_fail(GOM_IS_RESOURCE(resource));
-	g_return_if_fail(property != NULL);
-	g_return_if_fail(GOM_IS_COLLECTION(collection));
-
-	g_object_get(collection, "query", &query, NULL);
-	g_assert(query);
-
-	if ((cond = gom_resource_get_condition(resource))) {
-		/*
-		 * TODO: We need to translate these to the
-		 *       m2m table?
-		 */
-		g_object_set(query, "condition", cond, NULL);
-		gom_condition_unref(cond);
-	}
-
-	gom_clear_object(&query);
-}
-
-/**
- * gom_resource_merge:
- * @resource: (in): A #GomResource.
- * @other: (in): A #GomResource of the same type as @resource.
- *
- * Merges the modified properties from @other into @resource.
- *
- * Returns: None.
- * Side effects: None.
- */
-void
-gom_resource_merge (GomResource *resource,
-                    GomResource *other)
-{
-	GomResourcePrivate *priva;
-	GomResourcePrivate *privb;
-	GomPropertyValue *value;
-	GHashTableIter iter;
-	GType typea;
-	GType typeb;
-
-	g_return_if_fail(GOM_IS_RESOURCE(resource));
-	g_return_if_fail(GOM_IS_RESOURCE(other));
-
-	typea = G_TYPE_FROM_INSTANCE(resource);
-	typeb = G_TYPE_FROM_INSTANCE(other);
-	if (!g_type_is_a(typeb, typea)) {
-		g_critical("Cannot merge resources of different types!");
-		return;
-	}
-
-	priva = resource->priv;
-	privb = other->priv;
-
-	g_hash_table_iter_init(&iter, privb->properties);
-	while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&value)) {
-		value = _property_value_copy(value);
-		g_hash_table_insert(priva->properties, &value->name, value);
-	}
+   gom_resource_set_repository(GOM_RESOURCE(object), NULL);
+   G_OBJECT_CLASS(gom_resource_parent_class)->finalize(object);
 }
 
 /**
@@ -1264,379 +572,21 @@ gom_resource_merge (GomResource *resource,
  *
  * Get a given #GObject property.
  */
-void
+static void
 gom_resource_get_property (GObject    *object,
                            guint       prop_id,
                            GValue     *value,
                            GParamSpec *pspec)
 {
-	GomResourcePrivate *priv;
-	GomResourceClass *resource_class;
-	GomPropertyValue *prop_value;
-	GomCollection *collection;
-	GomProperty *prop;
-	GomResource *resource = (GomResource *)object;
-	GomQuery *query;
-	GQuark name;
+   GomResource *resource = GOM_RESOURCE(object);
 
-	g_return_if_fail(GOM_IS_RESOURCE(resource));
-
-	priv = resource->priv;
-
-	/*
-	 * If we currently have the value in our hashtable, retrieve it.
-	 */
-	name = g_quark_from_string(pspec->name);
-	if ((prop_value = g_hash_table_lookup(priv->properties, &name))) {
-		g_value_copy(&prop_value->value, value);
-		return;
-	}
-
-	/*
-	 * If we were loaded from the database, retrieve the property value.
-	 */
-	if (!priv->is_new) {
-		gom_resource_read_property(resource, name, value);
-		return;
-	}
-
-	/*
-	 * New item, lets get the default and store it.
-	 */
-	resource_class = GOM_RESOURCE_GET_CLASS(object);
-	if ((prop = gom_property_set_findq(resource_class->properties, name))) {
-		prop_value = _property_value_new();
-		prop_value->name = name;
-		if (g_type_is_a(prop->value_type, GOM_TYPE_RESOURCE) &&
-		    (prop->relationship.relation == GOM_RELATION_ONE_TO_ONE)) {
-			g_value_init(&prop_value->value, prop->value_type);
-			g_value_take_object(&prop_value->value,
-			                    g_object_new(prop->value_type,
-			                                 "adapter", priv->adapter,
-			                                 NULL));
-		} else if ((prop->relationship.relation == GOM_RELATION_ONE_TO_MANY) ||
-		           (prop->relationship.relation == GOM_RELATION_MANY_TO_MANY)) {
-			query = g_object_new(GOM_TYPE_QUERY,
-			                     "join", prop,
-			                     "resource-type", prop->value_type,
-			                     NULL);
-			collection = g_object_new(GOM_TYPE_COLLECTION,
-			                          "adapter", priv->adapter,
-			                          "query", query,
-			                          NULL);
-			gom_resource_init_collection(resource, prop, collection);
-			g_value_init(&prop_value->value, GOM_TYPE_COLLECTION);
-			g_value_take_object(&prop_value->value, collection);
-			g_object_unref(query);
-		} else {
-			g_value_init(&prop_value->value, prop->value_type);
-			g_value_copy(&prop->default_value, &prop_value->value);
-		}
-		g_value_copy(&prop_value->value, value);
-		g_hash_table_insert(priv->properties, &prop_value->name, prop_value);
-		return;
-	}
-
-	G_OBJECT_WARN_INVALID_PROPERTY_ID(resource, prop_id, pspec);
-}
-
-static void
-gom_resource_read_related_property (GomResource *resource,
-                                    GomProperty *prop,
-                                    GValue      *value)
-{
-	GomResourcePrivate *priv;
-	GomEnumerableIter iter;
-	GomResourceClass *resource_class;
-	GomEnumerable *enumerable = NULL;
-	GomCondition *condition = NULL;
-	GomProperty *field;
-	GParameter param;
-	GomQuery *query = NULL;
-	GObject *object = NULL;
-	GError *error = NULL;
-	GArray *params = NULL;
-	guint n_fields;
-	gint i;
-
-	g_return_if_fail(GOM_IS_RESOURCE(resource));
-	g_return_if_fail(resource->priv->adapter != NULL);
-	g_return_if_fail(g_type_is_a(prop->value_type, GOM_TYPE_RESOURCE));
-	g_return_if_fail(prop != NULL);
-	g_return_if_fail(value != NULL);
-
-	priv = resource->priv;
-
-	resource_class = g_type_class_ref(prop->value_type);
-
-	condition = gom_resource_get_condition(resource);
-
-	query = g_object_new(GOM_TYPE_QUERY,
-	                     "condition", condition,
-	                     "fields", resource_class->keys,
-	                     "join", prop,
-	                     "limit", G_GUINT64_CONSTANT(1),
-	                     "resource-type", prop->value_type,
-	                     NULL);
-
-	if (!gom_adapter_read(priv->adapter, query, &enumerable, &error)) {
-		g_critical("%s", error->message);
-		g_error_free(error);
-		goto failure;
-	}
-
-	if (gom_enumerable_iter_init(&iter, enumerable)) {
-		n_fields = gom_property_set_length(resource_class->keys);
-		params = g_array_new(FALSE, FALSE, sizeof(GParameter));
-
-		memset(&param, 0, sizeof param);
-		param.name = "is-new";
-		g_value_init(&param.value, G_TYPE_BOOLEAN);
-		g_value_set_boolean(&param.value, FALSE);
-		g_array_append_val(params, param);
-
-		memset(&param, 0, sizeof param);
-		param.name = "adapter";
-		g_value_init(&param.value, GOM_TYPE_ADAPTER);
-		g_value_set_object(&param.value, priv->adapter);
-		g_array_append_val(params, param);
-
-		for (i = 0; i < n_fields; i++) {
-			field = gom_property_set_get_nth(resource_class->keys, i);
-
-			memset(&param, 0, sizeof param);
-			param.name = g_quark_to_string(field->name);
-			g_value_init(&param.value, field->value_type);
-			gom_enumerable_get_value(enumerable, &iter, i, &param.value);
-			g_array_append_val(params, param);
-		}
-		object = g_object_newv(prop->value_type, params->len,
-		                       (GParameter *)params->data);
-		g_value_set_object(value, object);
-	}
-
-  failure:
-	gom_clear_pointer(&resource_class, g_type_class_unref);
-	gom_clear_pointer(&condition, gom_condition_unref);
-	gom_clear_pointer(&params, g_array_unref);
-	gom_clear_object(&enumerable);
-	gom_clear_object(&query);
-}
-
-static void
-gom_resource_read_property (GomResource *resource,
-                            GQuark       property,
-                            GValue      *value)
-{
-	GomResourcePrivate *priv;
-	GomEnumerableIter iter;
-	GomPropertyValue *prop_value = NULL;
-	GomResourceClass *resource_class;
-	GomPropertySet *fields = NULL;
-	GomEnumerable *enumerable = NULL;
-	GomCondition *condition = NULL;
-	GomProperty *prop;
-	GomQuery *query = NULL;
-	GError *error = NULL;
-	GType resource_type;
-
-	g_return_if_fail(GOM_IS_RESOURCE(resource));
-	g_return_if_fail(property != 0);
-	g_return_if_fail(G_VALUE_TYPE(value) != G_TYPE_INVALID);
-
-	priv = resource->priv;
-
-	resource_class = GOM_RESOURCE_GET_CLASS(resource);
-	resource_type = G_TYPE_FROM_INSTANCE(resource);
-	fields = gom_resource_class_get_properties(resource_class);
-	prop = gom_property_set_findq(fields, property);
-	fields = NULL;
-
-	if (!prop) {
-		g_critical("Unknown property %s", g_quark_to_string(property));
-		return;
-	}
-
-	if (g_type_is_a(prop->value_type, GOM_TYPE_RESOURCE)) {
-		gom_resource_read_related_property(resource, prop, value);
-		return;
-	} else if (g_type_is_a(prop->value_type, GOM_TYPE_COLLECTION)) {
-		/*
-		 * TODO:
-		 */
-		return;
-	}
-
-	fields = gom_property_set_newv(1, &prop);
-	condition = gom_resource_get_condition(resource);
-	query = g_object_new(GOM_TYPE_QUERY,
-	                     "condition", condition,
-	                     "fields", fields,
-	                     "limit", G_GUINT64_CONSTANT(1),
-	                     "resource-type", resource_type,
-	                     NULL);
-	gom_condition_unref(condition);
-	gom_property_set_unref(fields);
-
-	if (!gom_adapter_read(priv->adapter, query, &enumerable, &error)) {
-		g_critical("%s", error->message);
-		g_clear_error(&error);
-		goto failure;
-	}
-
-	if (gom_enumerable_get_n_columns(enumerable) != 1) {
-		g_critical("Received invalid number of columns for query.");
-		goto failure;
-	}
-
-	if (gom_enumerable_iter_init(&iter, enumerable)) {
-		gom_enumerable_get_value(enumerable, &iter, 0, value);
-	}
-
-	prop_value = _property_value_new();
-	prop_value->name = property;
-	g_value_init(&prop_value->value, G_VALUE_TYPE(value));
-	g_value_copy(value, &prop_value->value);
-	g_hash_table_insert(priv->properties, &prop_value->name, prop_value);
-
-  failure:
-	gom_clear_object(&query);
-	gom_clear_object(&enumerable);
-}
-
-/**
- * gom_resource_real_set_property:
- * @object: (in): A #GObject.
- * @prop_id: (in): The property identifier.
- * @value: (out): The given property.
- * @pspec: (in): A #ParamSpec.
- *
- * Get a given #GObject property.
- */
-static void
-gom_resource_real_get_property (GObject    *object,
-                                guint       prop_id,
-                                GValue     *value,
-                                GParamSpec *pspec)
-{
-	GomResource *resource = GOM_RESOURCE(object);
-
-	switch (prop_id) {
-	case PROP_ADAPTER:
-		g_value_set_object(value, resource->priv->adapter);
-		break;
-	case PROP_IS_NEW:
-		g_value_set_boolean(value, resource->priv->is_new);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
-	}
-}
-
-/**
- * gom_resource_get_properties:
- * @resource: (in): A #GomResource.
- * @n_values: (out): A location for the length of the resulting array.
- *
- * Retrieves a list of values for the currently loaded properties of
- * @resource.
- *
- * Returns: (array length=n_values) (transfer container): Array of #GomPropertyValue.
- * Side effects: None.
- */
-GomPropertyValue**
-gom_resource_get_properties (GomResource *resource,
-                             guint       *n_values)
-{
-	GomResourcePrivate *priv;
-	GomPropertyValue **values;
-	GomPropertyValue *value;
-	GHashTableIter iter;
-	gint i = 0;
-
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), NULL);
-	g_return_val_if_fail(n_values != NULL, NULL);
-
-	priv = resource->priv;
-
-	/*
-	 * Allocate memory to store the resulting array.
-	 */
-	*n_values = g_hash_table_size(priv->properties);
-	values = g_malloc_n(*n_values, sizeof(GomPropertyValue*));
-
-	/*
-	 * Iterate the hash table, populating the array.
-	 */
-	g_hash_table_iter_init(&iter, priv->properties);
-	while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&value)) {
-		g_assert_cmpint(i, <, *n_values);
-		values[i++] = value;
-	}
-
-	return values;
-}
-
-/**
- * gom_resource_set_adapter:
- * @resource: (in): A #GomResource.
- * @adapter: (in): A #GomAdapter.
- *
- * Set the adapter for a given #GomResource.
- *
- * Returns: None.
- * Side effects: Weak reference to adapter is taken.
- */
-static void
-gom_resource_set_adapter (GomResource *resource,
-                          GomAdapter  *adapter)
-{
-	GomResourcePrivate *priv;
-
-	g_return_if_fail(GOM_IS_RESOURCE(resource));
-	g_return_if_fail(!adapter || GOM_IS_ADAPTER(adapter));
-
-	priv = resource->priv;
-
-	if (priv->adapter) {
-		g_object_remove_weak_pointer(G_OBJECT(priv->adapter),
-		                             (gpointer *)&priv->adapter);
-		priv->adapter = NULL;
-	}
-	if (adapter) {
-		priv->adapter = adapter;
-		g_object_add_weak_pointer(G_OBJECT(priv->adapter),
-		                          (gpointer *)&priv->adapter);
-	}
-}
-
-/**
- * gom_resource_real_set_property:
- * @object: (in): A #GObject.
- * @prop_id: (in): The property identifier.
- * @value: (in): The given property.
- * @pspec: (in): A #ParamSpec.
- *
- * Set a given #GObject property.
- */
-static void
-gom_resource_real_set_property (GObject      *object,
-                                guint         prop_id,
-                                const GValue *value,
-                                GParamSpec   *pspec)
-{
-	GomResource *resource = GOM_RESOURCE(object);
-
-	switch (prop_id) {
-	case PROP_ADAPTER:
-		gom_resource_set_adapter(resource, g_value_get_object(value));
-		break;
-	case PROP_IS_NEW:
-		resource->priv->is_new = g_value_get_boolean(value);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
-	}
+   switch (prop_id) {
+   case PROP_REPOSITORY:
+      g_value_set_object(value, gom_resource_get_repository(resource));
+      break;
+   default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+   }
 }
 
 /**
@@ -1648,316 +598,70 @@ gom_resource_real_set_property (GObject      *object,
  *
  * Set a given #GObject property.
  */
-void
+static void
 gom_resource_set_property (GObject      *object,
                            guint         prop_id,
                            const GValue *value,
                            GParamSpec   *pspec)
 {
-	GomResourcePrivate *priv;
-	GomPropertyValue *prop_value;
-	GomResource *resource = (GomResource *)object;
-	GQuark name;
+   GomResource *resource = GOM_RESOURCE(object);
 
-	g_return_if_fail(GOM_IS_RESOURCE(resource));
-
-	priv = resource->priv;
-
-	name = g_quark_from_string(pspec->name);
-
-	/*
-	 * Retrieve the property container, or create it.
-	 */
-	if (!(prop_value = g_hash_table_lookup(priv->properties, &name))) {
-		prop_value = _property_value_new();
-		prop_value->name = name;
-		g_value_init(&prop_value->value, G_VALUE_TYPE(value));
-		g_hash_table_insert(priv->properties, &prop_value->name, prop_value);
-	}
-
-	/*
-	 * Mark the property as dirty and store a private copy of the value.
-	 */
-	prop_value->is_dirty = TRUE;
-	g_value_copy(value, &prop_value->value);
+   switch (prop_id) {
+   case PROP_REPOSITORY:
+      gom_resource_set_repository(resource, g_value_get_object(value));
+      break;
+   default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+   }
 }
 
-static gboolean
-gom_resource_save_self (GomResource  *resource,
-                        GError      **error)
-{
-	GomResourcePrivate *priv;
-	GomPropertyValue *value;
-	GomPropertySet *props;
-	GomPropertySet *set = NULL;
-	GomEnumerable *enumerable = NULL;
-	GomCollection *collection = NULL;
-	GomCondition *condition = NULL;
-	GomProperty *prop;
-	GValueArray *values = NULL;
-	GomQuery *query = NULL;
-	gboolean ret = FALSE;
-	guint n_props;
-	gint i;
-
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
-
-	priv = resource->priv;
-
-	if (!priv->adapter) {
-		g_set_error(error, GOM_RESOURCE_ERROR,
-		            GOM_RESOURCE_ERROR_NO_ADAPTER,
-		            "The resource is not attached to an adapter.");
-		return FALSE;
-	}
-
-	if (priv->is_new) {
-		enumerable = gom_enumerable_array_new(&resource, 1);
-		if ((ret = gom_adapter_create(priv->adapter, enumerable, error))) {
-			priv->is_new = FALSE;
-		}
-	} else {
-		props = GOM_RESOURCE_GET_CLASS(resource)->properties;
-		n_props = gom_property_set_length(props);
-		set = gom_property_set_newv(0, NULL);
-		values = g_value_array_new(n_props);
-		for (i = 0; i < n_props; i++) {
-			prop = gom_property_set_get_nth(props, i);
-			if ((value = g_hash_table_lookup(priv->properties, &prop->name))) {
-				if (value->is_dirty) {
-					g_value_array_append(values, &value->value);
-					gom_property_set_add(set, prop);
-				}
-			}
-		}
-		condition = gom_resource_get_condition(resource);
-		query = g_object_new(GOM_TYPE_QUERY,
-		                     "resource-type", G_TYPE_FROM_INSTANCE(resource),
-		                     "condition", condition,
-		                     NULL);
-		collection = g_object_new(GOM_TYPE_COLLECTION,
-		                          "query", query,
-		                          NULL);
-		ret = gom_adapter_update(priv->adapter, set, values,
-		                         collection, error);
-	}
-
-	gom_clear_object(&collection);
-	gom_clear_object(&enumerable);
-	gom_clear_object(&query);
-	gom_clear_pointer(&condition, gom_condition_unref);
-	gom_clear_pointer(&set, gom_property_set_unref);
-	gom_clear_pointer(&values, g_value_array_free);
-
-	return ret;
-}
-
-static gboolean
-gom_resource_save_parents (GomResource  *resource,
-                           GError      **error)
-{
-	GomResourcePrivate *priv;
-	GomResourceClass *resource_class;
-	GomPropertyValue *prop_value;
-	GomResource *related = NULL;
-	GomProperty *prop;
-	gint i;
-
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
-
-	priv = resource->priv;
-
-	resource_class = GOM_RESOURCE_GET_CLASS(resource);
-
-	for (i = 0; i < resource_class->properties->len; i++) {
-		prop = gom_property_set_get_nth(resource_class->properties, i);
-		if (prop->relationship.relation == GOM_RELATION_MANY_TO_ONE) {
-			prop_value = g_hash_table_lookup(priv->properties, &prop->name);
-			if (prop_value) {
-				related = g_value_get_object(&prop_value->value);
-				if (gom_resource_is_dirty(related)) {
-					if (!gom_resource_save_self(related, error)) {
-						return FALSE;
-					}
-				}
-			}
-		}
-	}
-
-	return TRUE;
-}
-
-static gboolean
-gom_resource_save_children (GomResource  *resource,
-                            GError      **error)
-{
-	GomResourcePrivate *priv;
-	GomResourceClass *resource_class;
-	GomPropertyValue *prop_value;
-	GomCollection *collection;
-	GomProperty *property;
-	GomQuery *query;
-	gboolean ret = FALSE;
-	gint i;
-
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
-
-	priv = resource->priv;
-
-	resource_class = GOM_RESOURCE_GET_CLASS(resource);
-	g_assert(resource_class);
-
-	for (i = 0; i < resource_class->properties->len; i++) {
-		property = gom_property_set_get_nth(resource_class->properties, i);
-		g_assert(property);
-
-		if (g_type_is_a(property->value_type, GOM_TYPE_RESOURCE) &&
-		    ((property->relationship.relation == GOM_RELATION_MANY_TO_MANY) ||
-			 (property->relationship.relation == GOM_RELATION_ONE_TO_MANY))) {
-			if ((prop_value = g_hash_table_lookup(priv->properties,
-			                                      &property->name))) {
-				g_assert(G_VALUE_HOLDS(&prop_value->value,
-				                       GOM_TYPE_COLLECTION));
-
-				collection = g_value_get_object(&prop_value->value);
-				g_assert(collection);
-
-				g_object_get(collection, "query", &query, NULL);
-
-				if (!query) {
-					gom_resource_init_collection(resource, property, collection);
-				}
-
-				g_clear_object(&query);
-
-				if (!gom_collection_save(collection, error)) {
-					goto failure;
-				}
-			}
-		}
-	}
-
-	ret = TRUE;
-
-  failure:
-
-	return ret;
-}
-
-gboolean
-gom_resource_save (GomResource  *resource,
-                   GError      **error)
-{
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
-
-	if (gom_resource_save_parents(resource, error)) {
-		if (gom_resource_save_self(resource, error)) {
-			if (gom_resource_save_children(resource, error)) {
-				g_signal_emit(resource, gSignals[SAVED], 0);
-				return TRUE;
-			}
-		}
-	}
-
-	return FALSE;
-}
-
+/**
+ * gom_resource_class_init:
+ * @klass: (in): A #GomResourceClass.
+ *
+ * Initializes the #GomResourceClass and prepares the vtable.
+ */
 static void
-gom_resource_save_thread_cb (GomAdapter *adapter,
-                             gpointer    user_data)
+gom_resource_class_init (GomResourceClass *klass)
 {
-	GSimpleAsyncResult *simple = user_data;
-	GAsyncResult *result = user_data;
-	GCancellable *cancellable;
-	GomResource *resource;
-	GError *error = NULL;
+   GObjectClass *object_class;
 
-	g_assert(G_IS_ASYNC_RESULT(result));
-	g_assert(G_IS_SIMPLE_ASYNC_RESULT(simple));
-	resource = (GomResource *)g_async_result_get_source_object(result);
-	g_assert(GOM_IS_RESOURCE(resource));
+   object_class = G_OBJECT_CLASS(klass);
+   object_class->finalize = gom_resource_finalize;
+   object_class->get_property = gom_resource_get_property;
+   object_class->set_property = gom_resource_set_property;
+   g_type_class_add_private(object_class, sizeof(GomResourcePrivate));
 
-	cancellable = g_object_get_data(G_OBJECT(simple), "cancellable");
-	if (cancellable && g_cancellable_is_cancelled(cancellable)) {
-		g_simple_async_result_set_error(simple, GOM_RESOURCE_ERROR,
-		                                GOM_RESOURCE_ERROR_CANCELLED,
-		                                _("The save was cancelled."));
-		goto finish;
-	}
+   gPropMaps = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
+                                     (GDestroyNotify)g_hash_table_destroy);
 
-	if (!gom_resource_save(resource, &error)) {
-		g_simple_async_result_take_error(simple, error);
-		goto finish;
-	}
-
-	g_simple_async_result_set_op_res_gboolean(simple, TRUE);
-
-finish:
-	g_simple_async_result_complete_in_idle(simple);
+   gParamSpecs[PROP_REPOSITORY] =
+      g_param_spec_object("repository",
+                          _("Repository"),
+                          _("The resources repository."),
+                          GOM_TYPE_REPOSITORY,
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+   g_object_class_install_property(object_class, PROP_REPOSITORY,
+                                   gParamSpecs[PROP_REPOSITORY]);
 }
 
-void
-gom_resource_save_async (GomResource         *resource,
-                         GCancellable        *cancellable,
-                         GAsyncReadyCallback  callback,
-                         gpointer             user_data)
+/**
+ * gom_resource_init:
+ * @resource: (in): A #GomResource.
+ *
+ * Initializes the newly created #GomResource instance.
+ */
+static void
+gom_resource_init (GomResource *resource)
 {
-	GSimpleAsyncResult *simple;
-
-	g_return_if_fail(GOM_IS_RESOURCE(resource));
-	g_return_if_fail(!cancellable || G_IS_CANCELLABLE(cancellable));
-	g_return_if_fail(callback != NULL);
-
-	simple = g_simple_async_result_new(G_OBJECT(resource), callback,
-	                                   user_data, gom_resource_save_async);
-	if (cancellable) {
-		g_object_set_data(G_OBJECT(simple), "cancellable",
-		                  g_object_ref(cancellable));
-	}
-	gom_adapter_call_in_thread(resource->priv->adapter,
-	                           gom_resource_save_thread_cb,
-	                           simple, g_object_unref);
+   resource->priv =
+      G_TYPE_INSTANCE_GET_PRIVATE(resource,
+                                  GOM_TYPE_RESOURCE,
+                                  GomResourcePrivate);
 }
 
-gboolean
-gom_resource_save_finish (GomResource   *resource,
-                          GAsyncResult  *result,
-                          GError       **error)
+GQuark
+gom_resource_error_quark (void)
 {
-	GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
-	gboolean ret;
-
-	g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
-	g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple), FALSE);
-
-	if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
-		g_simple_async_result_propagate_error(simple, error);
-	}
-
-	return ret;
-}
-
-GType
-gom_resource_get_type (void)
-{
-	static gsize initialized = FALSE;
-	static GType type_id = 0;
-	static GTypeInfo type_info = {
-		.class_size    = sizeof(GomResourceClass),
-		.base_init     = gom_resource_base_init,
-		.base_finalize = gom_resource_base_finalize,
-		.class_init    = gom_resource_class_init,
-		.instance_size = sizeof(GomResource),
-		.instance_init = gom_resource_init,
-	};
-
-	if (g_once_init_enter(&initialized)) {
-		type_id = g_type_register_static(G_TYPE_OBJECT,
-		                                 g_intern_static_string("GomResource"),
-		                                 &type_info,
-		                                 G_TYPE_FLAG_ABSTRACT);
-		g_once_init_leave(&initialized, TRUE);
-	}
-
-	return type_id;
+   return g_quark_from_static_string("gom_resource_error_quark");
 }

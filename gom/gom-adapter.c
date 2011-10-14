@@ -16,205 +16,235 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <glib/gi18n.h>
+#include <sqlite3.h>
+
 #include "gom-adapter.h"
-#include "gom-resource.h"
 
-#define MAGIC_CLOSE GINT_TO_POINTER(1)
-
-G_DEFINE_ABSTRACT_TYPE(GomAdapter, gom_adapter, G_TYPE_OBJECT)
+G_DEFINE_TYPE(GomAdapter, gom_adapter, G_TYPE_OBJECT)
 
 struct _GomAdapterPrivate
 {
-	GAsyncQueue *queue;
-	GThread     *thread;
+   sqlite3 *db;
+   GThread *thread;
+   GAsyncQueue *queue;
 };
 
+gpointer
+gom_adapter_get_handle (GomAdapter *adapter)
+{
+   g_return_val_if_fail(GOM_IS_ADAPTER(adapter), NULL);
+   return adapter->priv->db;
+}
+
 static gpointer
-gom_adapter_thread_func (gpointer user_data)
+gom_adapter_worker (gpointer data)
 {
-	GomAdapter *adapter = user_data;
-	GClosure *closure;
-	GValue value = { 0 };
+   GSimpleAsyncResult *simple;
+   GomAdapter *adapter;
+   GAsyncQueue *queue = data;
+   const gchar *uri;
+   gint flags;
+   gint ret;
 
-	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), NULL);
+   /*
+    * First item is open request.
+    */
+   simple = g_async_queue_pop(queue);
+   adapter = (GomAdapter *)g_async_result_get_source_object(G_ASYNC_RESULT(simple));
+   uri = g_object_get_data(G_OBJECT(simple), "uri");
+   flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE;
+   ret = sqlite3_open_v2(uri, &adapter->priv->db, flags, NULL);
+   if (ret != SQLITE_OK) {
+      g_simple_async_result_set_error(simple, GOM_ADAPTER_ERROR,
+                                      GOM_ADAPTER_ERROR_OPEN,
+                                      _("Failed to open database at %s"), uri);
+   }
+   g_simple_async_result_set_op_res_gboolean(simple, ret == SQLITE_OK);
+   g_simple_async_result_complete_in_idle(simple);
+   g_object_unref(simple);
 
-	while (MAGIC_CLOSE != (closure = g_async_queue_pop(adapter->priv->queue))) {
-		g_value_init(&value, GOM_TYPE_ADAPTER);
-		g_value_set_object(&value, adapter);
-		g_closure_invoke(closure, NULL, 1, &value, NULL);
-		g_value_unset(&value);
-		g_closure_unref(closure);
-	}
+   /*
+    * Handle additional requests.
+    */
+   while ((simple = g_async_queue_pop(queue))) {
+      const gchar *request = g_object_get_data(G_OBJECT(simple), "request");
 
-	return NULL;
+      /*
+       * XXX: Right now, we synchronize all requests. I hope to make this
+       *      more performant when necessary.
+       */
+
+      if (!g_strcmp0(request, "queue-write")) {
+         GomAdapterCallback callback = g_object_get_data(G_OBJECT(simple), "write-callback");
+         gpointer callback_data = g_object_get_data(G_OBJECT(simple), "write-callback-data");
+         callback(adapter, callback_data);
+      } else if (!g_strcmp0(request, "queue-read")) {
+         GomAdapterCallback callback = g_object_get_data(G_OBJECT(simple), "read-callback");
+         gpointer callback_data = g_object_get_data(G_OBJECT(simple), "read-callback-data");
+         callback(adapter, callback_data);
+      }
+
+      g_simple_async_result_complete_in_idle(simple);
+      g_object_unref(simple);
+   }
+
+   return NULL;
 }
 
 static void
-gom_adapter_finalize (GObject *object)
+dummy_cb (GObject      *object,
+          GAsyncResult *result,
+          gpointer      user_data)
 {
-	GomAdapterPrivate *priv = GOM_ADAPTER(object)->priv;
-
-	g_async_queue_push(priv->queue, MAGIC_CLOSE);
-	if (priv->thread) {
-		g_thread_join(priv->thread);
-	}
-	g_async_queue_unref(priv->queue);
-
-	G_OBJECT_CLASS(gom_adapter_parent_class)->finalize(object);
-}
-
-static void
-gom_adapter_class_init (GomAdapterClass *klass)
-{
-	GObjectClass *object_class;
-
-	object_class = G_OBJECT_CLASS(klass);
-	object_class->finalize = gom_adapter_finalize;
-	g_type_class_add_private(object_class, sizeof(GomAdapterPrivate));
-}
-
-static void
-gom_adapter_init (GomAdapter *adapter)
-{
-	GomAdapterPrivate *priv;
-	GError *error = NULL;
-
-	adapter->priv = priv =
-		G_TYPE_INSTANCE_GET_PRIVATE(adapter,
-		                           GOM_TYPE_ADAPTER,
-		                           GomAdapterPrivate);
-
-	priv->queue = g_async_queue_new();
-	priv->thread = g_thread_create(gom_adapter_thread_func,
-	                               adapter, TRUE, &error);
-	g_assert_no_error(error);
+   /* Do nothing. */
 }
 
 void
-gom_adapter_call_in_thread (GomAdapter           *adapter,
-                            GomAdapterThreadFunc  callback,
-                            gpointer              user_data,
-                            GDestroyNotify        notify)
+gom_adapter_queue_write (GomAdapter         *adapter,
+                         GomAdapterCallback  callback,
+                         gpointer            user_data)
 {
-	GClosure *closure;
+   GomAdapterPrivate *priv;
+   GSimpleAsyncResult *simple;
 
-	g_return_if_fail(GOM_IS_ADAPTER(adapter));
-	g_return_if_fail(callback != NULL);
+   g_return_if_fail(GOM_IS_ADAPTER(adapter));
+   g_return_if_fail(callback != NULL);
+   g_return_if_fail(adapter->priv->queue != NULL);
 
-	closure = g_cclosure_new(G_CALLBACK(callback), user_data,
-	                         (GClosureNotify)notify);
-	g_closure_set_marshal(closure, g_cclosure_marshal_VOID__VOID);
-	g_async_queue_push(adapter->priv->queue, closure);
+   priv = adapter->priv;
+
+   simple = g_simple_async_result_new(G_OBJECT(adapter), dummy_cb, NULL,
+                                      gom_adapter_queue_write);
+   g_object_set_data(G_OBJECT(simple), "request", (gpointer)"queue-write");
+   g_object_set_data(G_OBJECT(simple), "write-callback", callback);
+   g_object_set_data(G_OBJECT(simple), "write-callback-data", user_data);
+   g_async_queue_push(priv->queue, simple);
+}
+
+void
+gom_adapter_queue_read (GomAdapter         *adapter,
+                        GomAdapterCallback  callback,
+                        gpointer            user_data)
+{
+   GomAdapterPrivate *priv;
+   GSimpleAsyncResult *simple;
+
+   g_return_if_fail(GOM_IS_ADAPTER(adapter));
+   g_return_if_fail(callback != NULL);
+   g_return_if_fail(adapter->priv->queue != NULL);
+
+   priv = adapter->priv;
+
+   simple = g_simple_async_result_new(G_OBJECT(adapter), dummy_cb, NULL,
+                                      gom_adapter_queue_write);
+   g_object_set_data(G_OBJECT(simple), "request", (gpointer)"queue-read");
+   g_object_set_data(G_OBJECT(simple), "read-callback", callback);
+   g_object_set_data(G_OBJECT(simple), "read-callback-data", user_data);
+   g_async_queue_push(priv->queue, simple);
+}
+
+void
+gom_adapter_open_async (GomAdapter          *adapter,
+                        const gchar         *uri,
+                        GAsyncReadyCallback  callback,
+                        gpointer             user_data)
+{
+   GomAdapterPrivate *priv;
+   GSimpleAsyncResult *simple;
+
+   g_return_if_fail(GOM_IS_ADAPTER(adapter));
+   g_return_if_fail(uri != NULL);
+   g_return_if_fail(callback != NULL);
+
+   priv = adapter->priv;
+
+   if (priv->thread) {
+      g_warning("%s may only be called once per adapter.",
+                G_STRFUNC);
+      return;
+   }
+
+   priv->queue = g_async_queue_new();
+   priv->thread = g_thread_create(gom_adapter_worker, priv->queue,
+                                  TRUE, NULL);
+   simple = g_simple_async_result_new(G_OBJECT(adapter), callback, user_data,
+                                      gom_adapter_open_async);
+   g_object_set_data_full(G_OBJECT(simple), "uri",
+                          g_strdup(uri), g_free);
+   g_async_queue_push(priv->queue, simple);
+}
+
+gboolean
+gom_adapter_open_finish (GomAdapter    *adapter,
+                         GAsyncResult  *result,
+                         GError       **error)
+{
+   GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
+   gboolean ret;
+
+   g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
+   g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple), FALSE);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+
+   return ret;
 }
 
 /**
- * gom_adapter_create:
- * @adapter: (in): A #GomAdapter.
- * @enumerable: (in): A #GomEnumerable.
- * @error: (error): A location for a #GError, or %NULL.
+ * gom_adapter_finalize:
+ * @object: (in): A #GomAdapter.
  *
- * Creates a series of new #GomResource<!-- -->'s found in enumerable.
- *
- * Returns: %TRUE if successful; otherwise %FALSE.
- * Side effects: None.
+ * Finalizer for a #GomAdapter instance.  Frees any resources held by
+ * the instance.
  */
-gboolean
-gom_adapter_create (GomAdapter     *adapter,
-                    GomEnumerable  *enumerable,
-                    GError        **error)
+static void
+gom_adapter_finalize (GObject *object)
 {
-	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
-	g_return_val_if_fail(GOM_IS_ENUMERABLE(enumerable), FALSE);
+   GomAdapterPrivate *priv = GOM_ADAPTER(object)->priv;
 
-	return GOM_ADAPTER_GET_CLASS(adapter)->create(adapter,
-	                                              enumerable,
-	                                              error);
+   if (priv->queue) {
+      g_warning("Adapter not closed, leaking!");
+   }
+
+   G_OBJECT_CLASS(gom_adapter_parent_class)->finalize(object);
 }
 
 /**
- * gom_adapter_delete:
- * @adapter: (in): A #GomAdapter.
- * @collection: (in): A #GomCollection of #GomResource<!-- -->'s.
- * @error: (in): A location for a #GError, or %NULL.
+ * gom_adapter_class_init:
+ * @klass: (in): A #GomAdapterClass.
  *
- * Deletes a resource from the underlying data adapter.
- *
- * Returns: %TRUE if successful; otherwise %FALSE.
- * Side effects: None.
+ * Initializes the #GomAdapterClass and prepares the vtable.
  */
-gboolean
-gom_adapter_delete (GomAdapter     *adapter,
-                    GomCollection  *collection,
-                    GError        **error)
+static void
+gom_adapter_class_init (GomAdapterClass *klass)
 {
-	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
-	g_return_val_if_fail(GOM_IS_COLLECTION(collection), FALSE);
+   GObjectClass *object_class;
 
-	return GOM_ADAPTER_GET_CLASS(adapter)->delete(adapter,
-	                                              collection,
-	                                              error);
+   object_class = G_OBJECT_CLASS(klass);
+   object_class->finalize = gom_adapter_finalize;
+   g_type_class_add_private(object_class, sizeof(GomAdapterPrivate));
 }
 
 /**
- * gom_adapter_read:
+ * gom_adapter_init:
  * @adapter: (in): A #GomAdapter.
- * @query: (in): A #GomQuery.
- * @enumerable: (out) (transfer full): A location for a #GomEnumerable.
- * @error: (error): A location for a #GError, or %NULL.
  *
- * Performs @query on the underlying storage. The results are available
- * by iterating through the result set which is stored in the location
- * specified by @enumerable.
- *
- * Returns: %TRUE if successful; otherwise %FALSE.
- * Side effects: None.
+ * Initializes the newly created #GomAdapter instance.
  */
-gboolean
-gom_adapter_read (GomAdapter     *adapter,
-                  GomQuery       *query,
-                  GomEnumerable **enumerable,
-                  GError        **error)
+static void
+gom_adapter_init (GomAdapter *adapter)
 {
-	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
-	g_return_val_if_fail(GOM_IS_QUERY(query), FALSE);
-	g_return_val_if_fail(enumerable != NULL, FALSE);
-	g_return_val_if_fail(*enumerable == NULL, FALSE);
-
-	return GOM_ADAPTER_GET_CLASS(adapter)->read(adapter,
-	                                            query,
-	                                            enumerable,
-	                                            error);
+   adapter->priv =
+      G_TYPE_INSTANCE_GET_PRIVATE(adapter,
+                                  GOM_TYPE_ADAPTER,
+                                  GomAdapterPrivate);
 }
 
-/**
- * gom_adapter_update:
- * @adapter: (in): A #GomAdapter.
- * @properties: (in): A set of properties to update.
- * @values: (in): The values for @properties.
- * @collection: (in): A collection of resources that should be updated.
- *
- * Updates the resources found in @collection. The properties found in
- * @properties are updated to the values found in @values at the
- * corresponding index.
- *
- * Returns: %TRUE if successful; otherwise %FALSE.
- * Side effects: None.
- */
-gboolean
-gom_adapter_update (GomAdapter     *adapter,
-                    GomPropertySet *properties,
-                    GValueArray    *values,
-                    GomCollection  *collection,
-                    GError        **error)
+GQuark
+gom_adapter_error_quark (void)
 {
-	g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
-	g_return_val_if_fail(properties != NULL, FALSE);
-	g_return_val_if_fail(values != NULL, FALSE);
-	g_return_val_if_fail(GOM_IS_COLLECTION(collection), FALSE);
-
-	return GOM_ADAPTER_GET_CLASS(adapter)->update(adapter,
-	                                              properties,
-	                                              values,
-	                                              collection,
-	                                              error);
+   return g_quark_from_static_string("gom_adapter_error_quark");
 }

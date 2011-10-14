@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -19,23 +19,20 @@
 #ifndef GOM_H
 #define GOM_H
 
-#include <glib-object.h>
+#include <glib.h>
 
 G_BEGIN_DECLS
 
 #define GOM_INSIDE
 
 #include "gom-adapter.h"
-#include "gom-adapter-sqlite.h"
-#include "gom-condition.h"
-#include "gom-collection.h"
-#include "gom-enumerable.h"
-#include "gom-property.h"
-#include "gom-property-set.h"
-#include "gom-query.h"
-#include "gom-relationship.h"
+#include "gom-command.h"
+#include "gom-command-builder.h"
+#include "gom-cursor.h"
+#include "gom-filter.h"
+#include "gom-repository.h"
+#include "gom-resource-group.h"
 #include "gom-resource.h"
-#include "gom-resource-macros.h"
 
 #undef GOM_INSIDE
 
