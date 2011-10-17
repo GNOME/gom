@@ -283,24 +283,21 @@ has_primary_key (GomResource *resource)
    return ret;
 }
 
-static void
-gom_resource_save_cb (GomAdapter *adapter,
-                      gpointer    user_data)
+static gboolean
+gom_resource_do_save (GomResource  *resource,
+                      GomAdapter   *adapter,
+                      GError      **error)
 {
-   GSimpleAsyncResult *simple = user_data;
    GomCommandBuilder *builder;
+   gboolean ret = FALSE;
    gboolean is_insert;
-   gpointer resource;
    gint64 row_id = -1;
    GSList *types = NULL;
    GSList *iter;
    GType resource_type;
 
-   g_return_if_fail(GOM_IS_ADAPTER(adapter));
-   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
-
-   resource = g_async_result_get_source_object(G_ASYNC_RESULT(simple));
-   g_assert(GOM_IS_RESOURCE(resource));
+   g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+   g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
 
    resource_type = G_TYPE_FROM_INSTANCE(resource);
    g_assert(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
@@ -317,7 +314,6 @@ gom_resource_save_cb (GomAdapter *adapter,
 
    for (iter = types; iter; iter = iter->next) {
       GomCommand *command;
-      GError *error = NULL;
 
       resource_type = GPOINTER_TO_INT(iter->data);
 
@@ -331,8 +327,7 @@ gom_resource_save_cb (GomAdapter *adapter,
          command = gom_command_builder_build_update(builder, resource);
       }
 
-      if (!gom_command_execute(command, NULL, &error)) {
-         g_simple_async_result_take_error(simple, error);
+      if (!gom_command_execute(command, NULL, error)) {
          g_object_unref(command);
          goto out;
       }
@@ -351,13 +346,68 @@ gom_resource_save_cb (GomAdapter *adapter,
       g_object_unref(command);
    }
 
-   g_simple_async_result_set_op_res_gboolean(simple, TRUE);
+   ret = TRUE;
 
 out:
    g_slist_free(types);
-   g_simple_async_result_complete_in_idle(simple);
    g_object_unref(builder);
+
+   return ret;
+}
+
+static void
+gom_resource_save_cb (GomAdapter *adapter,
+                      gpointer    user_data)
+{
+   GSimpleAsyncResult *simple = user_data;
+   GomResource *resource;
+   gboolean ret;
+   GError *error = NULL;
+
+   g_return_if_fail(GOM_IS_ADAPTER(adapter));
+   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
+
+   resource = GOM_RESOURCE(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
+   g_assert(GOM_IS_RESOURCE(resource));
+
+   if (!(ret = gom_resource_do_save(resource, adapter, &error))) {
+      g_simple_async_result_take_error(simple, error);
+   }
+
+   g_simple_async_result_set_op_res_gboolean(simple, ret);
+   g_simple_async_result_complete_in_idle(simple);
    g_object_unref(simple);
+}
+
+/**
+ * gom_resource_save_sync:
+ * @resource: (in): A #GomResource.
+ * @error: (out): A location for a #GError, or %NULL.
+ *
+ * This function MAY ONLY be called from the SQLite thread callback using
+ * gom_adapter_queue_write(). You will also likely want to call this
+ * inside of a transaction.
+ *
+ * Returns: %TRUE if successful; otherwise %FALSE.
+ */
+gboolean
+gom_resource_save_sync (GomResource  *resource,
+                        GError      **error)
+{
+   GomResourcePrivate *priv;
+   GomAdapter *adapter;
+
+   g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+
+   priv = resource->priv;
+
+   if (!priv->repository) {
+      g_warning("Cannot save resource, no repository set!");
+      return FALSE;
+   }
+
+   adapter = gom_repository_get_adapter(priv->repository);
+   return gom_resource_do_save(resource, adapter, error);
 }
 
 void
@@ -640,7 +690,7 @@ gom_resource_class_init (GomResourceClass *klass)
                           _("Repository"),
                           _("The resources repository."),
                           GOM_TYPE_REPOSITORY,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+                          G_PARAM_READWRITE);
    g_object_class_install_property(object_class, PROP_REPOSITORY,
                                    gParamSpecs[PROP_REPOSITORY]);
 }

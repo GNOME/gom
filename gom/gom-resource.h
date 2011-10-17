@@ -78,6 +78,8 @@ void              gom_resource_save_async            (GomResource          *reso
 gboolean          gom_resource_save_finish           (GomResource          *resource,
                                                       GAsyncResult         *result,
                                                       GError              **error);
+gboolean          gom_resource_save_sync             (GomResource          *resource,
+                                                      GError              **error);
 void              gom_resource_fetch_m2m_async       (GomResource          *resource,
                                                       GType                 resource_type,
                                                       const gchar          *m2m_table,
