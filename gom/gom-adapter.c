@@ -30,6 +30,12 @@ struct _GomAdapterPrivate
    GAsyncQueue *queue;
 };
 
+GomAdapter *
+gom_adapter_new (void)
+{
+   return g_object_new(GOM_TYPE_ADAPTER, NULL);
+}
+
 /**
  * gom_adapter_get_handle:
  * @adapter: (in): A #GomAdapter.

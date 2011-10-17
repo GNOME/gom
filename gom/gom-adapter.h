@@ -74,6 +74,7 @@ void     gom_adapter_queue_read  (GomAdapter           *adapter,
 void     gom_adapter_queue_write (GomAdapter           *adapter,
                                   GomAdapterCallback    callback,
                                   gpointer              user_data);
+GomAdapter *gom_adapter_new          (void);
 
 G_END_DECLS
 
