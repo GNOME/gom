@@ -1,0 +1,15 @@
+noinst_PROGRAMS =
+noinst_PROGRAMS += test-gom-adapter
+
+TEST_PROGS += test-gom-adapter
+
+test_gom_adapter_SOURCES = $(top_srcdir)/tests/test-gom-adapter.c
+
+test_gom_adapter_CPPFLAGS =
+test_gom_adapter_CPPFLAGS += $(GIO_CFLAGS)
+test_gom_adapter_CPPFLAGS += $(GOBJECT_CFLAGS)
+
+test_gom_adapter_LDADD =
+test_gom_adapter_LDADD += $(GIO_LIBS)
+test_gom_adapter_LDADD += $(GOBJECT_LIBS)
+test_gom_adapter_LDADD += $(top_builddir)/libgom-1.0.la

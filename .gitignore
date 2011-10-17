@@ -23,6 +23,5 @@ missing
 *.pc
 stamp-h1
 *.swp
-test-gom
-test-gom-gtk
+test-gom-adapter
 *.typelib
