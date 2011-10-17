@@ -98,6 +98,13 @@ gom_adapter_worker (gpointer data)
          GomAdapterCallback callback = g_object_get_data(G_OBJECT(simple), "read-callback");
          gpointer callback_data = g_object_get_data(G_OBJECT(simple), "read-callback-data");
          callback(adapter, callback_data);
+      } else if (!g_strcmp0(request, "close")) {
+         sqlite3_close(adapter->priv->db);
+         adapter->priv->db = NULL;
+         g_simple_async_result_set_op_res_gboolean(simple, TRUE);
+         g_simple_async_result_complete_in_idle(simple);
+         g_object_unref(simple);
+         break;
       }
 
       g_simple_async_result_complete_in_idle(simple);
@@ -226,6 +233,51 @@ gom_adapter_open_finish (GomAdapter    *adapter,
    return ret;
 }
 
+void
+gom_adapter_close_async (GomAdapter          *adapter,
+                         GAsyncReadyCallback  callback,
+                         gpointer             user_data)
+{
+   GomAdapterPrivate *priv;
+   GSimpleAsyncResult *simple;
+
+   g_return_if_fail(GOM_IS_ADAPTER(adapter));
+   g_return_if_fail(callback != NULL);
+
+   priv = adapter->priv;
+
+   simple = g_simple_async_result_new(G_OBJECT(adapter), callback, user_data,
+                                      gom_adapter_close_async);
+
+   if (!priv->db) {
+      g_simple_async_result_set_op_res_gboolean(simple, TRUE);
+      g_simple_async_result_complete_in_idle(simple);
+      g_object_unref(simple);
+      return;
+   }
+
+   g_object_set_data(G_OBJECT(simple), "request", (gpointer)"close");
+   g_async_queue_push(priv->queue, simple);
+}
+
+gboolean
+gom_adapter_close_finish (GomAdapter    *adapter,
+                          GAsyncResult  *result,
+                          GError       **error)
+{
+   GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
+   gboolean ret;
+
+   g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
+   g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple), FALSE);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+
+   return ret;
+}
+
 /**
  * gom_adapter_finalize:
  * @object: (in): A #GomAdapter.
@@ -238,8 +290,11 @@ gom_adapter_finalize (GObject *object)
 {
    GomAdapterPrivate *priv = GOM_ADAPTER(object)->priv;
 
-   if (priv->queue) {
+
+   if (priv->db) {
       g_warning("Adapter not closed, leaking!");
+   } else {
+      g_async_queue_unref(priv->queue);
    }
 
    G_OBJECT_CLASS(gom_adapter_parent_class)->finalize(object);
