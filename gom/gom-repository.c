@@ -331,6 +331,60 @@ out:
    g_clear_object(&builder);
 }
 
+static void
+dummy_cb (GObject      *object,
+          GAsyncResult *result,
+          gpointer      user_data)
+{
+}
+
+/**
+ * gom_repository_find_sync:
+ * @repository: (in): A #GomRepository.
+ * @resource_type: (in): The #GType of the resources to query.
+ * @filter: (in) (allow-none): An optional filter for the query.
+ * @error: (out): A location for a #GError, or %NULL.
+ *
+ * Synchronously queries the #GomRepository for objects matching the
+ * requested query. This must only be run from a callback provided to
+ * gom_adapter_queue_read().
+ *
+ * Returns: (transfer full): A #GomResourceGroup or %NULL.
+ */
+GomResourceGroup *
+gom_repository_find_sync (GomRepository  *repository,
+                          GType           resource_type,
+                          GomFilter      *filter,
+                          GError        **error)
+{
+   GomRepositoryPrivate *priv;
+   GSimpleAsyncResult *simple;
+   GomResourceGroup *ret;
+
+   g_return_val_if_fail(GOM_IS_REPOSITORY(repository), NULL);
+   g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), NULL);
+   g_return_val_if_fail(resource_type != GOM_TYPE_RESOURCE, NULL);
+   g_return_val_if_fail(!filter || GOM_IS_FILTER(filter), NULL);
+
+   priv = repository->priv;
+
+   simple = g_simple_async_result_new(G_OBJECT(repository), dummy_cb, NULL,
+                                      gom_repository_find_sync);
+   g_object_set_data(G_OBJECT(simple), "resource-type",
+                     GINT_TO_POINTER(resource_type));
+   g_object_set_data_full(G_OBJECT(simple), "filter",
+                          filter ? g_object_ref(filter) : NULL,
+                          filter ? g_object_unref : NULL);
+
+   gom_repository_find_cb(priv->adapter, simple);
+
+   if (!(ret = g_simple_async_result_get_op_res_gpointer(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+
+   return ret ? g_object_ref(ret) : NULL;
+}
+
 void
 gom_repository_find_async (GomRepository       *repository,
                            GType                resource_type,
@@ -357,9 +411,6 @@ gom_repository_find_async (GomRepository       *repository,
    g_object_set_data_full(G_OBJECT(simple), "filter",
                           filter ? g_object_ref(filter) : NULL,
                           filter ? g_object_unref : NULL);
-   g_object_set_data_full(G_OBJECT(simple), "klass",
-                          g_type_class_ref(resource_type),
-                          g_type_class_unref);
    gom_adapter_queue_read(priv->adapter, gom_repository_find_cb, simple);
 }
 
@@ -453,6 +504,44 @@ gom_repository_find_one_cb (GObject      *object,
                                   gom_repository_find_one_fetch_cb,
                                   simple);
    g_object_unref(group);
+}
+
+GomResource *
+gom_repository_find_one_sync (GomRepository  *repository,
+                              GType           resource_type,
+                              GomFilter      *filter,
+                              GError        **error)
+{
+   GomResourceGroup *group;
+   GomResource *ret;
+
+   g_return_val_if_fail(GOM_IS_REPOSITORY(repository), NULL);
+   g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), NULL);
+   g_return_val_if_fail(resource_type != GOM_TYPE_RESOURCE, NULL);
+   g_return_val_if_fail(!filter || GOM_IS_FILTER(filter), NULL);
+
+   if (!(group = gom_repository_find_sync(repository, resource_type,
+                                          filter, error))) {
+      return NULL;
+   }
+
+   if (!gom_resource_group_get_count(group)) {
+      g_set_error(error, GOM_REPOSITORY_ERROR,
+                  GOM_REPOSITORY_ERROR_EMPTY_RESULT,
+                  _("No resources were found."));
+      g_object_unref(group);
+      return NULL;
+   }
+
+   if (!gom_resource_group_fetch_sync(group, 0, 1, error)) {
+      g_object_unref(group);
+      return NULL;
+   }
+
+   ret = g_object_ref(gom_resource_group_get_index(group, 0));
+   g_object_unref(group);
+
+   return ret;
 }
 
 void

@@ -77,6 +77,10 @@ void              gom_repository_migrate_async   (GomRepository          *reposi
 gboolean          gom_repository_migrate_finish  (GomRepository          *repository,
                                                   GAsyncResult           *result,
                                                   GError                **error);
+GomResource      *gom_repository_find_one_sync   (GomRepository          *repository,
+                                                  GType                   resource_type,
+                                                  GomFilter              *filter,
+                                                  GError                **error);
 void              gom_repository_find_one_async  (GomRepository          *repository,
                                                   GType                   resource_type,
                                                   GomFilter              *filter,
