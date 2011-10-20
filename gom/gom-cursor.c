@@ -152,6 +152,7 @@ gom_cursor_get_column_##vtype (GomCursor *cursor, \
    return ret;                                    \
 }
 
+GET_COLUMN_HELPER(gboolean, boolean, BOOLEAN)
 GET_COLUMN_HELPER(gdouble, double, DOUBLE)
 GET_COLUMN_HELPER(gfloat, float, FLOAT)
 GET_COLUMN_HELPER(gint, int, INT)

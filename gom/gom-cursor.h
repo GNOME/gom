@@ -55,6 +55,8 @@ GType        gom_cursor_get_type          (void) G_GNUC_CONST;
 void         gom_cursor_get_column        (GomCursor   *cursor,
                                            guint        column,
                                            GValue      *value);
+gboolean     gom_cursor_get_column_boolean(GomCursor   *cursor,
+                                           guint        column);
 gdouble      gom_cursor_get_column_double (GomCursor   *cursor,
                                            guint        column);
 gfloat       gom_cursor_get_column_float  (GomCursor   *cursor,
