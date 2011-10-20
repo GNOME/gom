@@ -303,6 +303,50 @@ out:
    g_free(m2m_table);
 }
 
+static void
+dummy_cb (GObject      *object,
+          GAsyncResult *result,
+          gpointer      user_data)
+{
+}
+
+/**
+ * gom_resource_group_fetch_sync:
+ * @group: (in): A #GomResourceGroup.
+ * @index_: (in): The first index to fetch.
+ * @count: (in): The number of indexes to fetch.
+ * @error: (out): A location for a #GError, or %NULL.
+ *
+ * Fetches a sequence of resources from the group synchronously. This must
+ * be called from an adapter read callback using gom_adapter_queue_read().
+ *
+ * Returns: %TRUE if successful; otherwise %FALSE and @error is set.
+ */
+gboolean
+gom_resource_group_fetch_sync (GomResourceGroup  *group,
+                               guint              index_,
+                               guint              count,
+                               GError           **error)
+{
+   GSimpleAsyncResult *simple;
+   gboolean ret;
+
+   g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), FALSE);
+
+   simple = g_simple_async_result_new(G_OBJECT(group), dummy_cb, NULL,
+                                      gom_resource_group_fetch_sync);
+   g_object_set_data(G_OBJECT(simple), "offset", GINT_TO_POINTER(index_));
+   g_object_set_data(G_OBJECT(simple), "limit", GINT_TO_POINTER(count));
+
+   gom_resource_group_fetch_cb(group->priv->adapter, simple);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+
+   return ret;
+}
+
 void
 gom_resource_group_fetch_async (GomResourceGroup    *group,
                                 guint                index_,

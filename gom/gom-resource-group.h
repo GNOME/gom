@@ -58,6 +58,10 @@ void         gom_resource_group_fetch_async   (GomResourceGroup     *group,
 gboolean     gom_resource_group_fetch_finish  (GomResourceGroup     *group,
                                                GAsyncResult         *result,
                                                GError              **error);
+gboolean     gom_resource_group_fetch_sync    (GomResourceGroup     *group,
+                                               guint                 index_,
+                                               guint                 count,
+                                               GError              **error);
 guint        gom_resource_group_get_count     (GomResourceGroup     *group);
 GomResource *gom_resource_group_get_index     (GomResourceGroup     *group,
                                                guint                 index_);
