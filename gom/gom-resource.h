@@ -70,6 +70,8 @@ void              gom_resource_delete_async          (GomResource          *reso
 gboolean          gom_resource_delete_finish         (GomResource          *resource,
                                                       GAsyncResult         *result,
                                                       GError              **error);
+gboolean          gom_resource_delete_sync           (GomResource          *resource,
+                                                      GError              **error);
 GQuark            gom_resource_error_quark           (void) G_GNUC_CONST;
 GType             gom_resource_get_type              (void) G_GNUC_CONST;
 void              gom_resource_save_async            (GomResource          *resource,

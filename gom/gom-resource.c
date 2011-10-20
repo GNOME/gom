@@ -99,22 +99,18 @@ gom_resource_set_repository (GomResource   *resource,
    g_object_notify_by_pspec(G_OBJECT(resource), gParamSpecs[PROP_REPOSITORY]);
 }
 
-static void
-gom_resource_delete_cb (GomAdapter *adapter,
-                        gpointer    user_data)
+static gboolean
+gom_resource_do_delete (GomResource  *resource,
+                        GomAdapter   *adapter,
+                        GError      **error)
 {
-   GSimpleAsyncResult *simple = user_data;
    GomCommandBuilder *builder;
-   gpointer resource;
    GType resource_type;
 
-   g_return_if_fail(GOM_IS_ADAPTER(adapter));
-   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
+   g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+   g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
 
-   resource = g_async_result_get_source_object(G_ASYNC_RESULT(simple));
-   g_assert(GOM_IS_RESOURCE(resource));
    resource_type = G_TYPE_FROM_INSTANCE(resource);
-
    builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
                           "adapter", adapter,
                           NULL);
@@ -125,7 +121,6 @@ gom_resource_delete_cb (GomAdapter *adapter,
       GomCommand *command;
       GomFilter *filter;
       GValueArray *values;
-      GError *error = NULL;
       GValue value = { 0 };
       gchar *sql;
 
@@ -137,7 +132,7 @@ gom_resource_delete_cb (GomAdapter *adapter,
       g_assert(pspec);
 
       g_value_init(&value, pspec->value_type);
-      g_object_get_property(resource, klass->primary_key, &value);
+      g_object_get_property(G_OBJECT(resource), klass->primary_key, &value);
       sql = g_strdup_printf("'%s'.'%s' = ?", klass->table, klass->primary_key);
       values = g_value_array_new(1);
       g_value_array_append(values, &value);
@@ -152,20 +147,61 @@ gom_resource_delete_cb (GomAdapter *adapter,
       g_object_unref(filter);
 
       command = gom_command_builder_build_delete(builder);
-      if (!gom_command_execute(command, NULL, &error)) {
+      if (!gom_command_execute(command, NULL, error)) {
          g_object_unref(command);
-         g_simple_async_result_take_error(simple, error);
-         goto out;
+         g_object_unref(builder);
+         return FALSE;
       }
       g_object_unref(command);
    } while ((resource_type = g_type_parent(resource_type)) != GOM_TYPE_RESOURCE);
 
-   g_simple_async_result_set_op_res_gboolean(simple, TRUE);
-
-out:
-   g_simple_async_result_complete_in_idle(simple);
    g_object_unref(builder);
+
+   return TRUE;
+}
+
+static void
+gom_resource_delete_cb (GomAdapter *adapter,
+                        gpointer    user_data)
+{
+   GSimpleAsyncResult *simple = user_data;
+   GomResource *resource;
+   gboolean ret;
+   GError *error = NULL;
+
+   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
+   resource = GOM_RESOURCE(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
+   g_return_if_fail(GOM_IS_RESOURCE(resource));
+
+   if (!(ret = gom_resource_do_delete(resource, adapter, &error))) {
+      g_simple_async_result_take_error(simple, error);
+   }
+
+   g_simple_async_result_set_op_res_gboolean(simple, ret);
+   g_simple_async_result_complete_in_idle(simple);
    g_object_unref(simple);
+}
+
+/**
+ * gom_resource_delete_sync:
+ * @resource: (in): A #GomResource.
+ * @error: (out): A location for a #GError, or %NULL.
+ *
+ * Synchronously deletes a resource. This may only be called from inside a
+ * callback to gom_adapter_queue_write().
+ *
+ * Returns: %TRUE if successful; otherwise %FALSE and @error is set.
+ */
+gboolean
+gom_resource_delete_sync (GomResource  *resource,
+                          GError      **error)
+{
+   GomAdapter *adapter;
+
+   g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
+
+   adapter = gom_repository_get_adapter(resource->priv->repository);
+   return gom_resource_do_delete(resource, adapter, error);
 }
 
 void
