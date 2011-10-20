@@ -391,6 +391,109 @@ gom_repository_find_finish (GomRepository  *repository,
    return ret ? g_object_ref(ret) : NULL;
 }
 
+static void
+gom_repository_find_one_fetch_cb (GObject      *object,
+                                  GAsyncResult *result,
+                                  gpointer      user_data)
+{
+   GSimpleAsyncResult *simple = user_data;
+   GomResourceGroup *group = (GomResourceGroup *)object;
+   GomResource *resource;
+   GError *error = NULL;
+
+   g_return_if_fail(GOM_IS_RESOURCE_GROUP(group));
+   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
+
+   if (!gom_resource_group_fetch_finish(group, result, &error)) {
+      g_simple_async_result_take_error(simple, error);
+      g_simple_async_result_complete_in_idle(simple);
+      g_object_unref(simple);
+      return;
+   }
+
+   resource = gom_resource_group_get_index(group, 0);
+   g_simple_async_result_set_op_res_gpointer(simple,
+                                             g_object_ref(resource),
+                                             g_object_unref);
+   g_simple_async_result_complete_in_idle(simple);
+   g_object_unref(simple);
+}
+
+static void
+gom_repository_find_one_cb (GObject      *object,
+                            GAsyncResult *result,
+                            gpointer      user_data)
+{
+   GSimpleAsyncResult *simple = user_data;
+   GomResourceGroup *group;
+   GomRepository *repository = (GomRepository *)object;
+   GError *error = NULL;
+
+   g_return_if_fail(GOM_IS_REPOSITORY(repository));
+   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
+
+   if (!(group = gom_repository_find_finish(repository, result, &error))) {
+      g_simple_async_result_take_error(simple, error);
+      g_simple_async_result_complete_in_idle(simple);
+      g_object_unref(simple);
+      return;
+   }
+
+   if (!gom_resource_group_get_count(group)) {
+      g_simple_async_result_set_error(simple, GOM_REPOSITORY_ERROR,
+                                      GOM_REPOSITORY_ERROR_EMPTY_RESULT,
+                                      _("No resources were found."));
+      g_simple_async_result_complete_in_idle(simple);
+      g_object_unref(simple);
+      g_object_unref(group);
+      return;
+   }
+
+   gom_resource_group_fetch_async(group, 0, 1,
+                                  gom_repository_find_one_fetch_cb,
+                                  simple);
+   g_object_unref(group);
+}
+
+void
+gom_repository_find_one_async (GomRepository       *repository,
+                               GType                resource_type,
+                               GomFilter           *filter,
+                               GAsyncReadyCallback  callback,
+                               gpointer             user_data)
+{
+   GSimpleAsyncResult *simple;
+
+   g_return_if_fail(GOM_IS_REPOSITORY(repository));
+   g_return_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
+   g_return_if_fail(!filter || GOM_IS_FILTER(filter));
+   g_return_if_fail(callback != NULL);
+
+   simple = g_simple_async_result_new(G_OBJECT(repository), callback, user_data,
+                                      gom_repository_find_one_async);
+   gom_repository_find_async(repository, resource_type, filter,
+                             gom_repository_find_one_cb,
+                             simple);
+}
+
+GomResource *
+gom_repository_find_one_finish (GomRepository  *repository,
+                                GAsyncResult   *result,
+                                GError        **error)
+{
+   GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
+   GomResource *ret;
+
+   g_return_val_if_fail(GOM_IS_REPOSITORY(repository), NULL);
+   g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple), NULL);
+
+   if (!(ret = g_simple_async_result_get_op_res_gpointer(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+
+   return ret ? g_object_ref(ret) : NULL;
+}
+
 /**
  * gom_repository_finalize:
  * @object: (in): A #GomRepository.
@@ -500,4 +603,10 @@ gom_repository_init (GomRepository *repository)
       G_TYPE_INSTANCE_GET_PRIVATE(repository,
                                   GOM_TYPE_REPOSITORY,
                                   GomRepositoryPrivate);
+}
+
+GQuark
+gom_repository_error_quark (void)
+{
+   return g_quark_from_static_string("gom-repository-error-quark");
 }
