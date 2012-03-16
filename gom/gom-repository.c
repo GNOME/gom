@@ -506,6 +506,17 @@ gom_repository_find_one_cb (GObject      *object,
    g_object_unref(group);
 }
 
+/**
+ * gom_repository_find_one_sync:
+ * @repository: (in): A #GomRepository.
+ * @resource_type: (in): A #GType of the resource to lookup.
+ * @filter: (in): A #GomFilter to apply to your search.
+ * @error: (out): A location for a #GError, or %NULL.
+ *
+ * Synchronous version of gom_repository_find_async().
+ *
+ * Returns: (transfer full): A #GomResource or %NULL.
+ */
 GomResource *
 gom_repository_find_one_sync (GomRepository  *repository,
                               GType           resource_type,
@@ -565,6 +576,17 @@ gom_repository_find_one_async (GomRepository       *repository,
                              simple);
 }
 
+/**
+ * gom_repository_find_one_finish:
+ * @repository: (in): A #GomRepository.
+ * @result: (in): A #GAsyncResult.
+ * @error: (out): A location for a #GError, or %NULL.
+ *
+ * Completes an asynchronous request to find a single resource in the
+ * repository. See gom_repository_find_one_async() for more info.
+ *
+ * Returns: (transfer full): A #GomResource if successful, otherwise %NULL.
+ */
 GomResource *
 gom_repository_find_one_finish (GomRepository  *repository,
                                 GAsyncResult   *result,
