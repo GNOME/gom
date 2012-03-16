@@ -78,25 +78,26 @@ gom_resource_set_repository (GomResource   *resource,
                              GomRepository *repository)
 {
    GomResourcePrivate *priv;
+   GomRepository *old;
 
    g_return_if_fail(GOM_IS_RESOURCE(resource));
    g_return_if_fail(!repository || GOM_IS_REPOSITORY(repository));
 
    priv = resource->priv;
 
-   if (priv->repository) {
-      g_object_remove_weak_pointer(G_OBJECT(priv->repository),
-                                   (gpointer  *)&priv->repository);
+   if ((old = priv->repository)) {
       priv->repository = NULL;
+      g_object_remove_weak_pointer(G_OBJECT(old),
+                                   (gpointer  *)&priv->repository);
    }
 
    if (repository) {
       priv->repository = repository;
       g_object_add_weak_pointer(G_OBJECT(priv->repository),
                                 (gpointer  *)&priv->repository);
+      g_object_notify_by_pspec(G_OBJECT(resource),
+                               gParamSpecs[PROP_REPOSITORY]);
    }
-
-   g_object_notify_by_pspec(G_OBJECT(resource), gParamSpecs[PROP_REPOSITORY]);
 }
 
 static gboolean
