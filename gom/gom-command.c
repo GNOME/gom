@@ -110,6 +110,10 @@ gom_command_bind_param (GomCommand   *command,
          g_byte_array_free(bytes, FALSE);
          break;
       }
+      if (g_type_is_a(G_VALUE_TYPE(value), G_TYPE_FLAGS)) {
+         sqlite3_bind_int(priv->stmt, param, g_value_get_flags(value));
+         break;
+      }
       g_warning("Failed to bind gtype %s.", g_type_name(G_VALUE_TYPE(value)));
       g_assert_not_reached();
       break;
