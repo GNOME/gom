@@ -302,7 +302,9 @@ gom_command_execute (GomCommand  *command,
    gom_command_reset(command);
    gom_command_bind_params(command);
 
+#if 0
    g_debug("%s", sqlite3_sql(priv->stmt));
+#endif
 
    if (!cursor) {
       /*
