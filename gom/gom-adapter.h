@@ -81,6 +81,9 @@ void        gom_adapter_queue_read   (GomAdapter           *adapter,
 void        gom_adapter_queue_write  (GomAdapter           *adapter,
                                       GomAdapterCallback    callback,
                                       gpointer              user_data);
+gboolean    gom_adapter_execute_sql  (GomAdapter           *adapter,
+                                      const gchar          *sql,
+                                      GError              **error);
 
 G_END_DECLS
 

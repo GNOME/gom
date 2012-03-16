@@ -20,6 +20,7 @@
 #include <sqlite3.h>
 
 #include "gom-adapter.h"
+#include "gom-command.h"
 
 G_DEFINE_TYPE(GomAdapter, gom_adapter, G_TYPE_OBJECT)
 
@@ -274,6 +275,40 @@ gom_adapter_close_finish (GomAdapter    *adapter,
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
+
+   return ret;
+}
+
+/**
+ * gom_adapter_execute_sql:
+ * @adapter: (in): A #GomAdapter.
+ * @sql: (in): SQL to execute.
+ *
+ * This is a helper function to make simple execution of SQL easier.
+ * It is primarily meant for things like "BEGIN;" and "COMMIT;".
+ *
+ * This MUST be called from within a write transaction using
+ * gom_adapter_queue_write().
+ *
+ * Returns: %TRUE if successful;
+ */
+gboolean
+gom_adapter_execute_sql (GomAdapter   *adapter,
+                         const gchar  *sql,
+                         GError      **error)
+{
+   GomCommand *command;
+   gboolean ret;
+
+   g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
+   g_return_val_if_fail(sql, FALSE);
+
+   command = g_object_new(GOM_TYPE_COMMAND,
+                          "adapter", adapter,
+                          "sql", sql,
+                          NULL);
+   ret = gom_command_execute(command, NULL, error);
+   g_object_unref(command);
 
    return ret;
 }
