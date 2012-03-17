@@ -338,11 +338,12 @@ gom_resource_group_fetch_sync (GomResourceGroup  *group,
    g_object_set_data(G_OBJECT(simple), "offset", GINT_TO_POINTER(index_));
    g_object_set_data(G_OBJECT(simple), "limit", GINT_TO_POINTER(count));
 
+   g_object_ref(simple);
    gom_resource_group_fetch_cb(group->priv->adapter, simple);
-
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
+   g_object_unref(simple);
 
    return ret;
 }
