@@ -171,7 +171,11 @@ build_map (GHashTable  *table_map,
 
    g_assert(table_map);
    g_assert(g_type_is_a(type, GOM_TYPE_RESOURCE));
-   g_assert(type != GOM_TYPE_RESOURCE);
+   g_assert(!m2m_table || type != GOM_TYPE_RESOURCE);
+
+   if (!m2m_table) {
+      return;
+   }
 
    prefix = g_type_name(type);
 
