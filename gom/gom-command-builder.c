@@ -741,10 +741,10 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 
    gParamSpecs[PROP_M2M_TYPE] =
       g_param_spec_gtype("m2m-type",
-                          _("Many-to-many type"),
-                          _("The type for the join within m2m-table."),
-                          GOM_TYPE_RESOURCE,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+                         _("Many-to-many type"),
+                         _("The type for the join within m2m-table."),
+                         GOM_TYPE_RESOURCE,
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_M2M_TYPE,
                                    gParamSpecs[PROP_M2M_TYPE]);
 
