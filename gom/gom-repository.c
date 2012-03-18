@@ -167,6 +167,7 @@ gom_repository_migrate_cb (GomAdapter *adapter,
    }
 
    if (version == current) {
+      g_simple_async_result_set_op_res_gboolean(simple, TRUE);
       goto out;
    }
 
