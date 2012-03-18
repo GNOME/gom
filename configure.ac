@@ -134,7 +134,11 @@ dnl Output
 dnl **************************************************************************
 AC_CONFIG_FILES([
 	Makefile
+
 	data/gom-1.0.pc
+
+	doc/version.xml
+	doc/Makefile
 ])
 AC_OUTPUT
 
