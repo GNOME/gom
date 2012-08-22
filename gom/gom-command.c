@@ -93,8 +93,7 @@ gom_command_bind_param (GomCommand   *command,
          iso8601 = g_time_val_to_iso8601(&tv);
          sqlite3_bind_text(priv->stmt, param, iso8601, -1, g_free);
          break;
-      }
-      if (G_VALUE_TYPE(value) == G_TYPE_STRV) {
+      } else if (G_VALUE_TYPE(value) == G_TYPE_STRV) {
          GByteArray *bytes = g_byte_array_new();
          gchar **strv = g_value_get_boxed(value);
          guchar null_byte[] = { 0 };
@@ -109,9 +108,11 @@ gom_command_bind_param (GomCommand   *command,
          sqlite3_bind_blob(priv->stmt, param, bytes->data, bytes->len, g_free);
          g_byte_array_free(bytes, FALSE);
          break;
-      }
-      if (g_type_is_a(G_VALUE_TYPE(value), G_TYPE_FLAGS)) {
+      } else if (g_type_is_a(G_VALUE_TYPE(value), G_TYPE_FLAGS)) {
          sqlite3_bind_int(priv->stmt, param, g_value_get_flags(value));
+         break;
+      } else if (g_type_is_a(G_VALUE_TYPE(value), G_TYPE_ENUM)) {
+         sqlite3_bind_int(priv->stmt, param, g_value_get_enum(value));
          break;
       }
       g_warning("Failed to bind gtype %s.", g_type_name(G_VALUE_TYPE(value)));
