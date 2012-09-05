@@ -120,9 +120,19 @@ AM_CONDITIONAL(ENABLE_GLIB_TEST, test "x$enable_glibtest" = "xyes")
 
 
 dnl **************************************************************************
+dnl API Documentation
+dnl **************************************************************************
+m4_ifdef([GTK_DOC_CHECK], [
+	GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
+],[
+	AM_CONDITIONAL([ENABLE_GTK_DOC], false)
+	enable_gtk_doc=no
+])
+
+
+dnl **************************************************************************
 dnl Miscellaneous
 dnl **************************************************************************
-GTK_DOC_CHECK([1.11])
 GOBJECT_INTROSPECTION_CHECK([0.6.7])
 SHAMROCK_EXPAND_LIBDIR
 SHAMROCK_EXPAND_BINDIR
