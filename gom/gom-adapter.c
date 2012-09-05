@@ -207,8 +207,16 @@ gom_adapter_open_async (GomAdapter          *adapter,
    }
 
    priv->queue = g_async_queue_new();
+
+#if GLIB_CHECK_VERSION(2, 32, 0)
+   priv->thread = g_thread_new("gom-adapter-worker",
+                               gom_adapter_worker,
+                               priv->queue);
+#else
    priv->thread = g_thread_create(gom_adapter_worker, priv->queue,
                                   TRUE, NULL);
+#endif
+
    simple = g_simple_async_result_new(G_OBJECT(adapter), callback, user_data,
                                       gom_adapter_open_async);
    g_object_set_data_full(G_OBJECT(simple), "uri",
