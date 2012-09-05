@@ -67,9 +67,9 @@ GType        gom_filter_mode_get_type (void) G_GNUC_CONST;
 GType        gom_filter_get_type      (void) G_GNUC_CONST;
 gchar       *gom_filter_get_sql       (GomFilter    *filter,
                                        GHashTable   *table_map);
-GValueArray *gom_filter_get_values    (GomFilter    *filter);
-GomFilter   *gom_filter_new_sql       (const gchar        *sql,
-                                       const GValueArray  *values);
+GArray      *gom_filter_get_values    (GomFilter    *filter);
+GomFilter   *gom_filter_new_sql       (const gchar  *sql,
+                                       GArray       *values);
 GomFilter   *gom_filter_new_or        (GomFilter    *left,
                                        GomFilter    *right);
 GomFilter   *gom_filter_new_and       (GomFilter    *left,

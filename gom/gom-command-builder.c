@@ -234,15 +234,15 @@ static void
 bind_params (GomCommand *command,
              GomFilter  *filter)
 {
-   GValueArray *values;
+   GArray *values;
    guint i;
 
    if (filter) {
       values = gom_filter_get_values(filter);
-      for (i = 0; i < values->n_values; i++) {
-         gom_command_set_param(command, i, g_value_array_get_nth(values, i));
+      for (i = 0; i < values->len; i++) {
+         gom_command_set_param(command, i, &g_array_index(values, GValue, i));
       }
-      g_value_array_free(values);
+      g_array_unref(values);
    }
 }
 

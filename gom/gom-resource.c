@@ -121,7 +121,7 @@ gom_resource_do_delete (GomResource  *resource,
       GParamSpec *pspec;
       GomCommand *command;
       GomFilter *filter;
-      GValueArray *values;
+      GArray *values;
       GValue value = { 0 };
       gchar *sql;
 
@@ -135,12 +135,12 @@ gom_resource_do_delete (GomResource  *resource,
       g_value_init(&value, pspec->value_type);
       g_object_get_property(G_OBJECT(resource), klass->primary_key, &value);
       sql = g_strdup_printf("'%s'.'%s' = ?", klass->table, klass->primary_key);
-      values = g_value_array_new(1);
-      g_value_array_append(values, &value);
+      values = g_array_sized_new(FALSE, FALSE, sizeof(GValue), 1);
+      g_array_append_val(values, value);
       filter = gom_filter_new_sql(sql, values);
       g_free(sql);
-      g_value_array_free(values);
-      g_value_unset(&value);
+      memset(&value, 0, sizeof value);
+      g_array_unref(values);
       g_object_set(builder,
                    "filter", filter,
                    "resource-type", resource_type,

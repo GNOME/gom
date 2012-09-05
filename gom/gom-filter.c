@@ -28,7 +28,7 @@ struct _GomFilterPrivate
    GomFilterMode mode;
 
    gchar *sql;
-   GValueArray *values;
+   GArray *values;
 
    GValue value;
    GParamSpec *pspec;
@@ -60,15 +60,24 @@ static const gchar *gOperators[] = {
    "<=",
 };
 
+/**
+ * gom_filter_new_sql:
+ * @sql: (in): A UTF-8 string.
+ * @values: (in) (transfer none) (element-type GValue): An array of values.
+ *
+ * Creates a new #GomFilter using the SQL and values provided.
+ *
+ * Returns: (transfer full): A new #GomFilter.
+ */
 GomFilter *
-gom_filter_new_sql (const gchar       *sql,
-                    const GValueArray *values)
+gom_filter_new_sql (const gchar *sql,
+                    GArray      *values)
 {
    GomFilter *filter = g_object_new(GOM_TYPE_FILTER,
                                     "mode", GOM_FILTER_SQL,
                                     "sql", sql,
                                     NULL);
-   filter->priv->values = g_value_array_copy(values);
+   filter->priv->values = g_array_ref(values);
    return filter;
 }
 
@@ -306,16 +315,21 @@ gom_filter_set_sql (GomFilter   *filter,
 }
 
 static void
-join_value_array (GValueArray *dst,
-                  GValueArray *src)
+join_value_array (GArray *dst,
+                  GArray *src)
 {
+   GValue *src_value;
+   GValue dst_value = { 0 };
    guint i;
 
    g_return_if_fail(dst);
    g_return_if_fail(src);
 
-   for (i = 0; i < src->n_values; i++) {
-      g_value_array_append(dst, g_value_array_get_nth(src, i));
+   for (i = 0; i < src->len; i++) {
+      src_value = &g_array_index(src, GValue, i);
+      g_value_copy(src_value, &dst_value);
+      g_array_append_val(dst, dst_value);
+      memset(&dst_value, 0, sizeof dst_value);
    }
 }
 
@@ -328,12 +342,12 @@ join_value_array (GValueArray *dst,
  *
  * Returns: (transfer full): An array of values for the SQL.
  */
-GValueArray *
+GArray *
 gom_filter_get_values (GomFilter *filter)
 {
    GomFilterPrivate *priv;
-   GValueArray *tmp;
-   GValueArray *va;
+   GArray *tmp;
+   GArray *va;
 
    g_return_val_if_fail(GOM_IS_FILTER(filter), NULL);
 
@@ -342,29 +356,33 @@ gom_filter_get_values (GomFilter *filter)
    switch (priv->mode) {
    case GOM_FILTER_SQL:
       if (priv->values) {
-         return g_value_array_copy(priv->values);
+         return g_array_ref(priv->values);
       }
-      return g_value_array_new(0);
+      return g_array_new(FALSE, FALSE, sizeof(GValue));
    case GOM_FILTER_EQ:
    case GOM_FILTER_NEQ:
    case GOM_FILTER_GT:
    case GOM_FILTER_GTE:
    case GOM_FILTER_LT:
-   case GOM_FILTER_LTE:
-      va = g_value_array_new(1);
-      g_value_array_append(va, &priv->value);
+   case GOM_FILTER_LTE: {
+      GValue v = { 0 };
+      g_value_copy(&priv->value, &v);
+      va = g_array_sized_new(FALSE, FALSE, sizeof(GValue), 1);
+      g_array_append_val(va, v);
+      memset(&v, 0, sizeof v);
       return va;
+   }
    case GOM_FILTER_AND:
    case GOM_FILTER_OR:
-      va = g_value_array_new(0);
+      va = g_array_new(FALSE, FALSE, sizeof(GValue));
 
       tmp = gom_filter_get_values(priv->left);
       join_value_array(va, tmp);
-      g_value_array_free(tmp);
+      g_array_unref(tmp);
 
       tmp = gom_filter_get_values(priv->right);
       join_value_array(va, tmp);
-      g_value_array_free(tmp);
+      g_array_unref(tmp);
 
       return va;
    default:
