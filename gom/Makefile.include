@@ -1,5 +1,3 @@
--include $(top_srcdir)/Makefile.introspection
-
 headerdir = $(prefix)/include/gom-1.0/gom
 header_DATA = $(INST_H_FILES)
 
@@ -42,6 +40,10 @@ libgom_1_0_la_LIBADD += $(GIO_LIBS)
 libgom_1_0_la_LIBADD += $(GOBJECT_LIBS)
 libgom_1_0_la_LIBADD += $(SQLITE3_LIBS)
 
+if HAVE_INTROSPECTION
+
+-include $(top_srcdir)/Makefile.introspection
+
 INTROSPECTION_GIRS =
 INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_srcdir)/gom --warn-all
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)/gom
@@ -60,3 +62,5 @@ typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
 CLEANFILES = $(gir_DATA) $(typelib_DATA)
+
+endif
