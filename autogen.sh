@@ -8,14 +8,6 @@ test -f "configure.ac" || {
 	exit 1
 }
 
-GTKDOCIZE=`which gtkdocize`
-if test -z $GTKDOCIZE; then
-	echo "*** No gtk-doc support ***"
-	echo "EXTRA_DIST =" > gtk-doc.make
-else
-	gtkdocize || exit $?
-fi
-
 autoreconf -v --install || exit $?
 
 test -n "$NOCONFIGURE" ||
