@@ -43,17 +43,19 @@ libgom_1_0_la_LIBADD += $(SQLITE3_LIBS)
 
 if HAVE_INTROSPECTION
 
--include $(top_srcdir)/Makefile.introspection
+-include $(INTROSPECTION_MAKEFILE)
 
 INTROSPECTION_GIRS =
 INTROSPECTION_SCANNER_ARGS = --add-include-path=$(top_srcdir)/gom --warn-all
 INTROSPECTION_COMPILER_ARGS = --includedir=$(top_srcdir)/gom
 
-Gom-1.0.gir Gom-1.0.typelib: libgom-1.0.la
+Gom-1.0.gir: libgom-1.0.la
 Gom_1_0_gir_INCLUDES = Gio-2.0 GObject-2.0
-Gom_1_0_gir_CFLAGS = 
+Gom_1_0_gir_CFLAGS = -DGOM_COMPILATION
 Gom_1_0_gir_LIBS = libgom-1.0.la
 Gom_1_0_gir_FILES = $(libgom_1_0_la_SOURCES)
+Gom_1_0_gir_EXPORT_PACKAGES = gom-1.0
+Gom_1_0_gir_SCANNERFLAGS = --c-include="gom/gom.h"
 INTROSPECTION_GIRS += Gom-1.0.gir
 
 girdir = $(datadir)/gir-1.0
