@@ -30,8 +30,6 @@ IGNORE_HFILES=gom.h
 # if $(DOC_MODULE).types is non-empty.
 INCLUDES = \
 	-I$(top_srcdir) 	\
-	-I$(top_builddir)	\
-	-I$(top_builddir)/gom	\
 	$(GOBJECT_CFLAGS)
 
 GTKDOC_LIBS = \

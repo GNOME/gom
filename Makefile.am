@@ -1,4 +1,3 @@
-include Makefile.include
 include Makefile.tests
 include data/Makefile.include
 include gom/Makefile.include
@@ -7,15 +6,12 @@ include tests/Makefile.include
 SUBDIRS = . doc
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection
+DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection --enable-silent-rules
 
-gomdocdir = ${prefix}/doc/gom-1.0
+gomdocdir = ${datadir}/doc/gom-@VERSION@
 gomdoc_DATA =
 gomdoc_DATA += README
 gomdoc_DATA += COPYING
-gomdoc_DATA += AUTHORS
-gomdoc_DATA += ChangeLog
-gomdoc_DATA += INSTALL
 gomdoc_DATA += NEWS
 
 EXTRA_DIST += $(gomdoc_DATA)
