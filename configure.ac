@@ -21,21 +21,16 @@ AC_PREREQ([2.64])
 AC_INIT([gom],[gom_version])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_MACRO_DIR([build/m4])
+AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([-Wno-portability])
-AM_MAINTAINER_MODE([enable])
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 AS_AM_REALLY_SILENT
 
-# Check for programs
 AC_PROG_CC
-AM_PROG_CC_C_O
 AM_PATH_GLIB_2_0
-GLIB_GSETTINGS
 
-# Initialize libtool
 LT_PREREQ([2.2])
 LT_INIT
 
@@ -58,7 +53,7 @@ AC_SUBST(GOM_VERSION)
 dnl **************************************************************************
 dnl Check for Required Modules
 dnl **************************************************************************
-PKG_CHECK_MODULES(GIO, [gio-2.0 >= 2.26])
+PKG_CHECK_MODULES(GIO,     [gio-2.0 >= 2.26])
 PKG_CHECK_MODULES(GOBJECT, [gobject-2.0 >= 2.26])
 PKG_CHECK_MODULES(SQLITE3, [sqlite3 >= 3.6])
 
@@ -108,7 +103,6 @@ AS_CASE([$enable_debug],
 	],
 	[AC_MSG_ERROR([Unknown argument to --enable-debug])]
 )
-AC_SUBST(GOM_DEBUG_CFLAGS)
 
 
 dnl **************************************************************************
@@ -122,21 +116,13 @@ AM_CONDITIONAL(ENABLE_GLIB_TEST, test "x$enable_glibtest" = "xyes")
 dnl **************************************************************************
 dnl API Documentation
 dnl **************************************************************************
-m4_ifdef([GTK_DOC_CHECK], [
-	GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
-],[
-	AM_CONDITIONAL([ENABLE_GTK_DOC], false)
-	enable_gtk_doc=no
-])
+GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
 
 dnl **************************************************************************
 dnl Miscellaneous
 dnl **************************************************************************
 GOBJECT_INTROSPECTION_CHECK([0.6.7])
-SHAMROCK_EXPAND_LIBDIR
-SHAMROCK_EXPAND_BINDIR
-SHAMROCK_EXPAND_DATADIR
 
 
 dnl **************************************************************************
@@ -144,9 +130,7 @@ dnl Output
 dnl **************************************************************************
 AC_CONFIG_FILES([
 	Makefile
-
 	data/gom-1.0.pc
-
 	doc/version.xml
 	doc/Makefile
 ])

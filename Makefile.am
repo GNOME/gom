@@ -6,8 +6,8 @@ include tests/Makefile.include
 
 SUBDIRS = . doc
 
-ACLOCAL_AMFLAGS = -I build/m4 ${ACLOCAL_FLAGS}
-DISTCHECK_CONFIGURE_FLAGS = --enable-maintainer-flags --enable-gtk-doc --enable-introspection
+ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
+DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection
 
 gomdocdir = ${prefix}/doc/gom-1.0
 gomdoc_DATA =
