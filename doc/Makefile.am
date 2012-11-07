@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-NULL = 
+test:
 
 AUTOMAKE_OPTIONS = 1.6
 
