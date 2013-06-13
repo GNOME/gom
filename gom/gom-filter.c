@@ -340,7 +340,7 @@ join_value_array (GArray *dst,
  * Fetches the list of values that should be applied in order when building
  * the #GomCommand.
  *
- * Returns: (transfer full): An array of values for the SQL.
+ * Returns: (transfer full) (element-type GValue): An array of values for the SQL.
  */
 GArray *
 gom_filter_get_values (GomFilter *filter)
