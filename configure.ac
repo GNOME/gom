@@ -3,7 +3,7 @@ dnl Versioning Macros
 dnl **************************************************************************
 m4_define([gom_major_version], [0])
 m4_define([gom_minor_version], [1])
-m4_define([gom_micro_version], [10])
+m4_define([gom_micro_version], [90])
 m4_define([gom_version],
           [gom_major_version.gom_minor_version.gom_micro_version])
 m4_define([gom_binary_age], [m4_eval(100 * gom_minor_version +
@@ -53,9 +53,9 @@ AC_SUBST(GOM_VERSION)
 dnl **************************************************************************
 dnl Check for Required Modules
 dnl **************************************************************************
-PKG_CHECK_MODULES(GIO,     [gio-2.0 >= 2.26])
-PKG_CHECK_MODULES(GOBJECT, [gobject-2.0 >= 2.26])
-PKG_CHECK_MODULES(SQLITE3, [sqlite3 >= 3.6])
+PKG_CHECK_MODULES(GIO,     [gio-2.0 >= 2.36])
+PKG_CHECK_MODULES(GOBJECT, [gobject-2.0 >= 2.36])
+PKG_CHECK_MODULES(SQLITE3, [sqlite3 >= 3.7])
 
 
 dnl **************************************************************************
@@ -71,9 +71,7 @@ AC_ARG_ENABLE([debug],
 	      		      [enable_debug=debug_default])
 AS_CASE([$enable_debug],
 	[yes], [
-		CFLAGS="$CFLAGS -g"
 		CFLAGS="$CFLAGS -Wall"
-		CFLAGS="$CFLAGS -Werror"
 		CFLAGS="$CFLAGS -Wold-style-definition"
 		CFLAGS="$CFLAGS -Wdeclaration-after-statement"
 		CFLAGS="$CFLAGS -Wredundant-decls"

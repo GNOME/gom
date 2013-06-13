@@ -52,7 +52,6 @@ main (gint   argc,
 {
    g_test_init(&argc, &argv, NULL);
    g_test_add_func("/GomAdapter/open_async", test_GomAdapter_open_async);
-   g_type_init();
    gMainLoop = g_main_loop_new(NULL, FALSE);
    return g_test_run();
 }

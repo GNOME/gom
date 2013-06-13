@@ -94,7 +94,6 @@ main (gint   argc,
 {
    g_test_init(&argc, &argv, NULL);
    g_test_add_func("/GomRepository/migrate", migrate);
-   g_type_init();
    gMainLoop = g_main_loop_new(NULL, FALSE);
    return g_test_run();
 }
