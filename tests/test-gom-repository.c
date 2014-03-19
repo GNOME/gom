@@ -42,12 +42,30 @@ failure:
 }
 
 static void
+close_cb (GObject      *object,
+	  GAsyncResult *result,
+	  gpointer      user_data)
+{
+   GomAdapter *adapter = (GomAdapter *)object;
+   gboolean *success = user_data;
+   gboolean ret;
+   GError *error = NULL;
+
+   ret = gom_adapter_close_finish(adapter, result, &error);
+   g_assert_no_error(error);
+   g_assert(ret);
+
+   *success = TRUE;
+   g_main_loop_quit(gMainLoop);
+}
+
+static void
 migrate_cb (GObject      *object,
             GAsyncResult *result,
             gpointer      user_data)
 {
    GomRepository *repository = (GomRepository *)object;
-   gboolean *success = user_data;
+   GomAdapter *adapter;
    gboolean ret;
    GError *error = NULL;
 
@@ -55,8 +73,8 @@ migrate_cb (GObject      *object,
    g_assert_no_error(error);
    g_assert(ret);
 
-   *success = TRUE;
-   g_main_loop_quit(gMainLoop);
+   adapter = gom_repository_get_adapter(repository);
+   gom_adapter_close_async(adapter, close_cb, user_data);
 }
 
 static void
