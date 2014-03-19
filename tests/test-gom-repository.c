@@ -32,6 +32,11 @@ do_migrate (GomRepository  *repository,
       return TRUE;
    }
 
+   if (version == 2) {
+     EXEC_OR_FAIL("ALTER TABLE messages ADD COLUMN headers TEXT");
+     return TRUE;
+   }
+
 failure:
    return FALSE;
 }
@@ -69,7 +74,7 @@ open_cb (GObject      *object,
    g_assert(ret);
 
    repository = gom_repository_new(adapter);
-   gom_repository_migrate_async(repository, 1, do_migrate, migrate_cb, user_data);
+   gom_repository_migrate_async(repository, 2, do_migrate, migrate_cb, user_data);
    g_object_unref(repository);
 }
 
