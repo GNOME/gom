@@ -185,6 +185,16 @@ gom_adapter_queue_read (GomAdapter         *adapter,
    g_async_queue_push(priv->queue, simple);
 }
 
+/**
+ * gom_adapter_open_async:
+ * @adapter: a #GomAdapter
+ * @uri: a URI understood by SQLite
+ * @callback: the function to call when the operation finished, or %NULL
+ * @user_data: the user data to pass to the callback function
+ *
+ * Opens the database pointed to by @uri. @uri can be in any format understood
+ * by SQLite. See http://www.sqlite.org/c3ref/open.html for details.
+ */
 void
 gom_adapter_open_async (GomAdapter          *adapter,
                         const gchar         *uri,
