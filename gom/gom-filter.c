@@ -327,6 +327,7 @@ join_value_array (GArray *dst,
 
    for (i = 0; i < src->len; i++) {
       src_value = &g_array_index(src, GValue, i);
+      g_value_init(&dst_value, G_VALUE_TYPE(src_value));
       g_value_copy(src_value, &dst_value);
       g_array_append_val(dst, dst_value);
       memset(&dst_value, 0, sizeof dst_value);
@@ -366,6 +367,7 @@ gom_filter_get_values (GomFilter *filter)
    case GOM_FILTER_LT:
    case GOM_FILTER_LTE: {
       GValue v = { 0 };
+      g_value_init(&v, G_VALUE_TYPE(&priv->value));
       g_value_copy(&priv->value, &v);
       va = g_array_sized_new(FALSE, FALSE, sizeof(GValue), 1);
       g_array_append_val(va, v);
