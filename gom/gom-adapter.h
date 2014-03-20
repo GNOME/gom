@@ -69,7 +69,7 @@ gpointer    gom_adapter_get_handle   (GomAdapter           *adapter);
 GType       gom_adapter_get_type     (void) G_GNUC_CONST;
 GomAdapter *gom_adapter_new          (void);
 void        gom_adapter_open_async   (GomAdapter           *adapter,
-                                      const gchar          *filename,
+                                      const gchar          *uri,
                                       GAsyncReadyCallback   callback,
                                       gpointer              user_data);
 gboolean    gom_adapter_open_finish  (GomAdapter           *adapter,
