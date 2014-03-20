@@ -213,6 +213,7 @@ migrate_cb (GObject      *object,
    g_assert_no_error(error);
    g_assert(ret);
 
+   /* Get the item with ID 52 */
    g_value_init(&value, G_TYPE_INT);
    g_value_set_int(&value, 52);
    filter = gom_filter_new_eq(BOOKMARKS_TYPE_RESOURCE, "id", &value);
@@ -225,8 +226,28 @@ migrate_cb (GObject      *object,
 
    g_object_get(resource, "url", &url, NULL);
    g_assert_cmpstr(url, ==, "file:///home/hadess/.cache/totem/media/b91c194d5725c4586e583c4963233a3ae3c28ea3e2cc2019f903089911dd6d45");
-   g_object_unref(resource);
    g_free(url);
+
+   /* Modify the item */
+   g_object_set(resource, "url", "file:///tmp/test", NULL);
+   ret = gom_resource_save_sync(resource, &error);
+   g_assert_no_error(error);
+   g_assert(ret);
+   g_object_unref(resource);
+
+   /* Fetch it again */
+   resource = gom_repository_find_one_sync(repository,
+                                           BOOKMARKS_TYPE_RESOURCE,
+                                           filter,
+                                           &error);
+   g_assert_no_error(error);
+   g_assert(resource);
+
+   g_object_get(resource, "url", &url, NULL);
+   g_assert_cmpstr(url, ==, "file:///tmp/test");
+   g_free(url);
+
+   g_object_unref(filter);
 
    adapter = gom_repository_get_adapter(repository);
    gom_adapter_close_async(adapter, close_cb, user_data);
