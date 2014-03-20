@@ -175,6 +175,8 @@ gom_repository_migrate_cb (GomAdapter *adapter,
 
    for (i = MAX(current, 1); i <= version; i++) {
       if (!migrator(repository, adapter, i, migrate_data, &error)) {
+         if (!error)
+           g_warning ("Migration function failed without returning a error");
          goto rollback;
       }
       command = g_object_new(GOM_TYPE_COMMAND,
