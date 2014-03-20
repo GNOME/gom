@@ -25,4 +25,5 @@ stamp-h1
 *.swp
 test-gom-adapter
 test-gom-repository
+test-gom-find
 *.typelib
