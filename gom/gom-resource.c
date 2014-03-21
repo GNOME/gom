@@ -197,11 +197,19 @@ gboolean
 gom_resource_delete_sync (GomResource  *resource,
                           GError      **error)
 {
+   GomResourcePrivate *priv;
    GomAdapter *adapter;
 
    g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
 
-   adapter = gom_repository_get_adapter(resource->priv->repository);
+   priv = resource->priv;
+
+   if (!priv->repository) {
+      g_warning("Cannot save resource, no repository set!");
+      return FALSE;
+   }
+
+   adapter = gom_repository_get_adapter(priv->repository);
    return gom_resource_do_delete(resource, adapter, error);
 }
 
