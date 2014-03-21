@@ -15,6 +15,7 @@ static GMainLoop *gMainLoop;
 typedef struct {
   char *id;
   char *url;
+  char *title;
   /* FIXME: other properties */
 } BookmarksResourcePrivate;
 
@@ -33,6 +34,7 @@ enum {
   PROP_0,
   PROP_ID,
   PROP_URL,
+  PROP_TITLE,
   LAST_PROP
 };
 
@@ -61,6 +63,9 @@ bookmarks_resource_get_property (GObject    *object,
   case PROP_URL:
     g_value_set_string(value, resource->priv->url);
     break;
+  case PROP_TITLE:
+    g_value_set_string(value, resource->priv->title);
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
   }
@@ -82,6 +87,10 @@ bookmarks_resource_set_property (GObject      *object,
   case PROP_URL:
     g_free (resource->priv->url);
     resource->priv->url = g_value_dup_string(value);
+    break;
+  case PROP_TITLE:
+    g_free (resource->priv->title);
+    resource->priv->title = g_value_dup_string(value);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -119,6 +128,14 @@ bookmarks_resource_class_init (BookmarksResourceClass *klass)
                                         G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_URL,
                                   specs[PROP_URL]);
+
+  specs[PROP_TITLE] = g_param_spec_string("title",
+                                          "Title",
+                                          "The title for the bookmark.",
+                                          NULL,
+                                          G_PARAM_READWRITE);
+  g_object_class_install_property(object_class, PROP_TITLE,
+                                  specs[PROP_TITLE]);
 }
 
 static void
@@ -213,10 +230,10 @@ migrate_cb (GObject      *object,
    g_assert_no_error(error);
    g_assert(ret);
 
-   /* Get the item with ID 52 */
-   g_value_init(&value, G_TYPE_INT);
-   g_value_set_int(&value, 52);
-   filter = gom_filter_new_eq(BOOKMARKS_TYPE_RESOURCE, "id", &value);
+   /* Get the item containing "sherwood" */
+   g_value_init(&value, G_TYPE_STRING);
+   g_value_set_string(&value, "%sherwood%");
+   filter = gom_filter_new_like(BOOKMARKS_TYPE_RESOURCE, "title", &value);
    resource = gom_repository_find_one_sync(repository,
                                            BOOKMARKS_TYPE_RESOURCE,
                                            filter,
