@@ -48,6 +48,7 @@ enum _GomFilterMode
    GOM_FILTER_GTE,
    GOM_FILTER_LT,
    GOM_FILTER_LTE,
+   GOM_FILTER_LIKE
 };
 
 struct _GomFilter
@@ -90,6 +91,9 @@ GomFilter   *gom_filter_new_lt        (GType         resource_type,
                                        const gchar  *property_name,
                                        const GValue *value);
 GomFilter   *gom_filter_new_lte       (GType         resource_type,
+                                       const gchar  *property_name,
+                                       const GValue *value);
+GomFilter   *gom_filter_new_like      (GType         resource_type,
                                        const gchar  *property_name,
                                        const GValue *value);
 
