@@ -31,6 +31,35 @@ struct _GomAdapterPrivate
    GAsyncQueue *queue;
 };
 
+typedef enum {
+   ASYNC_CMD_TYPE_OPEN,
+   ASYNC_CMD_TYPE_READ,
+   ASYNC_CMD_TYPE_WRITE,
+   ASYNC_CMD_TYPE_CLOSE
+} GomAsyncCmdType;
+
+typedef struct {
+  GomAdapter *adapter;
+  GomAsyncCmdType type;
+  GomAdapterCallback callback;
+  gpointer callback_data;
+} GomAsyncCmd;
+
+static GomAsyncCmd *
+_async_cmd_new(GomAdapter         *adapter,
+               GomAsyncCmdType     type,
+               GomAdapterCallback  callback,
+               gpointer            callback_data)
+{
+   GomAsyncCmd *cmd;
+   cmd = g_new0(GomAsyncCmd, 1);
+   cmd->adapter = g_object_ref(adapter);
+   cmd->type = type;
+   cmd->callback = callback;
+   cmd->callback_data = callback_data;
+   return cmd;
+}
+
 GomAdapter *
 gom_adapter_new (void)
 {
@@ -56,71 +85,38 @@ gom_adapter_get_handle (GomAdapter *adapter)
 static gpointer
 gom_adapter_worker (gpointer data)
 {
-   GSimpleAsyncResult *simple;
-   GomAdapter *adapter;
+   GomAsyncCmd *cmd;
    GAsyncQueue *queue = data;
-   const gchar *uri;
-   gint flags;
-   gint ret;
 
    /*
     * First item is open request.
     */
-   simple = g_async_queue_pop(queue);
-   adapter = (GomAdapter *)g_async_result_get_source_object(G_ASYNC_RESULT(simple));
-   uri = g_object_get_data(G_OBJECT(simple), "uri");
-   flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI;
-   ret = sqlite3_open_v2(uri, &adapter->priv->db, flags, NULL);
-   if (ret != SQLITE_OK) {
-      g_simple_async_result_set_error(simple, GOM_ADAPTER_ERROR,
-                                      GOM_ADAPTER_ERROR_OPEN,
-                                      _("Failed to open database at %s"), uri);
-   }
-   g_simple_async_result_set_op_res_gboolean(simple, ret == SQLITE_OK);
-   g_simple_async_result_complete_in_idle(simple);
-   g_object_unref(simple);
+   cmd = g_async_queue_pop(queue);
+   g_assert (cmd->type == ASYNC_CMD_TYPE_OPEN);
+   cmd->callback(cmd->adapter, cmd->callback_data);
+   g_object_unref(cmd->adapter);
+   g_free(cmd);
 
    /*
     * Handle additional requests.
     */
-   while ((simple = g_async_queue_pop(queue))) {
-      const gchar *request = g_object_get_data(G_OBJECT(simple), "request");
-
+   while ((cmd = g_async_queue_pop(queue))) {
       /*
        * XXX: Right now, we synchronize all requests. I hope to make this
        *      more performant when necessary.
        */
-
-      if (!g_strcmp0(request, "queue-write")) {
-         GomAdapterCallback callback = g_object_get_data(G_OBJECT(simple), "write-callback");
-         gpointer callback_data = g_object_get_data(G_OBJECT(simple), "write-callback-data");
-         callback(adapter, callback_data);
-      } else if (!g_strcmp0(request, "queue-read")) {
-         GomAdapterCallback callback = g_object_get_data(G_OBJECT(simple), "read-callback");
-         gpointer callback_data = g_object_get_data(G_OBJECT(simple), "read-callback-data");
-         callback(adapter, callback_data);
-      } else if (!g_strcmp0(request, "close")) {
-         sqlite3_close(adapter->priv->db);
-         adapter->priv->db = NULL;
-         g_simple_async_result_set_op_res_gboolean(simple, TRUE);
-         g_simple_async_result_complete_in_idle(simple);
-         g_object_unref(simple);
+      cmd->callback(cmd->adapter, cmd->callback_data);
+      if (cmd->type == ASYNC_CMD_TYPE_CLOSE) {
+         g_object_unref(cmd->adapter);
+         g_free(cmd);
          break;
       }
 
-      g_simple_async_result_complete_in_idle(simple);
-      g_object_unref(simple);
+      g_object_unref(cmd->adapter);
+      g_free(cmd);
    }
 
    return NULL;
-}
-
-static void
-dummy_cb (GObject      *object,
-          GAsyncResult *result,
-          gpointer      user_data)
-{
-   /* Do nothing. */
 }
 
 /**
@@ -138,7 +134,7 @@ gom_adapter_queue_write (GomAdapter         *adapter,
                          gpointer            user_data)
 {
    GomAdapterPrivate *priv;
-   GSimpleAsyncResult *simple;
+   GomAsyncCmd *cmd;
 
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
    g_return_if_fail(callback != NULL);
@@ -146,12 +142,9 @@ gom_adapter_queue_write (GomAdapter         *adapter,
 
    priv = adapter->priv;
 
-   simple = g_simple_async_result_new(G_OBJECT(adapter), dummy_cb, NULL,
-                                      gom_adapter_queue_write);
-   g_object_set_data(G_OBJECT(simple), "request", (gpointer)"queue-write");
-   g_object_set_data(G_OBJECT(simple), "write-callback", callback);
-   g_object_set_data(G_OBJECT(simple), "write-callback-data", user_data);
-   g_async_queue_push(priv->queue, simple);
+   cmd = _async_cmd_new(adapter, ASYNC_CMD_TYPE_WRITE, callback, user_data);
+
+   g_async_queue_push(priv->queue, cmd);
 }
 
 /**
@@ -169,7 +162,7 @@ gom_adapter_queue_read (GomAdapter         *adapter,
                         gpointer            user_data)
 {
    GomAdapterPrivate *priv;
-   GSimpleAsyncResult *simple;
+   GomAsyncCmd *cmd;
 
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
    g_return_if_fail(callback != NULL);
@@ -177,12 +170,31 @@ gom_adapter_queue_read (GomAdapter         *adapter,
 
    priv = adapter->priv;
 
-   simple = g_simple_async_result_new(G_OBJECT(adapter), dummy_cb, NULL,
-                                      gom_adapter_queue_read);
-   g_object_set_data(G_OBJECT(simple), "request", (gpointer)"queue-read");
-   g_object_set_data(G_OBJECT(simple), "read-callback", callback);
-   g_object_set_data(G_OBJECT(simple), "read-callback-data", user_data);
-   g_async_queue_push(priv->queue, simple);
+   cmd = _async_cmd_new(adapter, ASYNC_CMD_TYPE_READ, callback, user_data);
+
+   g_async_queue_push(priv->queue, cmd);
+}
+
+static void
+open_callback (GomAdapter *adapter,
+               gpointer    user_data)
+{
+   GSimpleAsyncResult *simple = user_data;
+   const char *uri;
+   gint flags;
+   gint ret;
+
+   uri = g_object_get_data(G_OBJECT(simple), "uri");
+   flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI;
+   ret = sqlite3_open_v2(uri, &adapter->priv->db, flags, NULL);
+   if (ret != SQLITE_OK) {
+      g_simple_async_result_set_error(simple, GOM_ADAPTER_ERROR,
+                                      GOM_ADAPTER_ERROR_OPEN,
+                                      _("Failed to open database at %s"), uri);
+   }
+   g_simple_async_result_set_op_res_gboolean(simple, ret == SQLITE_OK);
+   g_simple_async_result_complete_in_idle(simple);
+   g_object_unref(simple);
 }
 
 /**
@@ -203,6 +215,7 @@ gom_adapter_open_async (GomAdapter          *adapter,
 {
    GomAdapterPrivate *priv;
    GSimpleAsyncResult *simple;
+   GomAsyncCmd *cmd;
 
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
    g_return_if_fail(uri != NULL);
@@ -231,7 +244,10 @@ gom_adapter_open_async (GomAdapter          *adapter,
                                       gom_adapter_open_async);
    g_object_set_data_full(G_OBJECT(simple), "uri",
                           g_strdup(uri), g_free);
-   g_async_queue_push(priv->queue, simple);
+
+   cmd = _async_cmd_new(adapter, ASYNC_CMD_TYPE_OPEN, open_callback, simple);
+
+   g_async_queue_push(priv->queue, cmd);
 }
 
 gboolean
@@ -252,6 +268,20 @@ gom_adapter_open_finish (GomAdapter    *adapter,
    return ret;
 }
 
+static void
+close_callback (GomAdapter *adapter,
+                gpointer    user_data)
+{
+   GSimpleAsyncResult *simple = user_data;
+
+   sqlite3_close(adapter->priv->db);
+   adapter->priv->db = NULL;
+
+   g_simple_async_result_set_op_res_gboolean(simple, TRUE);
+   g_simple_async_result_complete_in_idle(simple);
+   g_object_unref(simple);
+}
+
 void
 gom_adapter_close_async (GomAdapter          *adapter,
                          GAsyncReadyCallback  callback,
@@ -259,6 +289,7 @@ gom_adapter_close_async (GomAdapter          *adapter,
 {
    GomAdapterPrivate *priv;
    GSimpleAsyncResult *simple;
+   GomAsyncCmd *cmd;
 
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
    g_return_if_fail(callback != NULL);
@@ -275,8 +306,9 @@ gom_adapter_close_async (GomAdapter          *adapter,
       return;
    }
 
-   g_object_set_data(G_OBJECT(simple), "request", (gpointer)"close");
-   g_async_queue_push(priv->queue, simple);
+   cmd = _async_cmd_new(adapter, ASYNC_CMD_TYPE_CLOSE, close_callback, simple);
+
+   g_async_queue_push(priv->queue, cmd);
 }
 
 gboolean
