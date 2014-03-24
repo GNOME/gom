@@ -282,6 +282,7 @@ gom_repository_find_cb (GomAdapter *adapter,
    GomFilter *filter;
    GError *error = NULL;
    GType resource_type;
+   GAsyncQueue *queue;
    guint count;
 
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
@@ -296,6 +297,8 @@ gom_repository_find_cb (GomAdapter *adapter,
 
    filter = g_object_get_data(G_OBJECT(simple), "filter");
    g_assert(!filter || GOM_IS_FILTER(filter));
+
+   queue = g_object_get_data(G_OBJECT(simple), "queue");
 
    builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
                           "adapter", adapter,
@@ -328,7 +331,10 @@ gom_repository_find_cb (GomAdapter *adapter,
    g_simple_async_result_set_op_res_gpointer(simple, ret, g_object_unref);
 
 out:
-   g_simple_async_result_complete_in_idle(simple);
+   if (!queue)
+      g_simple_async_result_complete_in_idle(simple);
+   else
+      g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
    g_clear_object(&cursor);
    g_clear_object(&command);
    g_clear_object(&builder);
@@ -363,6 +369,7 @@ gom_repository_find_sync (GomRepository  *repository,
    GomRepositoryPrivate *priv;
    GSimpleAsyncResult *simple;
    GomResourceGroup *ret;
+   GAsyncQueue *queue;
 
    g_return_val_if_fail(GOM_IS_REPOSITORY(repository), NULL);
    g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), NULL);
@@ -371,6 +378,8 @@ gom_repository_find_sync (GomRepository  *repository,
 
    priv = repository->priv;
 
+   queue = g_async_queue_new();
+
    simple = g_simple_async_result_new(G_OBJECT(repository), dummy_cb, NULL,
                                       gom_repository_find_sync);
    g_object_set_data(G_OBJECT(simple), "resource-type",
@@ -378,8 +387,11 @@ gom_repository_find_sync (GomRepository  *repository,
    g_object_set_data_full(G_OBJECT(simple), "filter",
                           filter ? g_object_ref(filter) : NULL,
                           filter ? g_object_unref : NULL);
+   g_object_set_data(G_OBJECT(simple), "queue", queue);
 
-   gom_repository_find_cb(priv->adapter, simple);
+   gom_adapter_queue_read(priv->adapter, gom_repository_find_cb, simple);
+   g_async_queue_pop(queue);
+   g_async_queue_unref(queue);
 
    if (!(ret = g_simple_async_result_get_op_res_gpointer(simple))) {
       g_simple_async_result_propagate_error(simple, error);

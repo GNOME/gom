@@ -228,6 +228,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    guint limit;
    guint offset;
    guint idx;
+   GAsyncQueue *queue;
 
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
    g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
@@ -248,6 +249,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
 
    limit = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(simple), "limit"));
    offset = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(simple), "offset"));
+   queue = g_object_get_data(G_OBJECT(simple), "queue");
 
    builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
                           "adapter", adapter,
@@ -298,8 +300,10 @@ out:
    g_clear_object(&cursor);
    g_clear_object(&filter);
    g_clear_object(&repository);
-   g_simple_async_result_complete_in_idle(simple);
-   g_object_unref(simple);
+   if (!queue)
+      g_simple_async_result_complete_in_idle(simple);
+   else
+      g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
    g_free(m2m_table);
 }
 
@@ -330,16 +334,22 @@ gom_resource_group_fetch_sync (GomResourceGroup  *group,
 {
    GSimpleAsyncResult *simple;
    gboolean ret;
+   GAsyncQueue *queue;
 
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), FALSE);
+
+   queue = g_async_queue_new();
 
    simple = g_simple_async_result_new(G_OBJECT(group), dummy_cb, NULL,
                                       gom_resource_group_fetch_sync);
    g_object_set_data(G_OBJECT(simple), "offset", GINT_TO_POINTER(index_));
    g_object_set_data(G_OBJECT(simple), "limit", GINT_TO_POINTER(count));
+   g_object_set_data(G_OBJECT(simple), "queue", queue);
 
-   g_object_ref(simple);
-   gom_resource_group_fetch_cb(group->priv->adapter, simple);
+   gom_adapter_queue_read(group->priv->adapter, gom_resource_group_fetch_cb, simple);
+   g_async_queue_pop(queue);
+   g_async_queue_unref(queue);
+
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
@@ -385,6 +395,7 @@ gom_resource_group_fetch_finish (GomResourceGroup  *group,
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
+   g_object_unref(simple);
 
    return ret;
 }

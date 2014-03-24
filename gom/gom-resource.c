@@ -169,18 +169,23 @@ gom_resource_delete_cb (GomAdapter *adapter,
    GomResource *resource;
    gboolean ret;
    GError *error = NULL;
+   GAsyncQueue *queue;
 
    g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
    resource = GOM_RESOURCE(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
    g_return_if_fail(GOM_IS_RESOURCE(resource));
+
+   queue = g_object_get_data(G_OBJECT(simple), "queue");
 
    if (!(ret = gom_resource_do_delete(resource, adapter, &error))) {
       g_simple_async_result_take_error(simple, error);
    }
 
    g_simple_async_result_set_op_res_gboolean(simple, ret);
-   g_simple_async_result_complete_in_idle(simple);
-   g_object_unref(simple);
+   if (!queue)
+      g_simple_async_result_complete_in_idle(simple);
+   else
+      g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
 }
 
 /**
@@ -199,6 +204,9 @@ gom_resource_delete_sync (GomResource  *resource,
 {
    GomResourcePrivate *priv;
    GomAdapter *adapter;
+   GAsyncQueue *queue;
+   GSimpleAsyncResult *simple;
+   gboolean ret;
 
    g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
 
@@ -209,8 +217,24 @@ gom_resource_delete_sync (GomResource  *resource,
       return FALSE;
    }
 
+   queue = g_async_queue_new();
+
+   simple = g_simple_async_result_new(G_OBJECT(resource), NULL, NULL,
+                                      gom_resource_delete_sync);
    adapter = gom_repository_get_adapter(priv->repository);
-   return gom_resource_do_delete(resource, adapter, error);
+   g_object_set_data(G_OBJECT(simple), "queue", queue);
+   g_assert(GOM_IS_ADAPTER(adapter));
+
+   gom_adapter_queue_write(adapter, gom_resource_delete_cb, simple);
+   g_async_queue_pop(queue);
+   g_async_queue_unref(queue);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+   g_object_unref(simple);
+
+   return ret;
 }
 
 void
@@ -252,6 +276,7 @@ gom_resource_delete_finish (GomResource   *resource,
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
+   g_object_unref(simple);
 
    return ret;
 }
@@ -408,6 +433,7 @@ gom_resource_save_cb (GomAdapter *adapter,
    GomResource *resource;
    gboolean ret;
    GError *error = NULL;
+   GAsyncQueue *queue;
 
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
    g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
@@ -415,13 +441,17 @@ gom_resource_save_cb (GomAdapter *adapter,
    resource = GOM_RESOURCE(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
    g_assert(GOM_IS_RESOURCE(resource));
 
+   queue = g_object_get_data(G_OBJECT(simple), "queue");
+
    if (!(ret = gom_resource_do_save(resource, adapter, &error))) {
       g_simple_async_result_take_error(simple, error);
    }
 
    g_simple_async_result_set_op_res_gboolean(simple, ret);
-   g_simple_async_result_complete_in_idle(simple);
-   g_object_unref(simple);
+   if (!queue)
+      g_simple_async_result_complete_in_idle(simple);
+   else
+      g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
 }
 
 /**
@@ -441,6 +471,9 @@ gom_resource_save_sync (GomResource  *resource,
 {
    GomResourcePrivate *priv;
    GomAdapter *adapter;
+   GAsyncQueue *queue;
+   GSimpleAsyncResult *simple;
+   gboolean ret;
 
    g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
 
@@ -451,8 +484,24 @@ gom_resource_save_sync (GomResource  *resource,
       return FALSE;
    }
 
+   queue = g_async_queue_new();
+
+   simple = g_simple_async_result_new(G_OBJECT(resource), NULL, NULL,
+                                      gom_resource_save_sync);
    adapter = gom_repository_get_adapter(priv->repository);
-   return gom_resource_do_save(resource, adapter, error);
+   g_object_set_data(G_OBJECT(simple), "queue", queue);
+   g_assert(GOM_IS_ADAPTER(adapter));
+
+   gom_adapter_queue_write(adapter, gom_resource_save_cb, simple);
+   g_async_queue_pop(queue);
+   g_async_queue_unref(queue);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+   g_object_unref(simple);
+
+   return ret;
 }
 
 void
@@ -495,6 +544,7 @@ gom_resource_save_finish (GomResource   *resource,
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
+   g_object_unref(simple);
 
    return ret;
 }
