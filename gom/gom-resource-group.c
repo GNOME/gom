@@ -307,13 +307,6 @@ out:
    g_free(m2m_table);
 }
 
-static void
-dummy_cb (GObject      *object,
-          GAsyncResult *result,
-          gpointer      user_data)
-{
-}
-
 /**
  * gom_resource_group_fetch_sync:
  * @group: (in): A #GomResourceGroup.
@@ -340,7 +333,7 @@ gom_resource_group_fetch_sync (GomResourceGroup  *group,
 
    queue = g_async_queue_new();
 
-   simple = g_simple_async_result_new(G_OBJECT(group), dummy_cb, NULL,
+   simple = g_simple_async_result_new(G_OBJECT(group), NULL, NULL,
                                       gom_resource_group_fetch_sync);
    g_object_set_data(G_OBJECT(simple), "offset", GINT_TO_POINTER(index_));
    g_object_set_data(G_OBJECT(simple), "limit", GINT_TO_POINTER(count));

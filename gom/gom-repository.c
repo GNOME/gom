@@ -340,13 +340,6 @@ out:
    g_clear_object(&builder);
 }
 
-static void
-dummy_cb (GObject      *object,
-          GAsyncResult *result,
-          gpointer      user_data)
-{
-}
-
 /**
  * gom_repository_find_sync:
  * @repository: (in): A #GomRepository.
@@ -380,7 +373,7 @@ gom_repository_find_sync (GomRepository  *repository,
 
    queue = g_async_queue_new();
 
-   simple = g_simple_async_result_new(G_OBJECT(repository), dummy_cb, NULL,
+   simple = g_simple_async_result_new(G_OBJECT(repository), NULL, NULL,
                                       gom_repository_find_sync);
    g_object_set_data(G_OBJECT(simple), "resource-type",
                      GINT_TO_POINTER(resource_type));
