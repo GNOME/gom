@@ -79,6 +79,8 @@ gpointer
 gom_adapter_get_handle (GomAdapter *adapter)
 {
    g_return_val_if_fail(GOM_IS_ADAPTER(adapter), NULL);
+   g_return_val_if_fail(adapter->priv->thread != NULL, NULL);
+   g_assert (g_thread_self () == adapter->priv->thread);
    return adapter->priv->db;
 }
 
@@ -352,6 +354,7 @@ gom_adapter_execute_sql (GomAdapter   *adapter,
 
    g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
    g_return_val_if_fail(sql, FALSE);
+   g_assert (g_thread_self () == adapter->priv->thread);
 
    command = g_object_new(GOM_TYPE_COMMAND,
                           "adapter", adapter,
