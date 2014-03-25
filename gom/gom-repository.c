@@ -112,6 +112,7 @@ gom_repository_query_version (GomRepository  *repository,
       g_object_unref(command);
       return -1;
    }
+   g_object_unref(command);
 
    command = g_object_new(GOM_TYPE_COMMAND,
                           "adapter", priv->adapter,
