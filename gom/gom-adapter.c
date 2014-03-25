@@ -487,6 +487,7 @@ gom_adapter_finalize (GObject *object)
       g_warning("Adapter not closed, leaking!");
    } else {
       g_async_queue_unref(priv->queue);
+      g_thread_unref(priv->thread);
    }
 
    G_OBJECT_CLASS(gom_adapter_parent_class)->finalize(object);
