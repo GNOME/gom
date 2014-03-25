@@ -359,7 +359,9 @@ gom_filter_get_values (GomFilter *filter)
       if (priv->values) {
          return g_array_ref(priv->values);
       }
-      return g_array_new(FALSE, FALSE, sizeof(GValue));
+      va = g_array_new(FALSE, FALSE, sizeof(GValue));
+      g_array_set_clear_func(va, (GDestroyNotify) g_value_unset);
+      return va;
    case GOM_FILTER_EQ:
    case GOM_FILTER_NEQ:
    case GOM_FILTER_GT:
@@ -371,13 +373,14 @@ gom_filter_get_values (GomFilter *filter)
       g_value_init(&v, G_VALUE_TYPE(&priv->value));
       g_value_copy(&priv->value, &v);
       va = g_array_sized_new(FALSE, FALSE, sizeof(GValue), 1);
+      g_array_set_clear_func(va, (GDestroyNotify) g_value_unset);
       g_array_append_val(va, v);
-      memset(&v, 0, sizeof v);
       return va;
    }
    case GOM_FILTER_AND:
    case GOM_FILTER_OR:
       va = g_array_new(FALSE, FALSE, sizeof(GValue));
+      g_array_set_clear_func(va, (GDestroyNotify) g_value_unset);
 
       tmp = gom_filter_get_values(priv->left);
       join_value_array(va, tmp);
