@@ -294,6 +294,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    g_simple_async_result_set_op_res_gboolean(simple, TRUE);
 
 out:
+   g_object_unref(group);
    g_clear_object(&adapter);
    g_clear_object(&builder);
    g_clear_object(&command);

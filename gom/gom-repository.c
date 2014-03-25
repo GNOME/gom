@@ -207,6 +207,7 @@ error:
    g_simple_async_result_take_error(simple, error);
 
 out:
+   g_object_unref(repository);
    g_simple_async_result_complete_in_idle(simple);
    g_object_unref(simple);
 }
@@ -336,6 +337,7 @@ out:
       g_simple_async_result_complete_in_idle(simple);
    else
       g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
+   g_object_unref(repository);
    g_clear_object(&cursor);
    g_clear_object(&command);
    g_clear_object(&builder);

@@ -186,6 +186,7 @@ gom_resource_delete_cb (GomAdapter *adapter,
       g_simple_async_result_complete_in_idle(simple);
    else
       g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
+   g_object_unref(resource);
 }
 
 /**
@@ -452,6 +453,7 @@ gom_resource_save_cb (GomAdapter *adapter,
       g_simple_async_result_complete_in_idle(simple);
    else
       g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
+   g_object_unref(resource);
 }
 
 /**
@@ -618,6 +620,7 @@ gom_resource_fetch_m2m_cb (GomAdapter *adapter,
    g_simple_async_result_set_op_res_gpointer(simple, group, g_object_unref);
 
 out:
+   g_object_unref(resource);
    g_clear_object(&command);
    g_clear_object(&cursor);
    g_clear_object(&builder);
