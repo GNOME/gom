@@ -389,9 +389,13 @@ gom_repository_find_sync (GomRepository  *repository,
 
    if (!(ret = g_simple_async_result_get_op_res_gpointer(simple))) {
       g_simple_async_result_propagate_error(simple, error);
+   } else {
+      ret = g_object_ref(ret);
    }
 
-   return ret ? g_object_ref(ret) : NULL;
+   g_object_unref(simple);
+
+   return ret;
 }
 
 void
@@ -447,6 +451,7 @@ gom_repository_find_finish (GomRepository  *repository,
    if (!(ret = g_simple_async_result_get_op_res_gpointer(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
+   g_object_unref(simple);
 
    return ret ? g_object_ref(ret) : NULL;
 }
