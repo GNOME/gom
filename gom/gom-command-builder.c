@@ -88,6 +88,7 @@ add_fields (GString          *str,
          mapped = TRUE;
       }
    }
+   g_free(pspecs);
 
    g_string_append(str, " ");
 }
