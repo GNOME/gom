@@ -234,6 +234,7 @@ migrate_cb (GObject      *object,
    g_value_init(&value, G_TYPE_STRING);
    g_value_set_string(&value, "%sherwood%");
    filter = gom_filter_new_like(BOOKMARKS_TYPE_RESOURCE, "title", &value);
+   g_value_unset(&value);
    resource = gom_repository_find_one_sync(repository,
                                            BOOKMARKS_TYPE_RESOURCE,
                                            filter,
