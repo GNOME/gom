@@ -328,20 +328,10 @@ static void
 join_value_array (GArray *dst,
                   GArray *src)
 {
-   GValue *src_value;
-   GValue dst_value = { 0 };
-   guint i;
-
    g_return_if_fail(dst);
    g_return_if_fail(src);
 
-   for (i = 0; i < src->len; i++) {
-      src_value = &g_array_index(src, GValue, i);
-      g_value_init(&dst_value, G_VALUE_TYPE(src_value));
-      g_value_copy(src_value, &dst_value);
-      g_array_append_val(dst, dst_value);
-      memset(&dst_value, 0, sizeof dst_value);
-   }
+   g_array_append_vals(dst, src->data, src->len);
 }
 
 /**
