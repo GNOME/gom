@@ -58,6 +58,8 @@ struct _GomAdapterClass
    GObjectClass parent_class;
 };
 
+gboolean    gom_adapter_close_sync   (GomAdapter           *adapter,
+                                      GError              **error);
 void        gom_adapter_close_async  (GomAdapter           *adapter,
                                       GAsyncReadyCallback   callback,
                                       gpointer              user_data);
@@ -68,6 +70,9 @@ GQuark      gom_adapter_error_quark  (void) G_GNUC_CONST;
 gpointer    gom_adapter_get_handle   (GomAdapter           *adapter);
 GType       gom_adapter_get_type     (void) G_GNUC_CONST;
 GomAdapter *gom_adapter_new          (void);
+gboolean    gom_adapter_open_sync    (GomAdapter           *adapter,
+                                      const gchar          *uri,
+                                      GError              **error);
 void        gom_adapter_open_async   (GomAdapter           *adapter,
                                       const gchar          *uri,
                                       GAsyncReadyCallback   callback,

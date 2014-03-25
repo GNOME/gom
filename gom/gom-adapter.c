@@ -182,10 +182,12 @@ open_callback (GomAdapter *adapter,
                gpointer    user_data)
 {
    GSimpleAsyncResult *simple = user_data;
+   GAsyncQueue *queue;
    const char *uri;
    gint flags;
    gint ret;
 
+   queue = g_object_get_data(G_OBJECT(simple), "queue");
    uri = g_object_get_data(G_OBJECT(simple), "uri");
    flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI;
    ret = sqlite3_open_v2(uri, &adapter->priv->db, flags, NULL);
@@ -195,8 +197,65 @@ open_callback (GomAdapter *adapter,
                                       _("Failed to open database at %s"), uri);
    }
    g_simple_async_result_set_op_res_gboolean(simple, ret == SQLITE_OK);
-   g_simple_async_result_complete_in_idle(simple);
+   if (!queue)
+      g_simple_async_result_complete_in_idle(simple);
+   else
+      g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
+}
+
+gboolean
+gom_adapter_open_sync (GomAdapter           *adapter,
+                       const gchar          *uri,
+                       GError              **error)
+{
+   GomAdapterPrivate *priv;
+   GSimpleAsyncResult *simple;
+   GomAsyncCmd *cmd;
+   GAsyncQueue *queue;
+   gboolean ret;
+
+   g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
+   g_return_val_if_fail(uri != NULL, FALSE);
+
+   priv = adapter->priv;
+
+   if (priv->thread) {
+      g_warning("%s may only be called once per adapter.",
+                G_STRFUNC);
+      return FALSE;
+   }
+
+   priv->queue = g_async_queue_new();
+
+#if GLIB_CHECK_VERSION(2, 32, 0)
+   priv->thread = g_thread_new("gom-adapter-worker",
+                               gom_adapter_worker,
+                               priv->queue);
+#else
+   priv->thread = g_thread_create(gom_adapter_worker, priv->queue,
+                                  TRUE, NULL);
+#endif
+
+   queue = g_async_queue_new();
+
+   simple = g_simple_async_result_new(G_OBJECT(adapter), NULL, NULL,
+                                      gom_adapter_open_sync);
+   g_object_set_data_full(G_OBJECT(simple), "uri",
+                          g_strdup(uri), g_free);
+   g_object_set_data (G_OBJECT(simple), "queue", queue);
+
+   cmd = _async_cmd_new(adapter, ASYNC_CMD_TYPE_OPEN, open_callback, simple);
+
+   g_async_queue_push(priv->queue, cmd);
+   g_async_queue_pop(queue);
+   g_async_queue_unref(queue);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
    g_object_unref(simple);
+
+   return ret;
 }
 
 /**
@@ -266,6 +325,7 @@ gom_adapter_open_finish (GomAdapter    *adapter,
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
+   g_object_unref(simple);
 
    return ret;
 }
@@ -275,13 +335,56 @@ close_callback (GomAdapter *adapter,
                 gpointer    user_data)
 {
    GSimpleAsyncResult *simple = user_data;
+   GAsyncQueue *queue;
+
+   queue = g_object_get_data(user_data, "queue");
 
    sqlite3_close(adapter->priv->db);
    adapter->priv->db = NULL;
 
    g_simple_async_result_set_op_res_gboolean(simple, TRUE);
-   g_simple_async_result_complete_in_idle(simple);
+   if (!queue)
+      g_simple_async_result_complete_in_idle(simple);
+   else
+      g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
+}
+
+gboolean
+gom_adapter_close_sync (GomAdapter    *adapter,
+                        GError       **error)
+{
+   GomAsyncCmd *cmd;
+   GomAdapterPrivate *priv;
+   GSimpleAsyncResult *simple;
+   GAsyncQueue *queue;
+   gboolean ret;
+
+   g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
+
+   priv = adapter->priv;
+
+   if (!priv->db) {
+      return TRUE;
+   }
+
+   queue = g_async_queue_new();
+
+   simple = g_simple_async_result_new(G_OBJECT(adapter), NULL, NULL,
+                                      gom_adapter_close_sync);
+   g_object_set_data(G_OBJECT(simple), "queue", queue);
+
+   cmd = _async_cmd_new(adapter, ASYNC_CMD_TYPE_CLOSE, close_callback, simple);
+
+   g_async_queue_push(priv->queue, cmd);
+   g_async_queue_pop(queue);
+   g_async_queue_unref(queue);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
    g_object_unref(simple);
+
+   return ret;
 }
 
 void
@@ -327,6 +430,7 @@ gom_adapter_close_finish (GomAdapter    *adapter,
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
+   g_object_unref(simple);
 
    return ret;
 }
