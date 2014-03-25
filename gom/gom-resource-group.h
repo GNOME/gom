@@ -21,8 +21,6 @@
 
 #include <gio/gio.h>
 
-#include "gom-resource.h"
-
 G_BEGIN_DECLS
 
 #define GOM_TYPE_RESOURCE_GROUP            (gom_resource_group_get_type())
@@ -36,6 +34,8 @@ G_BEGIN_DECLS
 typedef struct _GomResourceGroup        GomResourceGroup;
 typedef struct _GomResourceGroupClass   GomResourceGroupClass;
 typedef struct _GomResourceGroupPrivate GomResourceGroupPrivate;
+
+#include "gom-resource.h"
 
 struct _GomResourceGroup
 {

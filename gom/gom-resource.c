@@ -677,9 +677,9 @@ gom_resource_fetch_m2m_async (GomResource          *resource,
  * Completes the asynchronous request to fetch a group of resources that
  * are related to the resource through a many-to-many table.
  *
- * Returns: (type GomResourceGroup*) (transfer full): A #GomResourceGroup.
+ * Returns: (transfer full): A #GomResourceGroup.
  */
-gpointer
+GomResourceGroup *
 gom_resource_fetch_m2m_finish (GomResource   *resource,
                                GAsyncResult  *result,
                                GError       **error)

@@ -39,6 +39,8 @@ typedef struct _GomResourceClass   GomResourceClass;
 typedef struct _GomResourcePrivate GomResourcePrivate;
 typedef enum   _GomResourceError   GomResourceError;
 
+#include "gom-resource-group.h"
+
 enum _GomResourceError
 {
    GOM_RESOURCE_ERROR_CURSOR = 1,
@@ -88,7 +90,7 @@ void              gom_resource_fetch_m2m_async       (GomResource          *reso
                                                       GomFilter            *filter,
                                                       GAsyncReadyCallback   callback,
                                                       gpointer              user_data);
-gpointer          gom_resource_fetch_m2m_finish      (GomResource          *resource,
+GomResourceGroup *gom_resource_fetch_m2m_finish      (GomResource          *resource,
                                                       GAsyncResult         *result,
                                                       GError              **error);
 
