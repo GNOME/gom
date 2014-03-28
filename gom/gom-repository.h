@@ -72,6 +72,7 @@ GomRepository    *gom_repository_new             (GomAdapter             *adapte
 void              gom_repository_migrate_async   (GomRepository          *repository,
                                                   guint                   version,
                                                   GomRepositoryMigrator   migrator,
+                                                  gpointer                migrator_data,
                                                   GAsyncReadyCallback     callback,
                                                   gpointer                user_data);
 gboolean          gom_repository_migrate_finish  (GomRepository          *repository,

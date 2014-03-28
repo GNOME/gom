@@ -230,6 +230,7 @@ void
 gom_repository_migrate_async (GomRepository         *repository,
                               guint                  version,
                               GomRepositoryMigrator  migrator,
+                              gpointer               migrator_data,
                               GAsyncReadyCallback    callback,
                               gpointer               user_data)
 {
@@ -246,7 +247,7 @@ gom_repository_migrate_async (GomRepository         *repository,
                                       gom_repository_migrate_async);
    g_object_set_data(G_OBJECT(simple), "version", GINT_TO_POINTER(version));
    g_object_set_data(G_OBJECT(simple), "migrator", migrator);
-   g_object_set_data(G_OBJECT(simple), "migrator_data", user_data);
+   g_object_set_data(G_OBJECT(simple), "migrator_data", migrator_data);
 
    gom_adapter_queue_write(priv->adapter,
                            gom_repository_migrate_cb,
