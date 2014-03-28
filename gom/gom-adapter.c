@@ -266,7 +266,8 @@ gom_adapter_open_sync (GomAdapter           *adapter,
  * @user_data: the user data to pass to the callback function
  *
  * Opens the database pointed to by @uri. @uri can be in any format understood
- * by SQLite. See http://www.sqlite.org/c3ref/open.html for details.
+ * by SQLite. See <ulink type="http" url="http://www.sqlite.org/c3ref/open.html">http://www.sqlite.org/c3ref/open.html</ulink>
+ * for details.
  */
 void
 gom_adapter_open_async (GomAdapter          *adapter,
