@@ -149,6 +149,7 @@ gom_repository_migrate_cb (GomAdapter *adapter,
    guint current;
    guint i;
    guint version;
+   GAsyncQueue *queue;
 
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
    g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
@@ -157,6 +158,7 @@ gom_repository_migrate_cb (GomAdapter *adapter,
    version = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(simple), "version"));
    migrator = g_object_get_data(G_OBJECT(simple), "migrator");
    migrate_data = g_object_get_data(G_OBJECT(simple), "migrator_data");
+   queue = g_object_get_data(G_OBJECT(simple), "queue");
 
    g_assert(GOM_IS_REPOSITORY(repository));
    g_assert_cmpint(version, >, 0);
@@ -208,8 +210,62 @@ error:
 
 out:
    g_object_unref(repository);
-   g_simple_async_result_complete_in_idle(simple);
-   g_object_unref(simple);
+   if (!queue)
+      g_simple_async_result_complete_in_idle(simple);
+   else
+      g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
+}
+
+/**
+ * gom_repository_migrate_sync:
+ * @repository: (in): A #GomRepository.
+ * @version: (in): The version to migrate to.
+ * @migrator: (in) (scope call): A function to perform the migrations.
+ * @migrator_data: (in): User data for @migrator.
+ * @error:
+ *
+ * Performs a migration on the underlying database. This will
+ * call @migrator from the SQLite thread for each migration to perform.
+ *
+ * Returns: #TRUE in case of success.
+ */
+gboolean
+gom_repository_migrate_sync (GomRepository          *repository,
+                             guint                   version,
+                             GomRepositoryMigrator   migrator,
+                             gpointer                migrator_data,
+                             GError                **error)
+{
+   GomRepositoryPrivate *priv;
+   GSimpleAsyncResult *simple;
+   GAsyncQueue *queue;
+   gboolean ret;
+
+   g_return_val_if_fail(GOM_IS_REPOSITORY(repository), FALSE);
+   g_return_val_if_fail(migrator != NULL, FALSE);
+
+   priv = repository->priv;
+
+   queue = g_async_queue_new();
+
+   simple = g_simple_async_result_new(G_OBJECT(repository), NULL, NULL,
+                                      gom_repository_migrate_sync);
+   g_object_set_data(G_OBJECT(simple), "version", GINT_TO_POINTER(version));
+   g_object_set_data(G_OBJECT(simple), "migrator", migrator);
+   g_object_set_data(G_OBJECT(simple), "migrator_data", migrator_data);
+   g_object_set_data(G_OBJECT(simple), "queue", queue);
+
+   gom_adapter_queue_write(priv->adapter,
+                           gom_repository_migrate_cb,
+                           simple);
+   g_async_queue_pop(queue);
+   g_async_queue_unref(queue);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+
+   return ret;
 }
 
 /**
@@ -268,6 +324,7 @@ gom_repository_migrate_finish (GomRepository  *repository,
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
    }
+   g_object_unref(simple);
 
    return ret;
 }

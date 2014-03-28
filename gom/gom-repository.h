@@ -69,6 +69,11 @@ GQuark            gom_repository_error_quark     (void) G_GNUC_CONST;
 GomAdapter       *gom_repository_get_adapter     (GomRepository          *repository);
 GType             gom_repository_get_type        (void) G_GNUC_CONST;
 GomRepository    *gom_repository_new             (GomAdapter             *adapter);
+gboolean          gom_repository_migrate_sync    (GomRepository          *repository,
+                                                  guint                   version,
+                                                  GomRepositoryMigrator   migrator,
+                                                  gpointer                migrator_data,
+                                                  GError                **error);
 void              gom_repository_migrate_async   (GomRepository          *repository,
                                                   guint                   version,
                                                   GomRepositoryMigrator   migrator,
