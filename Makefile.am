@@ -3,7 +3,7 @@ include data/Makefile.include
 include gom/Makefile.include
 include tests/Makefile.include
 
-SUBDIRS = . doc
+SUBDIRS = . doc po
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection --enable-silent-rules

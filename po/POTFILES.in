@@ -1,0 +1,8 @@
+gom/gom-command-builder.c
+gom/gom-resource.c
+gom/gom-filter.c
+gom/gom-cursor.c
+gom/gom-resource-group.c
+gom/gom-repository.c
+gom/gom-adapter.c
+gom/gom-command.c
