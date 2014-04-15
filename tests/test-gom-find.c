@@ -153,6 +153,9 @@ bookmarks_resource_class_init (BookmarksResourceClass *klass)
                                                   G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_THUMBNAIL_URL,
                                   specs[PROP_THUMBNAIL_URL]);
+  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class),
+                                                 "thumbnail-url",
+                                                 2);
 }
 
 static void
@@ -163,6 +166,7 @@ bookmarks_resource_init (BookmarksResource *resource)
                                                BookmarksResourcePrivate);
 }
 
+#if 0
 static gboolean
 do_migrate (GomRepository  *repository,
             GomAdapter     *adapter,
@@ -205,6 +209,7 @@ do_migrate (GomRepository  *repository,
 failure:
    return FALSE;
 }
+#endif
 
 static void
 close_cb (GObject      *object,
@@ -242,6 +247,8 @@ migrate_cb (GObject      *object,
    GomFilter *filter;
    GValue value = { 0, };
    char *url, *thumbnail_url;
+
+   g_object_set_data (object, "object-types", NULL);
 
    ret = gom_repository_migrate_finish(repository, result, &error);
    g_assert_no_error(error);
@@ -299,13 +306,22 @@ open_cb (GObject      *object,
    GomAdapter *adapter = (GomAdapter *)object;
    gboolean ret;
    GError *error = NULL;
+   GList *object_types;
 
    ret = gom_adapter_open_finish(adapter, result, &error);
    g_assert_no_error(error);
    g_assert(ret);
 
    repository = gom_repository_new(adapter);
+
+   /* This allows switching between automatic and manual DB upgrades */
+#if 0
    gom_repository_migrate_async(repository, 2, do_migrate, NULL, migrate_cb, user_data);
+#else
+   object_types = g_list_prepend(NULL, GINT_TO_POINTER(BOOKMARKS_TYPE_RESOURCE));
+   g_object_set_data_full (G_OBJECT (repository), "object-types", object_types, (GDestroyNotify) g_list_free);
+   gom_repository_automatic_migrate_async(repository, 2, object_types, migrate_cb, user_data);
+#endif
    g_object_unref(repository);
 }
 
