@@ -16,6 +16,7 @@ typedef struct {
   char *id;
   char *url;
   char *title;
+  char *thumbnail_url;
   /* FIXME: other properties */
 } BookmarksResourcePrivate;
 
@@ -35,6 +36,7 @@ enum {
   PROP_ID,
   PROP_URL,
   PROP_TITLE,
+  PROP_THUMBNAIL_URL,
   LAST_PROP
 };
 
@@ -45,6 +47,7 @@ bookmarks_resource_finalize (GObject *object)
 {
   BookmarksResource *resource = BOOKMARKS_RESOURCE(object);
   g_free (resource->priv->url);
+  g_free (resource->priv->thumbnail_url);
   g_free (resource->priv->id);
 }
 
@@ -65,6 +68,9 @@ bookmarks_resource_get_property (GObject    *object,
     break;
   case PROP_TITLE:
     g_value_set_string(value, resource->priv->title);
+    break;
+  case PROP_THUMBNAIL_URL:
+    g_value_set_string(value, resource->priv->thumbnail_url);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -91,6 +97,10 @@ bookmarks_resource_set_property (GObject      *object,
   case PROP_TITLE:
     g_free (resource->priv->title);
     resource->priv->title = g_value_dup_string(value);
+    break;
+  case PROP_THUMBNAIL_URL:
+    g_free (resource->priv->thumbnail_url);
+    resource->priv->thumbnail_url = g_value_dup_string(value);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -136,6 +146,13 @@ bookmarks_resource_class_init (BookmarksResourceClass *klass)
                                           G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_TITLE,
                                   specs[PROP_TITLE]);
+  specs[PROP_THUMBNAIL_URL] = g_param_spec_string("thumbnail-url",
+                                                  "Thumbnail URL",
+                                                  "The thumbnail URL for the bookmark.",
+                                                  NULL,
+                                                  G_PARAM_READWRITE);
+  g_object_class_install_property(object_class, PROP_THUMBNAIL_URL,
+                                  specs[PROP_THUMBNAIL_URL]);
 }
 
 static void
@@ -224,7 +241,7 @@ migrate_cb (GObject      *object,
    GomResource *resource;
    GomFilter *filter;
    GValue value = { 0, };
-   char *url;
+   char *url, *thumbnail_url;
 
    ret = gom_repository_migrate_finish(repository, result, &error);
    g_assert_no_error(error);
@@ -247,7 +264,7 @@ migrate_cb (GObject      *object,
    g_free(url);
 
    /* Modify the item */
-   g_object_set(resource, "url", "file:///tmp/test", NULL);
+   g_object_set(resource, "url", "file:///tmp/test", "thumbnail-url", "file:///tmp/test-thumbnail", NULL);
    ret = gom_resource_save_sync(resource, &error);
    g_assert_no_error(error);
    g_assert(ret);
@@ -261,9 +278,11 @@ migrate_cb (GObject      *object,
    g_assert_no_error(error);
    g_assert(resource);
 
-   g_object_get(resource, "url", &url, NULL);
+   g_object_get(resource, "url", &url, "thumbnail-url", &thumbnail_url, NULL);
    g_assert_cmpstr(url, ==, "file:///tmp/test");
+   g_assert_cmpstr(thumbnail_url, ==, "file:///tmp/test-thumbnail");
    g_free(url);
+   g_free(thumbnail_url);
 
    g_object_unref(filter);
 
