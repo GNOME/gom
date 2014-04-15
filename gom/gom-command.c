@@ -142,13 +142,6 @@ gom_command_bind_params (GomCommand *command)
    }
 }
 
-const gchar *
-gom_command_get_sql (GomCommand *command)
-{
-   g_return_val_if_fail(GOM_IS_COMMAND(command), NULL);
-   return command->priv->sql;
-}
-
 void
 gom_command_set_sql (GomCommand  *command,
                      const gchar *sql)
@@ -161,7 +154,6 @@ gom_command_set_sql (GomCommand  *command,
 
    g_free(priv->sql);
    priv->sql = g_strdup(sql);
-   g_object_notify_by_pspec(G_OBJECT(command), gParamSpecs[PROP_SQL]);
 }
 
 static void
@@ -417,9 +409,6 @@ gom_command_get_property (GObject    *object,
    case PROP_ADAPTER:
       g_value_set_object(value, gom_command_get_adapter(command));
       break;
-   case PROP_SQL:
-      g_value_set_string(value, gom_command_get_sql(command));
-      break;
    default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
    }
@@ -485,7 +474,7 @@ gom_command_class_init (GomCommandClass *klass)
                           _("SQL"),
                           _("The SQL for the command."),
                           NULL,
-                          G_PARAM_READWRITE);
+                          G_PARAM_WRITABLE);
    g_object_class_install_property(object_class, PROP_SQL,
                                    gParamSpecs[PROP_SQL]);
 }

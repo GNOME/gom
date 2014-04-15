@@ -63,7 +63,6 @@ gboolean     gom_command_execute          (GomCommand    *command,
                                            GomCursor    **cursor,
                                            GError       **error);
 GType        gom_command_get_type         (void) G_GNUC_CONST;
-const gchar *gom_command_get_sql          (GomCommand    *command);
 void         gom_command_set_sql          (GomCommand    *command,
                                            const gchar   *sql);
 gint         gom_command_get_param_index  (GomCommand    *command,
