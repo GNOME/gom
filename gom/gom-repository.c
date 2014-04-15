@@ -331,6 +331,114 @@ gom_repository_migrate_finish (GomRepository  *repository,
    return ret;
 }
 
+static gboolean
+gom_repository_automatic_migrator (GomRepository  *repository,
+                                   GomAdapter     *adapter,
+                                   guint           version,
+                                   gpointer        user_data,
+                                   GError        **error)
+{
+  GList *object_types = user_data;
+  GList *l;
+
+  for (l = object_types; l != NULL; l = l->next) {
+    GType type = GPOINTER_TO_INT (l->data);
+    GomResourceClass *klass;
+    GomCommandBuilder *builder;
+    GList *cmds, *c;
+
+    klass = g_type_class_ref (type);
+    builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
+                           "adapter", adapter,
+                           "resource-type", type,
+                           NULL);
+    cmds = gom_command_builder_build_create (builder, version);
+    g_object_unref (builder);
+
+    for (c = cmds; c != NULL; c = c->next) {
+      if (!gom_command_execute(c->data, NULL, error)) {
+        goto bail_object;
+      }
+    }
+
+bail_object:
+    g_list_free_full(cmds, g_object_unref);
+    g_type_class_unref(klass);
+    if (*error)
+      return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+ * gom_repository_automatic_migrate_sync:
+ * @repository: (in): A #GomRepository.
+ * @version: (in): The version to migrate to.
+ * @object_types: (element-type GType) (transfer container): a #GList of #GType
+ * @error:
+ *
+ * Performs an automatic migration on the underlying database. For
+ * each of the #GType passed in @object_types, the table will be
+ * created if necessary, and each of the columns corresponding to
+ * properties will be added if needed.
+ *
+ * Returns: #TRUE in case of success.
+ */
+gboolean
+gom_repository_automatic_migrate_sync (GomRepository          *repository,
+                                       guint                   version,
+                                       GList                  *object_types,
+                                       GError                **error)
+{
+   g_return_val_if_fail(GOM_IS_REPOSITORY(repository), FALSE);
+   g_return_val_if_fail(version >= 1, FALSE);
+   g_return_val_if_fail(object_types != NULL, FALSE);
+
+   return gom_repository_migrate_sync(repository, version,
+                                      gom_repository_automatic_migrator, object_types,
+                                      error);
+}
+
+/**
+ * gom_repository_automatic_migrate_async:
+ * @repository: (in): A #GomRepository.
+ * @version: (in): The version to migrate to.
+ * @object_types: (element-type GType) (transfer container): a #GList of #GType
+ * @callback: (in): A callback to execute upon completion.
+ * @user_data: (in): User data for @callback.
+ *
+ * Performs an automatic migration on the underlying database. See
+ * gom_repository_automatic_migrate_sync() for details.
+ *
+ * Upon completion, @callback will be executed and it must call
+ * gom_repository_automatic_migrate_finish().
+ */
+void
+gom_repository_automatic_migrate_async (GomRepository         *repository,
+                                        guint                  version,
+                                        GList                 *object_types,
+                                        GAsyncReadyCallback    callback,
+                                        gpointer               user_data)
+{
+   g_return_if_fail(GOM_IS_REPOSITORY(repository));
+   g_return_if_fail(callback != NULL);
+   g_return_if_fail(version >= 1);
+   g_return_if_fail(object_types != NULL);
+
+   gom_repository_migrate_async (repository, version,
+                                 gom_repository_automatic_migrator, object_types,
+                                 callback, user_data);
+}
+
+gboolean
+gom_repository_automatic_migrate_finish (GomRepository  *repository,
+                                         GAsyncResult   *result,
+                                         GError        **error)
+{
+  return gom_repository_migrate_finish(repository, result, error);
+}
+
 static void
 gom_repository_find_cb (GomAdapter *adapter,
                         gpointer    user_data)

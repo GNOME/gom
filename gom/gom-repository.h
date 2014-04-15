@@ -83,6 +83,20 @@ void              gom_repository_migrate_async   (GomRepository          *reposi
 gboolean          gom_repository_migrate_finish  (GomRepository          *repository,
                                                   GAsyncResult           *result,
                                                   GError                **error);
+
+gboolean          gom_repository_automatic_migrate_sync   (GomRepository         *repository,
+                                                           guint                  version,
+                                                           GList                 *object_types,
+                                                           GError               **error);
+void              gom_repository_automatic_migrate_async  (GomRepository         *repository,
+                                                           guint                  version,
+                                                           GList                 *object_types,
+                                                           GAsyncReadyCallback    callback,
+                                                           gpointer               user_data);
+gboolean          gom_repository_automatic_migrate_finish (GomRepository         *repository,
+                                                           GAsyncResult          *result,
+                                                           GError               **error);
+
 GomResource      *gom_repository_find_one_sync   (GomRepository          *repository,
                                                   GType                   resource_type,
                                                   GomFilter              *filter,
