@@ -52,6 +52,25 @@ enum
 
 static GParamSpec *gParamSpecs[LAST_PROP];
 
+static const char *
+sql_type_for_column (GParamSpec *pspec)
+{
+   switch (pspec->value_type) {
+   case G_TYPE_INT:
+   case G_TYPE_INT64:
+   case G_TYPE_UINT:
+   case G_TYPE_UINT64:
+      return "INTEGER";
+   case G_TYPE_STRING:
+      return "TEXT";
+   case G_TYPE_FLOAT:
+   case G_TYPE_DOUBLE:
+      return "FLOAT";
+   default:
+      return FALSE;
+   }
+}
+
 static gboolean
 is_mapped (GParamSpec *pspec)
 {
@@ -62,6 +81,11 @@ is_mapped (GParamSpec *pspec)
     *       fields they want mapped.
     */
    ret = (pspec->owner_type != GOM_TYPE_RESOURCE);
+   if (!ret)
+     return FALSE;
+
+   ret = (sql_type_for_column(pspec) != NULL);
+
    return ret;
 }
 
