@@ -35,6 +35,8 @@ G_BEGIN_DECLS
 #define GOM_RESOURCE_ERROR           (gom_resource_error_quark())
 #define GOM_RESOURCE_NEW_IN_VERSION  (gom_resource_new_in_version_quark())
 #define GOM_RESOURCE_NOT_MAPPED      (gom_resource_not_mapped_quark())
+#define GOM_RESOURCE_TO_BYTES_FUNC   (gom_resource_to_bytes_func_quark())
+#define GOM_RESOURCE_FROM_BYTES_FUNC (gom_resource_from_bytes_func_quark())
 
 typedef struct _GomResource        GomResource;
 typedef struct _GomResourceClass   GomResourceClass;
@@ -64,16 +66,23 @@ struct _GomResourceClass
    gchar table[64];
 };
 
+typedef GBytes * (*GomResourceToBytesFunc) (GValue *value);
+typedef void (*GomResourceFromBytesFunc) (GBytes *bytes, GValue *value);
+
 void              gom_resource_class_set_table       (GomResourceClass *resource_class,
                                                       const gchar      *table);
 void              gom_resource_class_set_primary_key (GomResourceClass *resource_class,
                                                       const gchar      *primary_key);
-void              gom_resource_class_set_property_new_in_version (GomResourceClass *resource_class,
-                                                                  const gchar      *property_name,
-                                                                  guint             version);
-void              gom_resource_class_set_property_set_mapped     (GomResourceClass *resource_class,
-                                                                  const gchar      *property_name,
-                                                                  gboolean          is_mapped);
+void              gom_resource_class_set_property_new_in_version (GomResourceClass         *resource_class,
+                                                                  const gchar              *property_name,
+                                                                  guint                     version);
+void              gom_resource_class_set_property_set_mapped     (GomResourceClass         *resource_class,
+                                                                  const gchar              *property_name,
+                                                                  gboolean                  is_mapped);
+void              gom_resource_class_set_property_transform      (GomResourceClass         *resource_class,
+                                                                  const gchar              *property_name,
+                                                                  GomResourceToBytesFunc    to_bytes_func,
+                                                                  GomResourceFromBytesFunc  from_bytes_func);
 
 void              gom_resource_delete_async          (GomResource          *resource,
                                                       GAsyncReadyCallback   callback,
@@ -86,6 +95,8 @@ gboolean          gom_resource_delete_sync           (GomResource          *reso
 GQuark            gom_resource_error_quark           (void) G_GNUC_CONST;
 GQuark            gom_resource_new_in_version_quark  (void) G_GNUC_CONST;
 GQuark            gom_resource_not_mapped_quark      (void) G_GNUC_CONST;
+GQuark            gom_resource_to_bytes_func_quark   (void) G_GNUC_CONST;
+GQuark            gom_resource_from_bytes_func_quark (void) G_GNUC_CONST;
 GType             gom_resource_get_type              (void) G_GNUC_CONST;
 void              gom_resource_save_async            (GomResource          *resource,
                                                       GAsyncReadyCallback   callback,

@@ -86,6 +86,25 @@ gom_resource_class_set_property_set_mapped (GomResourceClass *resource_class,
 }
 
 void
+gom_resource_class_set_property_transform (GomResourceClass         *resource_class,
+                                           const gchar              *property_name,
+                                           GomResourceToBytesFunc    to_bytes_func,
+                                           GomResourceFromBytesFunc  from_bytes_func)
+{
+   GParamSpec *pspec;
+
+   g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(to_bytes_func != NULL);
+   g_return_if_fail(from_bytes_func != NULL);
+
+   pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
+   g_assert(pspec);
+
+   g_param_spec_set_qdata(pspec, GOM_RESOURCE_TO_BYTES_FUNC, to_bytes_func);
+   g_param_spec_set_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC, from_bytes_func);
+}
+
+void
 gom_resource_class_set_table (GomResourceClass *resource_class,
                               const gchar      *table)
 {
@@ -851,4 +870,16 @@ GQuark
 gom_resource_not_mapped_quark (void)
 {
    return g_quark_from_static_string("gom_resource_not_mapped_quark");
+}
+
+GQuark
+gom_resource_to_bytes_func_quark (void)
+{
+   return g_quark_from_static_string("gom_resource_to_bytes_func_quark");
+}
+
+GQuark
+gom_resource_from_bytes_func_quark (void)
+{
+   return g_quark_from_static_string("gom_resource_from_bytes_func_quark");
 }
