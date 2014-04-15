@@ -76,17 +76,24 @@ is_mapped (GParamSpec *pspec)
 {
    gboolean ret;
 
-   /*
-    * TODO: Make this better, like let classes opt in to what
-    *       fields they want mapped.
-    */
    ret = (pspec->owner_type != GOM_TYPE_RESOURCE);
    if (!ret)
      return FALSE;
 
    ret = (sql_type_for_column(pspec) != NULL);
+   if (!ret)
+     return FALSE;
+
+   ret = !GPOINTER_TO_INT(g_param_spec_get_qdata(pspec, GOM_RESOURCE_NOT_MAPPED));
 
    return ret;
+}
+
+static gboolean
+is_new_in_version (GParamSpec *pspec,
+                   guint       version)
+{
+   return GPOINTER_TO_UINT(g_param_spec_get_qdata(pspec, GOM_RESOURCE_NEW_IN_VERSION)) == version;
 }
 
 static void

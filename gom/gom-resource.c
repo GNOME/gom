@@ -55,6 +55,37 @@ gom_resource_class_set_primary_key (GomResourceClass *resource_class,
 }
 
 void
+gom_resource_class_set_property_new_in_version (GomResourceClass *resource_class,
+                                                const gchar      *property_name,
+                                                guint             version)
+{
+   GParamSpec *pspec;
+
+   g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(version >= 1);
+
+   pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
+   g_assert(pspec);
+
+   g_param_spec_set_qdata(pspec, GOM_RESOURCE_NEW_IN_VERSION, GUINT_TO_POINTER(version));
+}
+
+void
+gom_resource_class_set_property_set_mapped (GomResourceClass *resource_class,
+                                            const gchar      *property_name,
+                                            gboolean          is_mapped)
+{
+   GParamSpec *pspec;
+
+   g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+
+   pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
+   g_assert(pspec);
+
+   g_param_spec_set_qdata(pspec, GOM_RESOURCE_NOT_MAPPED, GINT_TO_POINTER(!is_mapped));
+}
+
+void
 gom_resource_class_set_table (GomResourceClass *resource_class,
                               const gchar      *table)
 {
@@ -808,4 +839,16 @@ GQuark
 gom_resource_error_quark (void)
 {
    return g_quark_from_static_string("gom_resource_error_quark");
+}
+
+GQuark
+gom_resource_new_in_version_quark (void)
+{
+   return g_quark_from_static_string("gom_resource_new_in_version_quark");
+}
+
+GQuark
+gom_resource_not_mapped_quark (void)
+{
+   return g_quark_from_static_string("gom_resource_not_mapped_quark");
 }
