@@ -243,6 +243,7 @@ gom_repository_migrate_sync (GomRepository          *repository,
 
    g_return_val_if_fail(GOM_IS_REPOSITORY(repository), FALSE);
    g_return_val_if_fail(migrator != NULL, FALSE);
+   g_return_val_if_fail(version >= 1, FALSE);
 
    priv = repository->priv;
 
@@ -296,6 +297,7 @@ gom_repository_migrate_async (GomRepository         *repository,
    g_return_if_fail(GOM_IS_REPOSITORY(repository));
    g_return_if_fail(migrator != NULL);
    g_return_if_fail(callback != NULL);
+   g_return_if_fail(version >= 1);
 
    priv = repository->priv;
 
