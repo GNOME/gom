@@ -58,6 +58,8 @@ GomCommand *gom_command_builder_build_insert (GomCommandBuilder *builder,
                                               GomResource       *resource);
 GomCommand *gom_command_builder_build_update (GomCommandBuilder *builder,
                                               GomResource       *resource);
+GList      *gom_command_builder_build_create (GomCommandBuilder *builder,
+                                              guint              version);
 GType       gom_command_builder_get_type     (void) G_GNUC_CONST;
 
 G_END_DECLS

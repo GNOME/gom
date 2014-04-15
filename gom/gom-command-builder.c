@@ -131,6 +131,46 @@ add_from (GString          *str,
    g_string_append_printf(str, " FROM '%s' ", klass->table);
 }
 
+static gboolean
+is_dynamic_pkey(GParamSpec *pspec)
+{
+   switch (pspec->value_type) {
+   case G_TYPE_INT:
+   case G_TYPE_INT64:
+   case G_TYPE_UINT:
+   case G_TYPE_UINT64:
+      return TRUE;
+   default:
+      return FALSE;
+   }
+}
+
+static void
+add_pkey_column (GString          *str,
+                 GomResourceClass *klass)
+{
+   GParamSpec *primary_pspec;
+
+   g_string_append(str, " (");
+
+   primary_pspec = g_object_class_find_property(G_OBJECT_CLASS(klass),
+                                                klass->primary_key);
+   g_assert(primary_pspec);
+   g_string_append_printf(str, "'%s' %s PRIMARY KEY",
+                          primary_pspec->name,
+                          sql_type_for_column (primary_pspec));
+   if (is_dynamic_pkey(primary_pspec))
+     g_string_append(str, " AUTOINCREMENT");
+   g_string_append(str, ")");
+}
+
+static void
+add_table_name (GString          *str,
+		GomResourceClass *klass)
+{
+   g_string_append_printf(str, " '%s' ", klass->table);
+}
+
 static void
 add_joins (GString          *str,
            GomResourceClass *klass)
@@ -276,6 +316,82 @@ bind_params (GomCommand *command,
       }
       g_array_unref(values);
    }
+}
+
+/**
+ * gom_command_builder_build_create:
+ * @builder: (in): A #GomCommandBuilder.
+ * @version: the version of the database.
+ *
+ * Builds a list of #GomCommand to update the table for the
+ * resource_type associated with @builder up to @version.
+ *
+ * Returns: (element-type GomCommand) (transfer full): A #GList of #GomCommand.
+ */
+GList *
+gom_command_builder_build_create (GomCommandBuilder *builder,
+                                  guint              version)
+{
+   GomCommandBuilderPrivate *priv;
+   GomResourceClass *klass;
+   GomCommand *command;
+   GList *ret = NULL;
+   GString *str;
+   GParamSpec *primary_pspec, **pspecs;
+   guint n_pspecs;
+   guint i;
+
+   g_return_val_if_fail(GOM_IS_COMMAND_BUILDER(builder), NULL);
+   g_return_val_if_fail(version >= 1, NULL);
+
+   priv = builder->priv;
+
+   klass = g_type_class_ref(priv->resource_type);
+
+   /* Create the table */
+   if (version == 1) {
+      str = g_string_new("CREATE TABLE IF NOT EXISTS ");
+      add_table_name(str, klass);
+      add_pkey_column(str, klass);
+
+      command = g_object_new(GOM_TYPE_COMMAND,
+                             "adapter", priv->adapter,
+                             "sql", str->str,
+                             NULL);
+      ret = g_list_prepend(NULL, command);
+      g_string_free(str, TRUE);
+   }
+
+   /* And now each of the columns */
+   primary_pspec = g_object_class_find_property(G_OBJECT_CLASS(klass),
+                                                klass->primary_key);
+   g_assert(primary_pspec);
+
+   pspecs = g_object_class_list_properties(G_OBJECT_CLASS(klass), &n_pspecs);
+   for (i = 0; i < n_pspecs; i++) {
+     if (pspecs[i] != primary_pspec &&
+         is_mapped(pspecs[i]) &&
+         is_new_in_version(pspecs[i], version)) {
+       str = g_string_new("ALTER TABLE ");
+       add_table_name(str, klass);
+       g_string_append(str, " ADD COLUMN ");
+       g_string_append_printf(str, "'%s' %s",
+                              pspecs[i]->name,
+                              sql_type_for_column (pspecs[i]));
+
+       command = g_object_new(GOM_TYPE_COMMAND,
+                              "adapter", priv->adapter,
+                              "sql", str->str,
+                              NULL);
+       ret = g_list_prepend(NULL, command);
+       g_string_free(str, TRUE);
+     }
+   }
+   g_free(pspecs);
+
+   g_type_class_unref(klass);
+
+   return g_list_reverse(ret);;
 }
 
 /**
