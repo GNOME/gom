@@ -461,10 +461,6 @@ gom_resource_save_cb (GomAdapter *adapter,
  * @resource: (in): A #GomResource.
  * @error: (out): A location for a #GError, or %NULL.
  *
- * This function MAY ONLY be called from the SQLite thread callback using
- * gom_adapter_queue_write(). You will also likely want to call this
- * inside of a transaction.
- *
  * Returns: %TRUE if successful; otherwise %FALSE.
  */
 gboolean
