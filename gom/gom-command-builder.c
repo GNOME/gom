@@ -383,7 +383,7 @@ gom_command_builder_build_create (GomCommandBuilder *builder,
                               "adapter", priv->adapter,
                               "sql", str->str,
                               NULL);
-       ret = g_list_prepend(NULL, command);
+       ret = g_list_prepend(ret, command);
        g_string_free(str, TRUE);
      }
    }
