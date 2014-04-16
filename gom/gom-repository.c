@@ -266,6 +266,8 @@ gom_repository_migrate_sync (GomRepository          *repository,
       g_simple_async_result_propagate_error(simple, error);
    }
 
+   g_object_unref(simple);
+
    return ret;
 }
 
