@@ -130,6 +130,19 @@ gom_cursor_get_column (GomCursor *cursor,
          g_value_set_string(value,
                             (gchar *)sqlite3_column_text(priv->stmt, column));
          break;
+      case SQLITE_BLOB: {
+         gconstpointer data;
+         gpointer data_copy;
+         gsize size;
+
+         g_value_init(value, G_TYPE_BYTES);
+         data = sqlite3_column_blob(priv->stmt, column);
+         size = sqlite3_column_bytes(priv->stmt, column);
+
+         data_copy = g_memdup(data, size);
+         g_value_take_boxed(value, g_bytes_new_take(data_copy, size));
+         }
+         break;
       default:
          g_assert_not_reached();
       }

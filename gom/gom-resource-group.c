@@ -202,10 +202,24 @@ set_props (GomResource *resource,
    for (i = 0; i < n_cols; i++) {
       name = gom_cursor_get_column_name(cursor, i);
       if ((pspec = g_object_class_find_property(klass, name))) {
-         g_value_init(&value, pspec->value_type);
-         gom_cursor_get_column(cursor, i, &value);
-         g_object_set_property(G_OBJECT(resource), name, &value);
-         g_value_unset(&value);
+         GomResourceFromBytesFunc from_bytes;
+
+         from_bytes = g_param_spec_get_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC);
+         if (from_bytes) {
+            GValue converted = { 0, };
+
+            g_value_init(&value, G_TYPE_BYTES);
+            gom_cursor_get_column(cursor, i, &value);
+            (*from_bytes) (g_value_get_boxed(&value), &converted);
+            g_value_unset(&value);
+            g_object_set_property(G_OBJECT(resource), name, &converted);
+            g_value_unset(&converted);
+         } else {
+            g_value_init(&value, pspec->value_type);
+            gom_cursor_get_column(cursor, i, &value);
+            g_object_set_property(G_OBJECT(resource), name, &value);
+            g_value_unset(&value);
+         }
       }
    }
 }

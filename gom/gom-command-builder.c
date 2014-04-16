@@ -67,6 +67,8 @@ sql_type_for_column (GParamSpec *pspec)
    case G_TYPE_DOUBLE:
       return "FLOAT";
    default:
+      if (g_param_spec_get_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC) != NULL)
+        return "BLOB";
       return NULL;
    }
 }
@@ -544,6 +546,35 @@ do_prop_on_insert (GParamSpec       *pspec,
 #undef BELONGS_TO_TYPE
 }
 
+static void
+resource_get_property(GObject     *object,
+                      const gchar *property_name,
+                      GValue      *value)
+{
+   GValue real_value = { 0, };
+   GomResourceToBytesFunc to_bytes;
+   GParamSpec *pspec;
+   GBytes *bytes;
+
+   pspec = g_object_class_find_property(G_OBJECT_GET_CLASS(object), property_name);
+   g_assert(pspec);
+
+   g_value_init(&real_value, pspec->value_type);
+   g_object_get_property(object, property_name, &real_value);
+
+   to_bytes = g_param_spec_get_qdata(pspec, GOM_RESOURCE_TO_BYTES_FUNC);
+   if (!to_bytes) {
+      *value = real_value;
+      return;
+   }
+
+   bytes = (* to_bytes) (&real_value);
+   g_value_init(value, G_TYPE_BYTES);
+   g_value_take_boxed(value, bytes);
+
+   g_value_unset(&real_value);
+}
+
 /**
  * gom_command_builder_build_insert:
  * @builder: (in): A #GomCommandBuilder.
@@ -613,8 +644,7 @@ gom_command_builder_build_insert (GomCommandBuilder *builder,
       if (do_prop_on_insert(pspecs[i], klass, priv->resource_type)) {
          GValue value = { 0 };
 
-         g_value_init(&value, pspecs[i]->value_type);
-         g_object_get_property(G_OBJECT(resource), pspecs[i]->name, &value);
+         resource_get_property(G_OBJECT(resource), pspecs[i]->name, &value);
          gom_command_set_param(command, idx++, &value);
          g_value_unset(&value);
       }
@@ -685,8 +715,7 @@ gom_command_builder_build_update (GomCommandBuilder *builder,
       if (do_prop_on_insert(pspecs[i], klass, priv->resource_type)) {
          GValue value = { 0 };
 
-         g_value_init(&value, pspecs[i]->value_type);
-         g_object_get_property(G_OBJECT(resource), pspecs[i]->name, &value);
+         resource_get_property(G_OBJECT(resource), pspecs[i]->name, &value);
          gom_command_set_param(command, idx++, &value);
          g_value_unset(&value);
       }

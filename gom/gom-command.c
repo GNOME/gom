@@ -31,6 +31,8 @@ struct _GomCommandPrivate
    gchar        *sql;
    sqlite3_stmt *stmt;
    GHashTable   *params;
+
+   GPtrArray    *blobs;
 };
 
 enum
@@ -113,6 +115,19 @@ gom_command_bind_param (GomCommand   *command,
          break;
       } else if (g_type_is_a(G_VALUE_TYPE(value), G_TYPE_ENUM)) {
          sqlite3_bind_int(priv->stmt, param, g_value_get_enum(value));
+         break;
+      } else if (g_type_is_a(G_VALUE_TYPE(value), G_TYPE_BYTES)) {
+         GBytes *bytes;
+
+         bytes = g_value_get_boxed(value);
+         if (!bytes) {
+            sqlite3_bind_blob(priv->stmt, param,
+                              NULL, 0, NULL);
+         } else {
+            sqlite3_bind_blob(priv->stmt, param,
+                              g_bytes_get_data(bytes, NULL), g_bytes_get_size(bytes), NULL);
+            g_ptr_array_add(priv->blobs, g_bytes_ref(bytes));
+         }
          break;
       }
       g_warning("Failed to bind gtype %s.", g_type_name(G_VALUE_TYPE(value)));
@@ -332,6 +347,9 @@ gom_command_reset (GomCommand *command)
    if (priv->stmt) {
       sqlite3_clear_bindings(priv->stmt);
       sqlite3_reset(priv->stmt);
+
+      g_ptr_array_unref(priv->blobs);
+      priv->blobs = g_ptr_array_new_with_free_func ((GDestroyNotify) g_bytes_unref);
    }
 }
 
@@ -383,6 +401,10 @@ gom_command_finalize (GObject *object)
 
    if (priv->params) {
       g_hash_table_destroy(priv->params);
+   }
+
+   if (priv->blobs) {
+      g_ptr_array_unref(priv->blobs);
    }
 
    G_OBJECT_CLASS(gom_command_parent_class)->finalize(object);
@@ -492,6 +514,7 @@ gom_command_init (GomCommand *command)
       G_TYPE_INSTANCE_GET_PRIVATE(command,
                                   GOM_TYPE_COMMAND,
                                   GomCommandPrivate);
+   command->priv->blobs = g_ptr_array_new_with_free_func ((GDestroyNotify) g_bytes_unref);
 }
 
 GQuark
