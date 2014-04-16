@@ -70,6 +70,7 @@ gom_resource_group_set_adapter (GomResourceGroup *group,
    g_return_if_fail(GOM_IS_RESOURCE_GROUP(group));
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
 
+   g_clear_object(&group->priv->adapter);
    group->priv->adapter = g_object_ref(adapter);
    g_object_notify_by_pspec(G_OBJECT(group), gParamSpecs[PROP_ADAPTER]);
 }
@@ -436,6 +437,7 @@ gom_resource_group_finalize (GObject *object)
 
    g_clear_object(&priv->adapter);
    g_clear_object(&priv->filter);
+   g_clear_pointer(&priv->items, g_hash_table_unref);
 
    G_OBJECT_CLASS(gom_resource_group_parent_class)->finalize(object);
 }
