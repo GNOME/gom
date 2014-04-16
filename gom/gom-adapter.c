@@ -483,13 +483,11 @@ gom_adapter_finalize (GObject *object)
 {
    GomAdapterPrivate *priv = GOM_ADAPTER(object)->priv;
 
-
-   if (priv->db) {
+   if (priv->db)
       g_warning("Adapter not closed, leaking!");
-   } else {
-      g_async_queue_unref(priv->queue);
-      g_thread_unref(priv->thread);
-   }
+
+   g_clear_pointer(&priv->queue, g_async_queue_unref);
+   g_clear_pointer(&priv->thread, g_thread_unref);
 
    G_OBJECT_CLASS(gom_adapter_parent_class)->finalize(object);
 }
