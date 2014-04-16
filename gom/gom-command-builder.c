@@ -67,7 +67,7 @@ sql_type_for_column (GParamSpec *pspec)
    case G_TYPE_DOUBLE:
       return "FLOAT";
    default:
-      return FALSE;
+      return NULL;
    }
 }
 
