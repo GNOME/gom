@@ -108,6 +108,30 @@ gom_resource_class_set_property_transform (GomResourceClass         *resource_cl
 }
 
 void
+gom_resource_class_set_reference (GomResourceClass     *resource_class,
+                                  const gchar          *property_name,
+                                  const gchar          *ref_table_name,
+                                  const gchar          *ref_property_name)
+{
+   GParamSpec *pspec;
+
+   g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(property_name != NULL);
+   g_return_if_fail(ref_property_name != NULL);
+
+   pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
+   g_assert(pspec);
+
+   if (ref_table_name == NULL)
+     ref_table_name = G_OBJECT_CLASS_NAME(resource_class);
+
+   g_param_spec_set_qdata_full(pspec, GOM_RESOURCE_REF_TABLE_CLASS,
+                               g_strdup(ref_table_name), g_free);
+   g_param_spec_set_qdata_full(pspec, GOM_RESOURCE_REF_PROPERTY_NAME,
+                               g_strdup(ref_property_name), g_free);
+}
+
+void
 gom_resource_class_set_table (GomResourceClass *resource_class,
                               const gchar      *table)
 {
@@ -885,4 +909,16 @@ GQuark
 gom_resource_from_bytes_func_quark (void)
 {
    return g_quark_from_static_string("gom_resource_from_bytes_func_quark");
+}
+
+GQuark
+gom_resource_ref_table_class (void)
+{
+   return g_quark_from_static_string("gom_resource_ref_table_class");
+}
+
+GQuark
+gom_resource_ref_property_name (void)
+{
+   return g_quark_from_static_string("gom_resource_ref_property_name");
 }

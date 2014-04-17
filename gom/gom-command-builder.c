@@ -177,6 +177,22 @@ add_table_name (GString          *str,
 }
 
 static void
+add_reference (GString           *str,
+               GParamSpec        *pspec)
+{
+   const gchar *table_name;
+   const gchar *property_name;
+
+   table_name = g_param_spec_get_qdata(pspec, GOM_RESOURCE_REF_TABLE_CLASS);
+   if (!table_name)
+      return;
+   property_name = g_param_spec_get_qdata(pspec, GOM_RESOURCE_REF_PROPERTY_NAME);
+   g_assert(property_name);
+
+   g_string_append_printf(str, " REFERENCES [%s]([%s]) ", table_name, property_name);
+}
+
+static void
 add_joins (GString          *str,
            GomResourceClass *klass)
 {
@@ -383,6 +399,7 @@ gom_command_builder_build_create (GomCommandBuilder *builder,
        g_string_append_printf(str, "'%s' %s",
                               pspecs[i]->name,
                               sql_type_for_column (pspecs[i]));
+       add_reference(str, pspecs[i]);
 
        command = g_object_new(GOM_TYPE_COMMAND,
                               "adapter", priv->adapter,
