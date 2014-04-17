@@ -345,7 +345,7 @@ copy_db (void)
   dest = g_file_new_for_path (path);
   g_free (path);
 
-  ret = g_file_copy (src, dest, G_FILE_COPY_NONE, NULL, NULL, NULL, &error);
+  ret = g_file_copy (src, dest, G_FILE_COPY_TARGET_DEFAULT_PERMS, NULL, NULL, NULL, &error);
   g_assert_no_error(error);
   g_assert (ret);
   g_object_unref (src);
