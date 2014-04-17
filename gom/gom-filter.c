@@ -540,7 +540,7 @@ gom_filter_mode_get_type (void)
    static const GEnumValue values[] = {
       { GOM_FILTER_SQL, "GOM_FILTER_SQL", "SQL" },
       { GOM_FILTER_OR,  "GOM_FILTER_OR",  "OR" },
-      { GOM_FILTER_AND, "GOM_FILTER_SQL", "SQL" },
+      { GOM_FILTER_AND, "GOM_FILTER_AND", "AND" },
       { GOM_FILTER_EQ,  "GOM_FILTER_EQ",  "EQ" },
       { GOM_FILTER_NEQ, "GOM_FILTER_NEQ", "NEQ" },
       { GOM_FILTER_GT,  "GOM_FILTER_GT",  "GT" },
