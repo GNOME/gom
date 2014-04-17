@@ -13,6 +13,7 @@
 
 typedef struct {
   int id;
+  int parent_id;
   GdkPixbuf *pixbuf;
   char **strv;
   GDateTime *datetime;
@@ -32,6 +33,7 @@ G_DEFINE_TYPE(ItemResource, item_resource, GOM_TYPE_RESOURCE)
 enum {
   PROP_0,
   PROP_ID,
+  PROP_PARENT_ID,
   PROP_PIXBUF,
   PROP_STRV,
   PROP_DATE_TIME,
@@ -59,6 +61,9 @@ item_resource_get_property (GObject    *object,
   case PROP_ID:
     g_value_set_uint(value, resource->priv->id);
     break;
+  case PROP_PARENT_ID:
+    g_value_set_uint(value, resource->priv->parent_id);
+    break;
   case PROP_PIXBUF:
     g_value_set_object(value, resource->priv->pixbuf);
     break;
@@ -84,6 +89,9 @@ item_resource_set_property (GObject      *object,
   switch (prop_id) {
   case PROP_ID:
     resource->priv->id = g_value_get_uint(value);
+    break;
+  case PROP_PARENT_ID:
+    resource->priv->parent_id = g_value_get_uint(value);
     break;
   case PROP_PIXBUF:
     g_clear_object(&resource->priv->pixbuf);
@@ -170,6 +178,16 @@ item_resource_class_init (ItemResourceClass *klass)
                                      G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_ID,
                                   specs[PROP_ID]);
+
+  specs[PROP_PARENT_ID] = g_param_spec_uint("parent-id",
+                                            "Parent ID",
+                                            "The Parent ID for the item.",
+                                            0, G_MAXUINT, 0,
+                                            G_PARAM_READWRITE);
+  g_object_class_install_property(object_class, PROP_PARENT_ID,
+                                  specs[PROP_PARENT_ID]);
+  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "parent-id", 1);
+  gom_resource_class_set_reference(resource_class, "parent-id", "items", "id");
 
   specs[PROP_PIXBUF] = g_param_spec_object("pixbuf",
                                            "Pixbuf",
