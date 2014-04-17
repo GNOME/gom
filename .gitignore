@@ -26,4 +26,6 @@ stamp-h1
 test-gom-adapter
 test-gom-repository
 test-gom-find
+test-gom-stress
+test-gom-transform
 *.typelib
