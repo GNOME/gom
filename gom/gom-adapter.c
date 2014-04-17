@@ -189,7 +189,7 @@ open_callback (GomAdapter *adapter,
 
    queue = g_object_get_data(G_OBJECT(simple), "queue");
    uri = g_object_get_data(G_OBJECT(simple), "uri");
-   flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI;
+   flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX;
    ret = sqlite3_open_v2(uri, &adapter->priv->db, flags, NULL);
    if (ret != SQLITE_OK) {
       g_simple_async_result_set_error(simple, GOM_ADAPTER_ERROR,
