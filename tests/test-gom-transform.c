@@ -14,6 +14,8 @@
 typedef struct {
   int id;
   GdkPixbuf *pixbuf;
+  char **strv;
+  GDateTime *datetime;
 } ItemResourcePrivate;
 
 typedef struct {
@@ -31,6 +33,8 @@ enum {
   PROP_0,
   PROP_ID,
   PROP_PIXBUF,
+  PROP_STRV,
+  PROP_DATE_TIME,
   LAST_PROP
 };
 
@@ -58,6 +62,12 @@ item_resource_get_property (GObject    *object,
   case PROP_PIXBUF:
     g_value_set_object(value, resource->priv->pixbuf);
     break;
+  case PROP_STRV:
+    g_value_set_boxed(value, resource->priv->strv);
+    break;
+  case PROP_DATE_TIME:
+    g_value_set_boxed(value, resource->priv->datetime);
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
   }
@@ -78,6 +88,14 @@ item_resource_set_property (GObject      *object,
   case PROP_PIXBUF:
     g_clear_object(&resource->priv->pixbuf);
     resource->priv->pixbuf = g_value_dup_object(value);
+    break;
+  case PROP_STRV:
+    g_clear_pointer(&resource->priv->strv, g_strfreev);
+    resource->priv->strv = g_strdupv((gchar**)g_value_get_boxed (value));
+    break;
+  case PROP_DATE_TIME:
+    g_clear_pointer(&resource->priv->datetime, g_date_time_unref);
+    resource->priv->datetime = g_date_time_ref(g_value_get_boxed (value));
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -163,6 +181,22 @@ item_resource_class_init (ItemResourceClass *klass)
   gom_resource_class_set_property_transform(resource_class, "pixbuf",
                                             pixbuf_to_bytes, pixbuf_from_bytes);
   gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "pixbuf", 1);
+  specs[PROP_STRV] = g_param_spec_boxed("strv",
+                                        "Strv",
+                                        "The Strv for the item.",
+                                        G_TYPE_STRV,
+                                        G_PARAM_READWRITE);
+  g_object_class_install_property(object_class, PROP_STRV,
+                                  specs[PROP_STRV]);
+  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "strv", 1);
+  specs[PROP_DATE_TIME] = g_param_spec_boxed("date_time",
+                                             "DateTime",
+                                             "The DateTime for the item.",
+                                             G_TYPE_DATE_TIME,
+                                             G_PARAM_READWRITE);
+  g_object_class_install_property(object_class, PROP_DATE_TIME,
+                                  specs[PROP_DATE_TIME]);
+  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "date_time", 1);
 }
 
 static void
@@ -232,6 +266,10 @@ transform (void)
    GdkPixbuf *pixbuf, *pixbuf2;
    GValue value = { 0, };
    GomFilter *filter;
+   GDateTime *datetime;
+   char **strv;
+   const char *strv_input[] = { "Foo", "Bar", "Baz", NULL };
+   GTimeZone *tz;
 
    adapter = gom_adapter_new();
    //ret = gom_adapter_open_sync(adapter, "file:test.db", &error);
@@ -250,11 +288,17 @@ transform (void)
    g_assert_no_error(error);
    g_assert(pixbuf);
 
+   tz = g_time_zone_new_utc();
+   datetime = g_date_time_new(tz, 2014, 4, 17, 9, 9, 0);
+   g_time_zone_unref(tz);
    item = g_object_new (ITEM_TYPE_RESOURCE,
                         "pixbuf", pixbuf,
                         "repository", repository,
+                        "date-time", datetime,
+                        "strv", strv_input,
                         NULL);
    g_object_unref(pixbuf);
+   g_date_time_unref(datetime);
 
    ret = gom_resource_save_sync(GOM_RESOURCE(item), &error);
    g_assert_no_error(error);
@@ -276,13 +320,27 @@ transform (void)
    g_assert(item);
    g_object_unref(filter);
 
-   g_object_get(item, "pixbuf", &pixbuf, NULL);
+   g_object_get(item,
+                "pixbuf", &pixbuf,
+                "date-time", &datetime,
+                "strv", &strv,
+                NULL);
    g_object_unref(item);
+
    pixbuf2 = gdk_pixbuf_new_from_file(IMAGE, &error);
    ret = pixbuf_compare(pixbuf, pixbuf2);
    g_assert(ret);
    g_object_unref(pixbuf);
    g_object_unref(pixbuf2);
+
+   g_assert_cmpstr(strv[0], ==, strv_input[0]);
+   g_assert_cmpstr(strv[1], ==, strv_input[1]);
+   g_assert_cmpstr(strv[2], ==, strv_input[2]);
+   g_strfreev(strv);
+
+   g_assert_cmpint(g_date_time_get_year(datetime), ==, 2014);
+   g_assert_cmpint(g_date_time_get_hour(datetime), ==, 9);
+   g_date_time_unref(datetime);
 
    ret = gom_adapter_close_sync(adapter, &error);
    g_assert_no_error(error);
