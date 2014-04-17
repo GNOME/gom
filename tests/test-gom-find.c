@@ -2,6 +2,7 @@
 #include <glib/gstdio.h>
 
 static GMainLoop *gMainLoop;
+static char *db_dir_path = NULL;
 
 /* BookmarksResource object */
 
@@ -220,15 +221,17 @@ close_cb (GObject      *object,
    gboolean *success = user_data;
    gboolean ret;
    GError *error = NULL;
-   char *path;
+   GFile *file;
 
    ret = gom_adapter_close_finish(adapter, result, &error);
    g_assert_no_error(error);
    g_assert(ret);
 
-   path = g_build_filename(g_get_tmp_dir (), "gom-db-test.db", NULL);
-   g_assert (g_unlink (path) == 0);
-   g_free (path);
+   file = g_file_new_for_path(db_dir_path);
+   g_file_trash(file, NULL, NULL);
+   g_object_unref(file);
+
+   g_clear_pointer(&db_dir_path, g_free);
 
    *success = TRUE;
    g_main_loop_quit(gMainLoop);
@@ -333,8 +336,12 @@ copy_db (void)
   GError *error = NULL;
   gboolean ret;
 
+  db_dir_path = g_dir_make_tmp("test-gom-find-XXXXXXX", &error);
+  g_assert(db_dir_path);
+  g_assert_no_error(error);
+
   src = g_file_new_for_commandline_arg (DB);
-  path = g_build_filename(g_get_tmp_dir (), "gom-db-test.db", NULL);
+  path = g_build_filename(db_dir_path, "gom-db-test.db", NULL);
   dest = g_file_new_for_path (path);
   g_free (path);
 
