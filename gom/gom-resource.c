@@ -62,6 +62,7 @@ gom_resource_class_set_property_new_in_version (GomResourceClass *resource_class
    GParamSpec *pspec;
 
    g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(property_name != NULL);
    g_return_if_fail(version >= 1);
 
    pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
@@ -78,6 +79,7 @@ gom_resource_class_set_property_set_mapped (GomResourceClass *resource_class,
    GParamSpec *pspec;
 
    g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(property_name != NULL);
 
    pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
    g_assert(pspec);
@@ -94,6 +96,7 @@ gom_resource_class_set_property_transform (GomResourceClass         *resource_cl
    GParamSpec *pspec;
 
    g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(property_name != NULL);
    g_return_if_fail(to_bytes_func != NULL);
    g_return_if_fail(from_bytes_func != NULL);
 
