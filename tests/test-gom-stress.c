@@ -127,7 +127,6 @@ item_resource_class_init (ItemResourceClass *klass)
                                                G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_FIRST_NAME,
                                   specs[PROP_FIRST_NAME]);
-  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "first-name", 1);
 
   specs[PROP_SURNAME] = g_param_spec_string("surname",
                                             "Surname",
@@ -136,7 +135,6 @@ item_resource_class_init (ItemResourceClass *klass)
                                             G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_SURNAME,
                                   specs[PROP_SURNAME]);
-  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "surname", 1);
 }
 
 static void

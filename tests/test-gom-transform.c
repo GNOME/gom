@@ -186,7 +186,6 @@ item_resource_class_init (ItemResourceClass *klass)
                                             G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_PARENT_ID,
                                   specs[PROP_PARENT_ID]);
-  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "parent-id", 1);
   gom_resource_class_set_reference(resource_class, "parent-id", "items", "id");
 
   specs[PROP_PIXBUF] = g_param_spec_object("pixbuf",
@@ -198,7 +197,6 @@ item_resource_class_init (ItemResourceClass *klass)
                                   specs[PROP_PIXBUF]);
   gom_resource_class_set_property_transform(resource_class, "pixbuf",
                                             pixbuf_to_bytes, pixbuf_from_bytes);
-  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "pixbuf", 1);
   specs[PROP_STRV] = g_param_spec_boxed("strv",
                                         "Strv",
                                         "The Strv for the item.",
@@ -206,7 +204,6 @@ item_resource_class_init (ItemResourceClass *klass)
                                         G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_STRV,
                                   specs[PROP_STRV]);
-  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "strv", 1);
   specs[PROP_DATE_TIME] = g_param_spec_boxed("date_time",
                                              "DateTime",
                                              "The DateTime for the item.",
@@ -214,7 +211,6 @@ item_resource_class_init (ItemResourceClass *klass)
                                              G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_DATE_TIME,
                                   specs[PROP_DATE_TIME]);
-  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class), "date_time", 1);
 }
 
 static void

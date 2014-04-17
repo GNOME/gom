@@ -68,7 +68,9 @@ gom_resource_class_set_property_new_in_version (GomResourceClass *resource_class
    pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
    g_assert(pspec);
 
-   g_param_spec_set_qdata(pspec, GOM_RESOURCE_NEW_IN_VERSION, GUINT_TO_POINTER(version));
+   /* See is_new_in_version() in gom-repository.c for the reasoning
+    * behind the "- 1" */
+   g_param_spec_set_qdata(pspec, GOM_RESOURCE_NEW_IN_VERSION, GINT_TO_POINTER(version - 1));
 }
 
 void

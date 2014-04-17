@@ -98,7 +98,10 @@ static gboolean
 is_new_in_version (GParamSpec *pspec,
                    guint       version)
 {
-   return GPOINTER_TO_UINT(g_param_spec_get_qdata(pspec, GOM_RESOURCE_NEW_IN_VERSION)) == version;
+   /* This is a bit ugly, but this allows us to consider
+    * an unset value to be new in version 1. Version 0
+    * is for "pre-GOM" SQLite usage. */
+   return GPOINTER_TO_INT(g_param_spec_get_qdata(pspec, GOM_RESOURCE_NEW_IN_VERSION) + 1) == version;
 }
 
 static void
@@ -156,8 +159,6 @@ add_pkey_column (GString          *str,
 {
    GParamSpec *primary_pspec;
 
-   g_string_append(str, " (");
-
    primary_pspec = g_object_class_find_property(G_OBJECT_CLASS(klass),
                                                 klass->primary_key);
    g_assert(primary_pspec);
@@ -166,7 +167,6 @@ add_pkey_column (GString          *str,
                           sql_type_for_column (primary_pspec));
    if (is_dynamic_pkey(primary_pspec))
      g_string_append(str, " AUTOINCREMENT");
-   g_string_append(str, ")");
 }
 
 static void
@@ -369,26 +369,42 @@ gom_command_builder_build_create (GomCommandBuilder *builder,
 
    klass = g_type_class_ref(priv->resource_type);
 
-   /* Create the table */
+   primary_pspec = g_object_class_find_property(G_OBJECT_CLASS(klass),
+                                                klass->primary_key);
+   g_assert(primary_pspec);
+
+   pspecs = g_object_class_list_properties(G_OBJECT_CLASS(klass), &n_pspecs);
+
+   /* Create the table if it doesn't already exist*/
    if (version == 1) {
       str = g_string_new("CREATE TABLE IF NOT EXISTS ");
       add_table_name(str, klass);
+      g_string_append(str, "(");
       add_pkey_column(str, klass);
 
+      for (i = 0; i < n_pspecs; i++) {
+         if (pspecs[i] != primary_pspec &&
+             is_mapped(pspecs[i]) &&
+             is_new_in_version(pspecs[i], version)) {
+            g_string_append(str, ",");
+            g_string_append_printf(str, "'%s' %s",
+                                   pspecs[i]->name,
+                                   sql_type_for_column (pspecs[i]));
+            add_reference(str, pspecs[i]);
+         }
+      }
+      g_string_append(str, ")");
       command = g_object_new(GOM_TYPE_COMMAND,
                              "adapter", priv->adapter,
                              "sql", str->str,
                              NULL);
       ret = g_list_prepend(NULL, command);
       g_string_free(str, TRUE);
+
+      goto out;
    }
 
-   /* And now each of the columns */
-   primary_pspec = g_object_class_find_property(G_OBJECT_CLASS(klass),
-                                                klass->primary_key);
-   g_assert(primary_pspec);
-
-   pspecs = g_object_class_list_properties(G_OBJECT_CLASS(klass), &n_pspecs);
+   /* And now each of the columns for versions > 1 */
    for (i = 0; i < n_pspecs; i++) {
      if (pspecs[i] != primary_pspec &&
          is_mapped(pspecs[i]) &&
@@ -409,6 +425,8 @@ gom_command_builder_build_create (GomCommandBuilder *builder,
        g_string_free(str, TRUE);
      }
    }
+
+out:
    g_free(pspecs);
 
    g_type_class_unref(klass);
