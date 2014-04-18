@@ -885,12 +885,6 @@ gom_resource_init (GomResource *resource)
 }
 
 GQuark
-gom_resource_error_quark (void)
-{
-   return g_quark_from_static_string("gom_resource_error_quark");
-}
-
-GQuark
 gom_resource_new_in_version_quark (void)
 {
    return g_quark_from_static_string("gom_resource_new_in_version_quark");

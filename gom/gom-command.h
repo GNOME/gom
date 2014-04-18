@@ -32,18 +32,10 @@ G_BEGIN_DECLS
 #define GOM_IS_COMMAND(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOM_TYPE_COMMAND))
 #define GOM_IS_COMMAND_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GOM_TYPE_COMMAND))
 #define GOM_COMMAND_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GOM_TYPE_COMMAND, GomCommandClass))
-#define GOM_COMMAND_ERROR           (gom_command_error_quark())
 
 typedef struct _GomCommand        GomCommand;
 typedef struct _GomCommandClass   GomCommandClass;
 typedef struct _GomCommandPrivate GomCommandPrivate;
-typedef enum   _GomCommandError   GomCommandError;
-
-enum _GomCommandError
-{
-   GOM_COMMAND_ERROR_NO_SQL = 1,
-   GOM_COMMAND_ERROR_SQLITE,
-};
 
 struct _GomCommand
 {
@@ -58,7 +50,6 @@ struct _GomCommandClass
    GObjectClass parent_class;
 };
 
-GQuark       gom_command_error_quark      (void) G_GNUC_CONST;
 gboolean     gom_command_execute          (GomCommand    *command,
                                            GomCursor    **cursor,
                                            GError       **error);

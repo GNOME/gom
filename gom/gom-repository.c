@@ -905,9 +905,3 @@ gom_repository_init (GomRepository *repository)
                                   GOM_TYPE_REPOSITORY,
                                   GomRepositoryPrivate);
 }
-
-GQuark
-gom_repository_error_quark (void)
-{
-   return g_quark_from_static_string("gom-repository-error-quark");
-}

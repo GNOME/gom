@@ -32,7 +32,6 @@ G_BEGIN_DECLS
 #define GOM_IS_RESOURCE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOM_TYPE_RESOURCE))
 #define GOM_IS_RESOURCE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GOM_TYPE_RESOURCE))
 #define GOM_RESOURCE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GOM_TYPE_RESOURCE, GomResourceClass))
-#define GOM_RESOURCE_ERROR           (gom_resource_error_quark())
 #define GOM_RESOURCE_NEW_IN_VERSION  (gom_resource_new_in_version_quark())
 #define GOM_RESOURCE_NOT_MAPPED      (gom_resource_not_mapped_quark())
 #define GOM_RESOURCE_TO_BYTES_FUNC   (gom_resource_to_bytes_func_quark())
@@ -43,14 +42,8 @@ G_BEGIN_DECLS
 typedef struct _GomResource        GomResource;
 typedef struct _GomResourceClass   GomResourceClass;
 typedef struct _GomResourcePrivate GomResourcePrivate;
-typedef enum   _GomResourceError   GomResourceError;
 
 #include "gom-resource-group.h"
-
-enum _GomResourceError
-{
-   GOM_RESOURCE_ERROR_CURSOR = 1,
-};
 
 struct _GomResource
 {
@@ -98,7 +91,6 @@ gboolean          gom_resource_delete_finish         (GomResource          *reso
                                                       GError              **error);
 gboolean          gom_resource_delete_sync           (GomResource          *resource,
                                                       GError              **error);
-GQuark            gom_resource_error_quark           (void) G_GNUC_CONST;
 GQuark            gom_resource_new_in_version_quark  (void) G_GNUC_CONST;
 GQuark            gom_resource_not_mapped_quark      (void) G_GNUC_CONST;
 GQuark            gom_resource_to_bytes_func_quark   (void) G_GNUC_CONST;

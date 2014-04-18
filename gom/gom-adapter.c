@@ -523,9 +523,3 @@ gom_adapter_init (GomAdapter *adapter)
                                   GOM_TYPE_ADAPTER,
                                   GomAdapterPrivate);
 }
-
-GQuark
-gom_adapter_error_quark (void)
-{
-   return g_quark_from_static_string("gom_adapter_error_quark");
-}

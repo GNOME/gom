@@ -30,20 +30,13 @@ G_BEGIN_DECLS
 #define GOM_IS_ADAPTER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOM_TYPE_ADAPTER))
 #define GOM_IS_ADAPTER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GOM_TYPE_ADAPTER))
 #define GOM_ADAPTER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GOM_TYPE_ADAPTER, GomAdapterClass))
-#define GOM_ADAPTER_ERROR           (gom_adapter_error_quark())
 
 typedef struct _GomAdapter        GomAdapter;
 typedef struct _GomAdapterClass   GomAdapterClass;
 typedef struct _GomAdapterPrivate GomAdapterPrivate;
-typedef enum   _GomAdapterError   GomAdapterError;
 
 typedef void (*GomAdapterCallback) (GomAdapter *adapter,
                                     gpointer    user_data);
-
-enum _GomAdapterError
-{
-   GOM_ADAPTER_ERROR_OPEN = 1,
-};
 
 struct _GomAdapter
 {
@@ -66,7 +59,6 @@ void        gom_adapter_close_async  (GomAdapter           *adapter,
 gboolean    gom_adapter_close_finish (GomAdapter           *adapter,
                                       GAsyncResult         *result,
                                       GError              **error);
-GQuark      gom_adapter_error_quark  (void) G_GNUC_CONST;
 gpointer    gom_adapter_get_handle   (GomAdapter           *adapter);
 GType       gom_adapter_get_type     (void) G_GNUC_CONST;
 GomAdapter *gom_adapter_new          (void);

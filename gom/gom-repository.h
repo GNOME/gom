@@ -34,12 +34,10 @@ G_BEGIN_DECLS
 #define GOM_IS_REPOSITORY(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GOM_TYPE_REPOSITORY))
 #define GOM_IS_REPOSITORY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GOM_TYPE_REPOSITORY))
 #define GOM_REPOSITORY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GOM_TYPE_REPOSITORY, GomRepositoryClass))
-#define GOM_REPOSITORY_ERROR           (gom_repository_error_quark())
 
 typedef struct _GomRepository        GomRepository;
 typedef struct _GomRepositoryClass   GomRepositoryClass;
 typedef struct _GomRepositoryPrivate GomRepositoryPrivate;
-typedef enum   _GomRepositoryError   GomRepositoryError;
 
 typedef gboolean (*GomRepositoryMigrator) (GomRepository  *repository,
                                            GomAdapter     *adapter,
@@ -47,10 +45,6 @@ typedef gboolean (*GomRepositoryMigrator) (GomRepository  *repository,
                                            gpointer        user_data,
                                            GError        **error);
 
-enum _GomRepositoryError
-{
-   GOM_REPOSITORY_ERROR_EMPTY_RESULT = 1,
-};
 
 struct _GomRepository
 {
@@ -65,7 +59,6 @@ struct _GomRepositoryClass
    GObjectClass parent_class;
 };
 
-GQuark            gom_repository_error_quark     (void) G_GNUC_CONST;
 GomAdapter       *gom_repository_get_adapter     (GomRepository          *repository);
 GType             gom_repository_get_type        (void) G_GNUC_CONST;
 GomRepository    *gom_repository_new             (GomAdapter             *adapter);

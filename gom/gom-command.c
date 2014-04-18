@@ -523,9 +523,3 @@ gom_command_init (GomCommand *command)
                                   GomCommandPrivate);
    command->priv->blobs = g_ptr_array_new_with_free_func ((GDestroyNotify) g_bytes_unref);
 }
-
-GQuark
-gom_command_error_quark (void)
-{
-   return g_quark_from_static_string("gom_command_error_quark");
-}
