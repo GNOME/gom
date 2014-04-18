@@ -80,6 +80,12 @@ gom_command_bind_param (GomCommand   *command,
    case G_TYPE_UINT64:
       sqlite3_bind_int64(priv->stmt, param, g_value_get_uint64(value));
       break;
+   case G_TYPE_ENUM:
+      sqlite3_bind_int(priv->stmt, param, g_value_get_enum(value));
+      break;
+   case G_TYPE_FLAGS:
+      sqlite3_bind_int(priv->stmt, param, g_value_get_flags(value));
+      break;
    case G_TYPE_STRING:
       sqlite3_bind_text(priv->stmt, param,
                         g_value_dup_string(value), -1, g_free);

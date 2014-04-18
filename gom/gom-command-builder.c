@@ -55,6 +55,8 @@ static GParamSpec *gParamSpecs[LAST_PROP];
 static const char *
 sql_type_for_column (GParamSpec *pspec)
 {
+   GType parent_type;
+
    switch (pspec->value_type) {
    case G_TYPE_INT:
    case G_TYPE_INT64:
@@ -70,6 +72,10 @@ sql_type_for_column (GParamSpec *pspec)
       if (pspec->value_type == G_TYPE_STRV ||
           pspec->value_type == G_TYPE_DATE_TIME)
         return "BLOB";
+      parent_type = g_type_parent(pspec->value_type);
+      if (parent_type == G_TYPE_ENUM ||
+          parent_type == G_TYPE_FLAGS)
+        return "INTEGER";
       if (g_param_spec_get_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC) != NULL)
         return "BLOB";
       return NULL;

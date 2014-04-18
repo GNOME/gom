@@ -78,6 +78,12 @@ gom_cursor_get_column (GomCursor *cursor,
    case G_TYPE_UINT64:
       g_value_set_uint64(value, sqlite3_column_int64(priv->stmt, column));
       break;
+   case G_TYPE_ENUM:
+      g_value_set_enum(value, sqlite3_column_int(priv->stmt, column));
+      break;
+   case G_TYPE_FLAGS:
+      g_value_set_flags(value, sqlite3_column_int(priv->stmt, column));
+      break;
    default:
       if (G_VALUE_TYPE(value) == G_TYPE_DATE_TIME) {
          GTimeVal tv = { 0 };
