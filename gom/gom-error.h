@@ -1,6 +1,6 @@
-/* gom.h
+/* gom-filter.h
  *
- * Copyright (C) 2011 Christian Hergert <chris@dronelabs.com>
+ * Copyright (C) 2014 Christian Hergert <chris@dronelabs.com>
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,27 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GOM_H
-#define GOM_H
+#ifndef GOM_ERROR_H
+#define GOM_ERROR_H
 
-#include <glib.h>
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 
-#define GOM_INSIDE
+#define GOM_ERROR                  (gom_error_quark())
 
-#include "gom-adapter.h"
-#include "gom-command.h"
-#include "gom-command-builder.h"
-#include "gom-cursor.h"
-#include "gom-error.h"
-#include "gom-filter.h"
-#include "gom-repository.h"
-#include "gom-resource-group.h"
-#include "gom-resource.h"
+typedef enum _GomError GomError;
 
-#undef GOM_INSIDE
+enum _GomError
+{
+    GOM_ERROR_ADAPTER_OPEN,
+    GOM_ERROR_COMMAND_NO_SQL,
+    GOM_ERROR_COMMAND_SQLITE,
+    GOM_ERROR_REPOSITORY_EMPTY_RESULT,
+    GOM_ERROR_RESOURCE_CURSOR
+};
+
+GQuark    gom_error_quark    (void) G_GNUC_CONST;
+GType     gom_error_get_type (void) G_GNUC_CONST;
 
 G_END_DECLS
 
-#endif /* GOM_H */
+#endif
