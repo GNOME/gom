@@ -213,7 +213,7 @@ get_table (GParamSpec *pspec,
 }
 
 /**
- * gom_filter_new_and:
+ * gom_filter_new_and: (constructor)
  * @left: (in): A #GomFilter.
  * @right: (in): A #GomFilter.
  *
@@ -241,7 +241,7 @@ gom_filter_new_and (GomFilter *left,
 }
 
 /**
- * gom_filter_new_or:
+ * gom_filter_new_or: (constructor)
  * @left: (in): A #GomFilter.
  * @right: (in): A #GomFilter.
  *
