@@ -86,8 +86,11 @@ is_mapped (GParamSpec *pspec)
      return FALSE;
 
    ret = (sql_type_for_column(pspec) != NULL);
-   if (!ret)
+   if (!ret) {
+     g_debug("Property %s not mapped because type is unsupported (%s)",
+             pspec->name, g_type_name(pspec->value_type));
      return FALSE;
+   }
 
    ret = !GPOINTER_TO_INT(g_param_spec_get_qdata(pspec, GOM_RESOURCE_NOT_MAPPED));
 
