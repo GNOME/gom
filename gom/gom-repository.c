@@ -21,6 +21,7 @@
 #include "gom-command.h"
 #include "gom-command-builder.h"
 #include "gom-cursor.h"
+#include "gom-error.h"
 #include "gom-repository.h"
 
 G_DEFINE_TYPE(GomRepository, gom_repository, G_TYPE_OBJECT)
@@ -680,8 +681,8 @@ gom_repository_find_one_cb (GObject      *object,
    }
 
    if (!gom_resource_group_get_count(group)) {
-      g_simple_async_result_set_error(simple, GOM_REPOSITORY_ERROR,
-                                      GOM_REPOSITORY_ERROR_EMPTY_RESULT,
+      g_simple_async_result_set_error(simple, GOM_ERROR,
+                                      GOM_ERROR_REPOSITORY_EMPTY_RESULT,
                                       _("No resources were found."));
       g_simple_async_result_complete_in_idle(simple);
       g_object_unref(simple);
@@ -726,8 +727,8 @@ gom_repository_find_one_sync (GomRepository  *repository,
    }
 
    if (!gom_resource_group_get_count(group)) {
-      g_set_error(error, GOM_REPOSITORY_ERROR,
-                  GOM_REPOSITORY_ERROR_EMPTY_RESULT,
+      g_set_error(error, GOM_ERROR,
+                  GOM_ERROR_REPOSITORY_EMPTY_RESULT,
                   _("No resources were found."));
       g_object_unref(group);
       return NULL;

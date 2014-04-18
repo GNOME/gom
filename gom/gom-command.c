@@ -22,6 +22,7 @@
 
 #include "gom-adapter.h"
 #include "gom-command.h"
+#include "gom-error.h"
 
 G_DEFINE_TYPE(GomCommand, gom_command, G_TYPE_OBJECT)
 
@@ -268,14 +269,14 @@ gom_command_prepare (GomCommand  *command,
    }
 
    if (!priv->sql) {
-      g_set_error(error, GOM_COMMAND_ERROR, GOM_COMMAND_ERROR_NO_SQL,
+      g_set_error(error, GOM_ERROR, GOM_ERROR_COMMAND_NO_SQL,
                   _("The command does not contain any SQL"));
       return FALSE;
    }
 
    if (!(ret = (SQLITE_OK == sqlite3_prepare_v2(db, priv->sql, -1,
                                                 &priv->stmt, NULL)))) {
-      g_set_error(error, GOM_COMMAND_ERROR, GOM_COMMAND_ERROR_SQLITE,
+      g_set_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE,
                   _("sqlite3_prepare_v2 failed: %s: %s"),
                   sqlite3_errmsg(db), priv->sql);
    }
@@ -302,7 +303,7 @@ gom_command_execute (GomCommand  *command,
    }
 
    if (!priv->adapter || !(db = gom_adapter_get_handle(priv->adapter))) {
-      g_set_error(error, GOM_COMMAND_ERROR, GOM_COMMAND_ERROR_SQLITE,
+      g_set_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE,
                   _("Failed to access SQLite handle."));
       return FALSE;
    }
@@ -327,8 +328,8 @@ gom_command_execute (GomCommand  *command,
        */
       code = sqlite3_step(priv->stmt);
       if (!(ret = (code == SQLITE_ROW || code == SQLITE_DONE))) {
-         g_set_error(error, GOM_COMMAND_ERROR,
-                     GOM_COMMAND_ERROR_SQLITE,
+         g_set_error(error, GOM_ERROR,
+                     GOM_ERROR_COMMAND_SQLITE,
                      "Failed to execute statement: %d", code);
       }
       return ret;

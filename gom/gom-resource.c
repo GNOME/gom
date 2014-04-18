@@ -21,6 +21,7 @@
 
 #include "gom-command.h"
 #include "gom-command-builder.h"
+#include "gom-error.h"
 #include "gom-filter.h"
 #include "gom-repository.h"
 #include "gom-resource.h"
@@ -675,8 +676,8 @@ gom_resource_fetch_m2m_cb (GomAdapter *adapter,
    }
 
    if (!gom_cursor_next(cursor)) {
-      g_simple_async_result_set_error(simple, GOM_RESOURCE_ERROR,
-                                      GOM_RESOURCE_ERROR_CURSOR,
+      g_simple_async_result_set_error(simple, GOM_ERROR,
+                                      GOM_ERROR_RESOURCE_CURSOR,
                                       _("No result was returned from the cursor."));
       goto out;
    }
