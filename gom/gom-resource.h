@@ -78,6 +78,14 @@ void              gom_resource_class_set_property_transform      (GomResourceCla
                                                                   const gchar              *property_name,
                                                                   GomResourceToBytesFunc    to_bytes_func,
                                                                   GomResourceFromBytesFunc  from_bytes_func);
+void              gom_resource_class_set_property_to_bytes       (GomResourceClass         *resource_class,
+                                                                  const gchar              *property_name,
+                                                                  GomResourceToBytesFunc    to_bytes_func,
+                                                                  GDestroyNotify            notify);
+void              gom_resource_class_set_property_from_bytes     (GomResourceClass         *resource_class,
+                                                                  const gchar              *property_name,
+                                                                  GomResourceFromBytesFunc  from_bytes_func,
+                                                                  GDestroyNotify            notify);
 void              gom_resource_class_set_reference               (GomResourceClass         *resource_class,
                                                                   const gchar              *property_name,
                                                                   const gchar              *ref_table_name,

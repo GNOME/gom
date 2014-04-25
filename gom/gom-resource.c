@@ -90,6 +90,9 @@ gom_resource_class_set_property_set_mapped (GomResourceClass *resource_class,
    g_param_spec_set_qdata(pspec, GOM_RESOURCE_NOT_MAPPED, GINT_TO_POINTER(!is_mapped));
 }
 
+/**
+ * gom_resource_class_set_property_transform: (skip)
+ */
 void
 gom_resource_class_set_property_transform (GomResourceClass         *resource_class,
                                            const gchar              *property_name,
@@ -107,6 +110,42 @@ gom_resource_class_set_property_transform (GomResourceClass         *resource_cl
    g_assert(pspec);
 
    g_param_spec_set_qdata(pspec, GOM_RESOURCE_TO_BYTES_FUNC, to_bytes_func);
+   g_param_spec_set_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC, from_bytes_func);
+}
+
+void
+gom_resource_class_set_property_to_bytes (GomResourceClass         *resource_class,
+                                          const gchar              *property_name,
+                                          GomResourceToBytesFunc    to_bytes_func,
+                                          GDestroyNotify            notify)
+{
+   GParamSpec *pspec;
+
+   g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(property_name != NULL);
+   g_return_if_fail(to_bytes_func != NULL);
+
+   pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
+   g_assert(pspec);
+
+   g_param_spec_set_qdata(pspec, GOM_RESOURCE_TO_BYTES_FUNC, to_bytes_func);
+}
+
+void
+gom_resource_class_set_property_from_bytes (GomResourceClass         *resource_class,
+                                            const gchar              *property_name,
+                                            GomResourceFromBytesFunc  from_bytes_func,
+                                            GDestroyNotify            notify)
+{
+   GParamSpec *pspec;
+
+   g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(property_name != NULL);
+   g_return_if_fail(from_bytes_func != NULL);
+
+   pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
+   g_assert(pspec);
+
    g_param_spec_set_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC, from_bytes_func);
 }
 
