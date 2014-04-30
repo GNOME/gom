@@ -946,7 +946,7 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
    gParamSpecs[PROP_LIMIT] =
       g_param_spec_uint("limit",
                         _("Limit"),
-                        _("The maximum number or results."),
+                        _("The maximum number of results."),
                         0,
                         G_MAXUINT,
                         0,
