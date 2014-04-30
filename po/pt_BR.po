@@ -1,0 +1,190 @@
+# Brazilian Portuguese translation for gom.
+# Copyright (C) 2014 gom's COPYRIGHT HOLDER
+# This file is distributed under the same license as the gom package.
+# Enrico Nicoletto <liverig@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gom master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=gom&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2014-04-30 07:34+0000\n"
+"PO-Revision-Date: 2014-04-30 14:50-0300\n"
+"Last-Translator: Enrico Nicoletto <liverig@gmail.com>\n"
+"Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 1.6.3\n"
+
+#: ../gom/gom-command-builder.c:930 ../gom/gom-resource-group.c:577
+#: ../gom/gom-repository.c:886 ../gom/gom-command.c:494
+msgid "Adapter"
+msgstr "Adaptador"
+
+#: ../gom/gom-command-builder.c:931
+msgid "The GomAdapter."
+msgstr "O adaptador Gom."
+
+#: ../gom/gom-command-builder.c:939 ../gom/gom-resource-group.c:586
+msgid "Filter"
+msgstr "Filtro"
+
+#: ../gom/gom-command-builder.c:940
+msgid "The filter for the command."
+msgstr "O filtro para o comando."
+
+#: ../gom/gom-command-builder.c:948
+msgid "Limit"
+msgstr "Limite"
+
+#: ../gom/gom-command-builder.c:949
+msgid "The maximum number of results."
+msgstr "O número máximo de resultados."
+
+#: ../gom/gom-command-builder.c:959
+msgid "Many-to-many table"
+msgstr "Tabela muitos-para-muitos"
+
+#: ../gom/gom-command-builder.c:960
+msgid "The table to use for many-to-many queries."
+msgstr "A tabela a ser usada para consultas muitas-para-muitas."
+
+#: ../gom/gom-command-builder.c:968
+msgid "Many-to-many type"
+msgstr "Tipo muitos-para-muitos"
+
+#: ../gom/gom-command-builder.c:969
+msgid "The type for the join within m2m-table."
+msgstr "O tipo a ser usado na união (join) dentro da tabela m-m."
+
+#: ../gom/gom-command-builder.c:977
+msgid "Offset"
+msgstr "Deslocamento"
+
+#: ../gom/gom-command-builder.c:978
+msgid "The number of results to skip."
+msgstr "O número de resultados para ignorar."
+
+#: ../gom/gom-command-builder.c:988 ../gom/gom-resource-group.c:622
+msgid "Resource Type"
+msgstr "Tipo do recurso"
+
+#: ../gom/gom-command-builder.c:989
+msgid "The resource type to query for."
+msgstr "O tipo do recurso a se consultar."
+
+#: ../gom/gom-resource.c:720
+msgid "No result was returned from the cursor."
+msgstr "Nenhum resultado foi retornado pelo cursor."
+
+#: ../gom/gom-resource.c:903 ../gom/gom-resource-group.c:613
+msgid "Repository"
+msgstr "Repositório"
+
+#: ../gom/gom-resource.c:904
+msgid "The resources repository."
+msgstr "O repositório de recursos."
+
+#: ../gom/gom-filter.c:501
+msgid "Mode"
+msgstr "Modo"
+
+#: ../gom/gom-filter.c:502
+msgid "The mode of the filter."
+msgstr "O modo do filtro."
+
+#: ../gom/gom-filter.c:511 ../gom/gom-command.c:503
+msgid "SQL"
+msgstr "SQL"
+
+#: ../gom/gom-filter.c:512
+msgid "The sql for the filter."
+msgstr "O sql para o filtro."
+
+#: ../gom/gom-cursor.c:299
+msgid "Statement"
+msgstr "Instrução"
+
+#: ../gom/gom-cursor.c:300
+msgid "A pointer to a sqlite3_stmt."
+msgstr "Um ponteiro para uma sqlite3_stmt."
+
+#: ../gom/gom-resource-group.c:566
+msgid "Count"
+msgstr "Contagem"
+
+#: ../gom/gom-resource-group.c:567
+msgid "The size of the resource group."
+msgstr "O tamanho do grupo do recurso."
+
+#: ../gom/gom-resource-group.c:578
+msgid "The adapter used for queries."
+msgstr "O adaptador usado para as consultas."
+
+#: ../gom/gom-resource-group.c:587
+msgid "The query filter."
+msgstr "O filtro da consulta."
+
+#: ../gom/gom-resource-group.c:595
+msgid "Many-to-Many Table"
+msgstr "Tabela muitos-para-muitos"
+
+#: ../gom/gom-resource-group.c:596
+msgid "The table used to join a Many to Many query."
+msgstr "A tabela usada para unir uma consulta muitas-para-muitas."
+
+#: ../gom/gom-resource-group.c:604
+msgid "Many-to-Many type"
+msgstr "Tipo muitos-para-muitos"
+
+#: ../gom/gom-resource-group.c:605
+msgid "The type used in the m2m-table join."
+msgstr "O tipo usado na união (join) da tabela m-m."
+
+#: ../gom/gom-resource-group.c:614
+msgid "The repository for object storage."
+msgstr "O repositório para armazenamento de objeto."
+
+#: ../gom/gom-resource-group.c:623
+msgid "The type of resources contained."
+msgstr "O tipo de recursos contidos."
+
+#: ../gom/gom-repository.c:686 ../gom/gom-repository.c:732
+#, c-format
+msgid "No resources were found."
+msgstr "Nenhum recurso foi localizado."
+
+#: ../gom/gom-repository.c:887
+msgid "The adapter for the repository."
+msgstr "O adaptador para o repositório."
+
+#: ../gom/gom-adapter.c:198
+#, c-format
+msgid "Failed to open database at %s"
+msgstr "Ocorreu falha ao abrir banco de dados em %s"
+
+#: ../gom/gom-command.c:273
+#, c-format
+msgid "The command does not contain any SQL"
+msgstr "O comando não possui nenhum SQL"
+
+#: ../gom/gom-command.c:280
+#, c-format
+msgid "sqlite3_prepare_v2 failed: %s: %s"
+msgstr "sqlite3_prepare_v2 falhou: %s: %s"
+
+#: ../gom/gom-command.c:307
+#, c-format
+msgid "Failed to access SQLite handle."
+msgstr "Ocorreu falha ao acessar manipulador do SQLite."
+
+#: ../gom/gom-command.c:495
+msgid "The GomAdapter for the command."
+msgstr "O adaptador Gom para o comando."
+
+#: ../gom/gom-command.c:504
+msgid "The SQL for the command."
+msgstr "O SQL para o comando."
