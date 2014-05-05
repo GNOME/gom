@@ -1,0 +1,192 @@
+# German translation for gom.
+# Copyright (C) 2014 gom's COPYRIGHT HOLDER
+# This file is distributed under the same license as the gom package.
+# Christian Kirbach <Christian.Kirbach@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gom master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=gom&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2014-04-30 21:46+0000\n"
+"PO-Revision-Date: 2014-05-01 13:35+0100\n"
+"Last-Translator: Christian Kirbach <christian.kirbach@gmail.com>\n"
+"Language-Team: German <gnome-de@gnome.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: ../gom/gom-command-builder.c:930 ../gom/gom-resource-group.c:577
+#: ../gom/gom-repository.c:886 ../gom/gom-command.c:494
+msgid "Adapter"
+msgstr "Adapter"
+
+#: ../gom/gom-command-builder.c:931
+msgid "The GomAdapter."
+msgstr ""
+
+#: ../gom/gom-command-builder.c:939 ../gom/gom-resource-group.c:586
+msgid "Filter"
+msgstr "Filter"
+
+#: ../gom/gom-command-builder.c:940
+msgid "The filter for the command."
+msgstr ""
+
+#: ../gom/gom-command-builder.c:948
+msgid "Limit"
+msgstr "Grenze"
+
+#: ../gom/gom-command-builder.c:949
+msgid "The maximum number of results."
+msgstr "Die maximale Anzahl Ergebnisse."
+
+#: ../gom/gom-command-builder.c:959
+msgid "Many-to-many table"
+msgstr ""
+
+#: ../gom/gom-command-builder.c:960
+msgid "The table to use for many-to-many queries."
+msgstr ""
+
+#: ../gom/gom-command-builder.c:968
+msgid "Many-to-many type"
+msgstr ""
+
+#: ../gom/gom-command-builder.c:969
+msgid "The type for the join within m2m-table."
+msgstr ""
+
+#: ../gom/gom-command-builder.c:977
+msgid "Offset"
+msgstr "Versatz"
+
+#: ../gom/gom-command-builder.c:978
+msgid "The number of results to skip."
+msgstr "Die Anzahl der Ergebnisse, die übersprungen werden sollen."
+
+#: ../gom/gom-command-builder.c:988 ../gom/gom-resource-group.c:622
+msgid "Resource Type"
+msgstr "Ressourcentyp"
+
+#: ../gom/gom-command-builder.c:989
+msgid "The resource type to query for."
+msgstr "Der Ressourcentyp, der angefragt werden soll."
+
+#: ../gom/gom-resource.c:720
+msgid "No result was returned from the cursor."
+msgstr ""
+
+#: ../gom/gom-resource.c:903 ../gom/gom-resource-group.c:613
+#, fuzzy
+msgid "Repository"
+msgstr "Projektarchiv"
+
+#: ../gom/gom-resource.c:904
+msgid "The resources repository."
+msgstr ""
+
+#: ../gom/gom-filter.c:501
+msgid "Mode"
+msgstr "Modus"
+
+#: ../gom/gom-filter.c:502
+msgid "The mode of the filter."
+msgstr "Der Modus des Filters"
+
+#: ../gom/gom-filter.c:511 ../gom/gom-command.c:503
+msgid "SQL"
+msgstr "SQL"
+
+#: ../gom/gom-filter.c:512
+msgid "The sql for the filter."
+msgstr "Das SQL für den Filter."
+
+#: ../gom/gom-cursor.c:299
+msgid "Statement"
+msgstr "Anweisung"
+
+#: ../gom/gom-cursor.c:300
+msgid "A pointer to a sqlite3_stmt."
+msgstr "Ein Zeiger auf ein sqlite3_stmt."
+
+#: ../gom/gom-resource-group.c:566
+#, fuzzy
+msgid "Count"
+msgstr "Anzahl"
+
+#: ../gom/gom-resource-group.c:567
+msgid "The size of the resource group."
+msgstr "Die Größe der Ressourcengruppe."
+
+#: ../gom/gom-resource-group.c:578
+msgid "The adapter used for queries."
+msgstr "Der für die Anfragen verwendete Adapter."
+
+#: ../gom/gom-resource-group.c:587
+msgid "The query filter."
+msgstr ""
+
+#: ../gom/gom-resource-group.c:595
+msgid "Many-to-Many Table"
+msgstr ""
+
+#: ../gom/gom-resource-group.c:596
+msgid "The table used to join a Many to Many query."
+msgstr ""
+
+#: ../gom/gom-resource-group.c:604
+msgid "Many-to-Many type"
+msgstr ""
+
+#: ../gom/gom-resource-group.c:605
+msgid "The type used in the m2m-table join."
+msgstr ""
+
+#: ../gom/gom-resource-group.c:614
+msgid "The repository for object storage."
+msgstr ""
+
+#: ../gom/gom-resource-group.c:623
+msgid "The type of resources contained."
+msgstr ""
+
+#: ../gom/gom-repository.c:686 ../gom/gom-repository.c:732
+#, c-format
+msgid "No resources were found."
+msgstr "Es wurden keine Ressourcen gefunden."
+
+#: ../gom/gom-repository.c:887
+msgid "The adapter for the repository."
+msgstr ""
+
+#: ../gom/gom-adapter.c:198
+#, c-format
+msgid "Failed to open database at %s"
+msgstr ""
+
+#: ../gom/gom-command.c:273
+#, c-format
+msgid "The command does not contain any SQL"
+msgstr "Der Befehl enthält kein SQL"
+
+#: ../gom/gom-command.c:280
+#, c-format
+msgid "sqlite3_prepare_v2 failed: %s: %s"
+msgstr "sqlite3_prepare_v2 schlug fehl: %s: %s"
+
+#: ../gom/gom-command.c:307
+#, c-format
+msgid "Failed to access SQLite handle."
+msgstr ""
+
+#: ../gom/gom-command.c:495
+msgid "The GomAdapter for the command."
+msgstr "Der GomAdapter für den Befehl."
+
+#: ../gom/gom-command.c:504
+msgid "The SQL for the command."
+msgstr "Das SQL des Befehls."
