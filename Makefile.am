@@ -8,13 +8,7 @@ SUBDIRS = . doc po
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection --enable-silent-rules
 
-gomdocdir = ${datadir}/doc/gom-@VERSION@
-gomdoc_DATA =
-gomdoc_DATA += README
-gomdoc_DATA += COPYING
-gomdoc_DATA += NEWS
-
-EXTRA_DIST += $(gomdoc_DATA)
+EXTRA_DIST += README COPYING NEWS
 
 dist-hook:
 	@if test -d "$(srcdir)/.git"; then                              \
