@@ -78,6 +78,9 @@ sql_type_for_column (GParamSpec *pspec)
         return "INTEGER";
       if (g_param_spec_get_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC) != NULL)
         return "BLOB";
+
+      g_warning("Ignoring column %s of invalid type %s\n",
+                pspec->name, g_type_name(pspec->value_type));
       return NULL;
    }
 }
