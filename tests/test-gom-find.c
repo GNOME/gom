@@ -51,6 +51,7 @@ bookmarks_resource_finalize (GObject *object)
   g_free (resource->priv->url);
   g_free (resource->priv->thumbnail_url);
   g_free (resource->priv->id);
+  G_OBJECT_CLASS (bookmarks_resource_parent_class)->finalize (object);
 }
 
 static void
