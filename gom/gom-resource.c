@@ -597,7 +597,8 @@ gom_resource_save_sync (GomResource  *resource,
    priv = resource->priv;
 
    if (!priv->repository) {
-      g_warning("Cannot save resource, no repository set!");
+      g_set_error(error, GOM_ERROR, GOM_ERROR_COMMAND_NO_REPOSITORY,
+                  _("Cannot save resource, no repository set"));
       return FALSE;
    }
 
