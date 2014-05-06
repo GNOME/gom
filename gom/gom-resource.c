@@ -52,6 +52,7 @@ gom_resource_class_set_primary_key (GomResourceClass *resource_class,
 
    g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
    g_return_if_fail(primary_key != NULL);
+   g_return_if_fail(strlen(primary_key) >= sizeof(resource_class->primary_key));
 
    pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), primary_key);
    if (!pspec) {
@@ -201,6 +202,7 @@ gom_resource_class_set_table (GomResourceClass *resource_class,
 {
    g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
    g_return_if_fail(table != NULL);
+   g_return_if_fail(strlen(table) >= sizeof(resource_class->table));
 
    g_snprintf(resource_class->table,
               sizeof(resource_class->table),
