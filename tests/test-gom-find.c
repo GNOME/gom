@@ -18,6 +18,7 @@ typedef struct {
   char *url;
   char *title;
   char *thumbnail_url;
+  gboolean favourite;
   /* FIXME: other properties */
 } BookmarksResourcePrivate;
 
@@ -38,6 +39,7 @@ enum {
   PROP_URL,
   PROP_TITLE,
   PROP_THUMBNAIL_URL,
+  PROP_FAVOURITE,
   LAST_PROP
 };
 
@@ -75,6 +77,9 @@ bookmarks_resource_get_property (GObject    *object,
   case PROP_THUMBNAIL_URL:
     g_value_set_string(value, resource->priv->thumbnail_url);
     break;
+  case PROP_FAVOURITE:
+    g_value_set_boolean(value, resource->priv->favourite);
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
   }
@@ -104,6 +109,9 @@ bookmarks_resource_set_property (GObject      *object,
   case PROP_THUMBNAIL_URL:
     g_free (resource->priv->thumbnail_url);
     resource->priv->thumbnail_url = g_value_dup_string(value);
+    break;
+  case PROP_FAVOURITE:
+    resource->priv->favourite = g_value_get_boolean(value);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -158,6 +166,16 @@ bookmarks_resource_class_init (BookmarksResourceClass *klass)
                                   specs[PROP_THUMBNAIL_URL]);
   gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class),
                                                  "thumbnail-url",
+                                                 2);
+  specs[PROP_FAVOURITE] = g_param_spec_boolean("favourite",
+                                               "Favourite",
+                                               "Whether the bookmark is favourited",
+                                               FALSE,
+                                               G_PARAM_READWRITE);
+  g_object_class_install_property(object_class, PROP_FAVOURITE,
+                                  specs[PROP_FAVOURITE]);
+  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class),
+                                                 "favourite",
                                                  2);
 }
 
@@ -252,6 +270,7 @@ migrate_cb (GObject      *object,
    GomFilter *filter;
    GValue value = { 0, };
    char *url, *thumbnail_url;
+   gboolean favourite;
 
    g_object_set_data (object, "object-types", NULL);
 
@@ -276,7 +295,7 @@ migrate_cb (GObject      *object,
    g_free(url);
 
    /* Modify the item */
-   g_object_set(resource, "url", "file:///tmp/test", "thumbnail-url", "file:///tmp/test-thumbnail", NULL);
+   g_object_set(resource, "url", "file:///tmp/test", "thumbnail-url", "file:///tmp/test-thumbnail", "favourite", TRUE, NULL);
    ret = gom_resource_save_sync(resource, &error);
    g_assert_no_error(error);
    g_assert(ret);
@@ -290,9 +309,10 @@ migrate_cb (GObject      *object,
    g_assert_no_error(error);
    g_assert(resource);
 
-   g_object_get(resource, "url", &url, "thumbnail-url", &thumbnail_url, NULL);
+   g_object_get(resource, "url", &url, "thumbnail-url", &thumbnail_url, "favourite", &favourite, NULL);
    g_assert_cmpstr(url, ==, "file:///tmp/test");
    g_assert_cmpstr(thumbnail_url, ==, "file:///tmp/test-thumbnail");
+   g_assert(favourite);
    g_free(url);
    g_free(thumbnail_url);
 
