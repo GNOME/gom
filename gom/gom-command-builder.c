@@ -62,6 +62,7 @@ sql_type_for_column (GParamSpec *pspec)
    case G_TYPE_INT64:
    case G_TYPE_UINT:
    case G_TYPE_UINT64:
+   case G_TYPE_BOOLEAN:
       return "INTEGER";
    case G_TYPE_STRING:
       return "TEXT";
