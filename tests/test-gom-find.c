@@ -47,6 +47,7 @@ static void
 bookmarks_resource_finalize (GObject *object)
 {
   BookmarksResource *resource = BOOKMARKS_RESOURCE(object);
+  g_free (resource->priv->title);
   g_free (resource->priv->url);
   g_free (resource->priv->thumbnail_url);
   g_free (resource->priv->id);
