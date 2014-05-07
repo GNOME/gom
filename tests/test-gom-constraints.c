@@ -117,6 +117,7 @@ item_resource_class_init (ItemResourceClass *klass)
                                          NULL, G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_NAME,
                                   specs[PROP_NAME]);
+  gom_resource_class_set_notnull(resource_class, "name");
 
   specs[PROP_EMAIL] = g_param_spec_string("email", "Email",
                                           "The email for the item.",
@@ -124,6 +125,7 @@ item_resource_class_init (ItemResourceClass *klass)
   g_object_class_install_property(object_class, PROP_EMAIL,
                                   specs[PROP_EMAIL]);
   gom_resource_class_set_unique(resource_class, "email");
+  gom_resource_class_set_notnull(resource_class, "email");
 }
 
 static void
@@ -236,10 +238,59 @@ test_unique (void)
   g_object_unref(adapter);
 }
 
+static void
+test_notnull (void)
+{
+  GomAdapter *adapter;
+  GomRepository *repository;
+  GList *object_types;
+  ItemResource *item;
+
+  GError *error = NULL;
+
+  adapter = gom_adapter_new();
+  gom_adapter_open_sync(adapter, ":memory:", &error);
+  g_assert_no_error(error);
+
+  repository = gom_repository_new(adapter);
+  object_types = g_list_prepend(NULL, GINT_TO_POINTER(ITEM_TYPE_RESOURCE));
+  gom_repository_automatic_migrate_sync(repository, 1, object_types, &error);
+  g_assert_no_error(error);
+
+  /* Insert an item without a name */
+  item = g_object_new (ITEM_TYPE_RESOURCE, "repository", repository,
+                       "email", "gom@gom.gom",
+                       NULL);
+  gom_resource_save_sync(GOM_RESOURCE(item), &error);
+  g_assert_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE);
+  g_assert_true (g_str_match_string ("NOT NULL", error->message, FALSE));
+  g_assert_true (g_str_match_string ("items.name", error->message, FALSE));
+  g_clear_error(&error);
+  g_object_unref(item);
+
+  /* Try inserting an item without an email */
+  item = g_object_new (ITEM_TYPE_RESOURCE, "repository", repository,
+                       "name", "gom",
+                       NULL);
+  gom_resource_save_sync(GOM_RESOURCE(item), &error);
+  g_assert_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE);
+  g_assert_true (g_str_match_string ("NOT NULL", error->message, FALSE));
+  g_assert_true (g_str_match_string ("items.email", error->message, FALSE));
+  g_clear_error(&error);
+  g_object_unref(item);
+
+  gom_adapter_close_sync(adapter, &error);
+  g_assert_no_error(error);
+
+  g_object_unref(repository);
+  g_object_unref(adapter);
+}
+
 gint
 main (int argc, char **argv)
 {
    g_test_init(&argc, &argv, NULL);
    g_test_add_func("/GomResource/unique", test_unique);
+   g_test_add_func("/GomResource/not-null", test_notnull);
    return g_test_run();
 }
