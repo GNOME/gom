@@ -110,7 +110,6 @@ item_resource_class_init (ItemResourceClass *klass)
 
   resource_class = GOM_RESOURCE_CLASS(klass);
   gom_resource_class_set_table(resource_class, "items");
-  gom_resource_class_set_primary_key(resource_class, "id");
 
   specs[PROP_ID] = g_param_spec_uint("id",
                                      "ID",
@@ -119,6 +118,7 @@ item_resource_class_init (ItemResourceClass *klass)
                                      G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_ID,
                                   specs[PROP_ID]);
+  gom_resource_class_set_primary_key(resource_class, "id");
 
   specs[PROP_FIRST_NAME] = g_param_spec_string("first-name",
                                                "First name",

@@ -122,7 +122,6 @@ bookmarks_resource_class_init (BookmarksResourceClass *klass)
 
   resource_class = GOM_RESOURCE_CLASS(klass);
   gom_resource_class_set_table(resource_class, "bookmarks");
-  gom_resource_class_set_primary_key(resource_class, "id");
 
   specs[PROP_ID] = g_param_spec_string("id",
                                         "ID",
@@ -131,6 +130,7 @@ bookmarks_resource_class_init (BookmarksResourceClass *klass)
                                         G_PARAM_READWRITE);
   g_object_class_install_property(object_class, PROP_ID,
                                   specs[PROP_ID]);
+  gom_resource_class_set_primary_key(resource_class, "id");
 
   specs[PROP_URL] = g_param_spec_string("url",
                                         "URL",
