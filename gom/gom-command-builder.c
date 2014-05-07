@@ -219,6 +219,19 @@ add_unique (GString           *str,
 }
 
 static void
+add_notnull (GString           *str,
+             GParamSpec        *pspec)
+{
+   gboolean notnull;
+   notnull = GPOINTER_TO_UINT(g_param_spec_get_qdata(pspec, GOM_RESOURCE_NOTNULL));
+
+   if (!notnull)
+       return;
+
+   g_string_append_printf(str, " NOT NULL ");
+}
+
+static void
 add_joins (GString          *str,
            GomResourceClass *klass)
 {
@@ -418,6 +431,7 @@ gom_command_builder_build_create (GomCommandBuilder *builder,
                                    sql_type_for_column (pspecs[i]));
             add_reference(str, pspecs[i]);
             add_unique(str, pspecs[i]);
+            add_notnull(str, pspecs[i]);
          }
       }
       g_string_append(str, ")");
@@ -443,6 +457,7 @@ gom_command_builder_build_create (GomCommandBuilder *builder,
                               pspecs[i]->name,
                               sql_type_for_column (pspecs[i]));
        add_unique(str, pspecs[i]);
+       add_notnull(str, pspecs[i]);
        add_reference(str, pspecs[i]);
 
        command = g_object_new(GOM_TYPE_COMMAND,

@@ -229,6 +229,26 @@ gom_resource_class_set_unique (GomResourceClass *resource_class,
                                GUINT_TO_POINTER (TRUE), NULL);
 }
 
+void
+gom_resource_class_set_notnull (GomResourceClass *resource_class,
+                                const gchar      *property_name)
+{
+   GParamSpec *pspec;
+
+   g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
+   g_return_if_fail(property_name != NULL);
+
+   pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), property_name);
+   if (!pspec) {
+      g_warning("NOT NULL property '%s' isn't declared yet. Are you running gom_resource_class_set_notnull() too early?",
+                property_name);
+      return;
+   }
+
+   g_param_spec_set_qdata_full(pspec, GOM_RESOURCE_NOTNULL,
+                               GUINT_TO_POINTER (TRUE), NULL);
+}
+
 GomRepository *
 gom_resource_get_repository (GomResource *resource)
 {
@@ -1008,4 +1028,10 @@ GQuark
 gom_resource_unique (void)
 {
    return g_quark_from_static_string("gom_resource_unique");
+}
+
+GQuark
+gom_resource_notnull (void)
+{
+   return g_quark_from_static_string("gom_resource_notnull");
 }
