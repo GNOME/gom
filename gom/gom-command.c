@@ -330,7 +330,7 @@ gom_command_execute (GomCommand  *command,
       if (!(ret = (code == SQLITE_ROW || code == SQLITE_DONE))) {
          g_set_error(error, GOM_ERROR,
                      GOM_ERROR_COMMAND_SQLITE,
-                     "Failed to execute statement: %d", code);
+                     "Failed to execute statement: %s", sqlite3_errmsg(db));
       }
       return ret;
    }
