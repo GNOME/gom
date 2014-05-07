@@ -38,6 +38,7 @@ G_BEGIN_DECLS
 #define GOM_RESOURCE_FROM_BYTES_FUNC (gom_resource_from_bytes_func_quark())
 #define GOM_RESOURCE_REF_TABLE_CLASS (gom_resource_ref_table_class())
 #define GOM_RESOURCE_REF_PROPERTY_NAME (gom_resource_ref_property_name())
+#define GOM_RESOURCE_UNIQUE          (gom_resource_unique())
 
 typedef struct _GomResource        GomResource;
 typedef struct _GomResourceClass   GomResourceClass;
@@ -90,6 +91,8 @@ void              gom_resource_class_set_reference               (GomResourceCla
                                                                   const gchar              *property_name,
                                                                   const gchar              *ref_table_name,
                                                                   const gchar              *ref_property_name);
+void              gom_resource_class_set_unique                  (GomResourceClass         *resource_class,
+                                                                  const gchar              *property_name);
 
 void              gom_resource_delete_async          (GomResource          *resource,
                                                       GAsyncReadyCallback   callback,
@@ -105,6 +108,7 @@ GQuark            gom_resource_to_bytes_func_quark   (void) G_GNUC_CONST;
 GQuark            gom_resource_from_bytes_func_quark (void) G_GNUC_CONST;
 GQuark            gom_resource_ref_table_class       (void) G_GNUC_CONST;
 GQuark            gom_resource_ref_property_name     (void) G_GNUC_CONST;
+GQuark            gom_resource_unique                (void) G_GNUC_CONST;
 GType             gom_resource_get_type              (void) G_GNUC_CONST;
 void              gom_resource_save_async            (GomResource          *resource,
                                                       GAsyncReadyCallback   callback,
