@@ -25,8 +25,6 @@ G_BEGIN_DECLS
 
 #define GOM_ERROR                  (gom_error_quark())
 
-typedef enum _GomError GomError;
-
 enum _GomError
 {
     GOM_ERROR_ADAPTER_OPEN,
@@ -36,6 +34,8 @@ enum _GomError
     GOM_ERROR_RESOURCE_CURSOR,
     GOM_ERROR_COMMAND_NO_REPOSITORY
 };
+
+typedef enum _GomError GomError;
 
 GQuark    gom_error_quark    (void) G_GNUC_CONST;
 GType     gom_error_get_type (void) G_GNUC_CONST;

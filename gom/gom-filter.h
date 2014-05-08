@@ -32,11 +32,6 @@ G_BEGIN_DECLS
 #define GOM_IS_FILTER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GOM_TYPE_FILTER))
 #define GOM_FILTER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  GOM_TYPE_FILTER, GomFilterClass))
 
-typedef struct _GomFilter        GomFilter;
-typedef struct _GomFilterClass   GomFilterClass;
-typedef struct _GomFilterPrivate GomFilterPrivate;
-typedef enum   _GomFilterMode    GomFilterMode;
-
 enum _GomFilterMode
 {
    GOM_FILTER_SQL = 1,
@@ -50,6 +45,11 @@ enum _GomFilterMode
    GOM_FILTER_LTE,
    GOM_FILTER_LIKE
 };
+
+typedef struct _GomFilter        GomFilter;
+typedef struct _GomFilterClass   GomFilterClass;
+typedef struct _GomFilterPrivate GomFilterPrivate;
+typedef enum   _GomFilterMode    GomFilterMode;
 
 struct _GomFilter
 {
