@@ -1,3 +1,4 @@
+#include <string.h>
 #include <gom/gom.h>
 #include <glib/gstdio.h>
 
@@ -263,8 +264,8 @@ test_notnull (void)
                        NULL);
   gom_resource_save_sync(GOM_RESOURCE(item), &error);
   g_assert_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE);
-  g_assert_true (g_str_match_string ("NOT NULL", error->message, FALSE));
-  g_assert_true (g_str_match_string ("items.name", error->message, FALSE));
+  g_assert_nonnull (strstr (error->message, "NOT NULL"));
+  g_assert_nonnull (strstr (error->message, "items.name"));
   g_clear_error(&error);
   g_object_unref(item);
 
@@ -274,8 +275,8 @@ test_notnull (void)
                        NULL);
   gom_resource_save_sync(GOM_RESOURCE(item), &error);
   g_assert_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE);
-  g_assert_true (g_str_match_string ("NOT NULL", error->message, FALSE));
-  g_assert_true (g_str_match_string ("items.email", error->message, FALSE));
+  g_assert_nonnull (strstr (error->message, "NOT NULL"));
+  g_assert_nonnull (strstr (error->message, "items.email"));
   g_clear_error(&error);
   g_object_unref(item);
 
