@@ -226,8 +226,8 @@ test_unique (void)
                        NULL);
   gom_resource_save_sync(GOM_RESOURCE(item), &error);
   g_assert_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE);
-  g_assert_true (g_str_match_string ("UNIQUE", error->message, FALSE));
-  g_assert_true (g_str_match_string ("items.email", error->message, FALSE));
+  g_assert_nonnull (strstr (error->message, "UNIQUE"));
+  g_assert_nonnull (strstr (error->message, "items.email"));
   g_object_unref(item);
   g_clear_error(&error);
 
