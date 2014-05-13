@@ -449,6 +449,7 @@ gom_resource_group_finalize (GObject *object)
 {
    GomResourceGroupPrivate *priv = GOM_RESOURCE_GROUP(object)->priv;
 
+   g_clear_object(&priv->repository);
    g_clear_object(&priv->adapter);
    g_clear_object(&priv->filter);
    g_clear_pointer(&priv->items, g_hash_table_unref);
