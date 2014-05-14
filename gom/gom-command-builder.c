@@ -23,6 +23,7 @@
 #include "gom-command-builder.h"
 #include "gom-filter.h"
 #include "gom-resource.h"
+#include "gom-resource-priv.h"
 
 G_DEFINE_TYPE(GomCommandBuilder, gom_command_builder, G_TYPE_OBJECT)
 
@@ -674,6 +675,7 @@ gom_command_builder_build_insert (GomCommandBuilder *builder,
    GomCommand *command = NULL;
    GParamSpec **pspecs = NULL;
    gboolean did_pspec = FALSE;
+   gboolean has_dynamic_pkey;
    GString *str = NULL;
    guint n_pspecs = 0;
    guint i = 0;
@@ -690,6 +692,12 @@ gom_command_builder_build_insert (GomCommandBuilder *builder,
    str = g_string_new("INSERT INTO ");
    g_string_append_printf(str, "%s (", klass->table);
 
+   has_dynamic_pkey = gom_resource_has_dynamic_pkey (priv->resource_type);
+   if (!has_dynamic_pkey) {
+     g_string_append_printf(str, "'%s'", klass->primary_key);
+     did_pspec = TRUE;
+   }
+
    for (i = 0; i < n_pspecs; i++) {
       if (do_prop_on_insert(pspecs[i], klass, priv->resource_type)) {
          if (did_pspec) {
@@ -703,6 +711,11 @@ gom_command_builder_build_insert (GomCommandBuilder *builder,
    g_string_append(str, ") VALUES (");
 
    did_pspec = FALSE;
+
+   if (!has_dynamic_pkey) {
+     g_string_append(str, "?");
+     did_pspec = TRUE;
+   }
 
    for (i = 0; i < n_pspecs; i++) {
       if (do_prop_on_insert(pspecs[i], klass, priv->resource_type)) {
@@ -720,6 +733,15 @@ gom_command_builder_build_insert (GomCommandBuilder *builder,
                           "adapter", priv->adapter,
                           "sql", str->str,
                           NULL);
+
+   if (!has_dynamic_pkey) {
+     GValue value = { 0 };
+
+     resource_get_property(G_OBJECT(resource), klass->primary_key, &value);
+     gom_command_set_param(command, idx++, &value);
+     g_value_unset(&value);
+     did_pspec = TRUE;
+   }
 
    for (i = 0; i < n_pspecs; i++) {
       if (do_prop_on_insert(pspecs[i], klass, priv->resource_type)) {

@@ -25,6 +25,7 @@
 #include "gom-filter.h"
 #include "gom-repository.h"
 #include "gom-resource.h"
+#include "gom-resource-priv.h"
 #include "gom-resource-group.h"
 
 G_DEFINE_TYPE(GomResourceGroup, gom_resource_group, G_TYPE_OBJECT)
@@ -303,6 +304,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
                               "repository", repository,
                               NULL);
       set_props(resource, cursor);
+      gom_resource_set_is_from_table(resource, TRUE);
       g_hash_table_insert(group->priv->items, key, resource);
    }
 

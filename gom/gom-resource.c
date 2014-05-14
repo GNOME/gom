@@ -25,12 +25,14 @@
 #include "gom-filter.h"
 #include "gom-repository.h"
 #include "gom-resource.h"
+#include "gom-resource-priv.h"
 
 G_DEFINE_ABSTRACT_TYPE(GomResource, gom_resource, G_TYPE_OBJECT)
 
 struct _GomResourcePrivate
 {
    GomRepository *repository;
+   gboolean       is_from_table;
 };
 
 enum
@@ -465,8 +467,8 @@ gom_resource_delete_finish (GomResource   *resource,
    return ret;
 }
 
-static gboolean
-is_dynamic_pkey (GType type)
+gboolean
+gom_resource_has_dynamic_pkey (GType type)
 {
    GomResourceClass *klass;
    GParamSpec *pspec;
@@ -549,6 +551,7 @@ gom_resource_do_save (GomResource  *resource,
    GSList *types = NULL;
    GSList *iter;
    GType resource_type;
+   gboolean has_pkey;
 
    g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
    g_return_val_if_fail(GOM_IS_ADAPTER(adapter), FALSE);
@@ -560,7 +563,14 @@ gom_resource_do_save (GomResource  *resource,
                           "adapter", adapter,
                           NULL);
 
-   is_insert = !has_primary_key(resource);
+   has_pkey = has_primary_key(resource);
+   if (has_pkey) {
+     /* Could be an insert for a non-automatic primary key,
+      * or an update */
+     is_insert = !resource->priv->is_from_table;
+   } else {
+     is_insert = TRUE;
+   }
 
    do {
       types = g_slist_prepend(types, GINT_TO_POINTER(resource_type));
@@ -586,7 +596,7 @@ gom_resource_do_save (GomResource  *resource,
          goto out;
       }
 
-      if (is_insert && row_id == -1 && is_dynamic_pkey(resource_type)) {
+      if (is_insert && row_id == -1 && gom_resource_has_dynamic_pkey(resource_type)) {
          sqlite3 *handle = gom_adapter_get_handle(adapter);
          GValue value = { 0 };
 
@@ -887,7 +897,8 @@ gom_resource_fetch_m2m_finish (GomResource   *resource,
 static void
 gom_resource_finalize (GObject *object)
 {
-   gom_resource_set_repository(GOM_RESOURCE(object), NULL);
+   GomResource *resource = (GomResource *) object;
+   gom_resource_set_repository(resource, NULL);
    G_OBJECT_CLASS(gom_resource_parent_class)->finalize(object);
 }
 
@@ -973,6 +984,19 @@ gom_resource_class_init (GomResourceClass *klass)
                                    gParamSpecs[PROP_REPOSITORY]);
 }
 
+static void
+pkey_changed_cb (GObject    *gobject,
+                 GParamSpec *pspec,
+                 gpointer    user_data)
+{
+  GomResource *resource = (GomResource *) gobject;
+
+  /* Did the developer reset the primary key? */
+  if (!has_primary_key(GOM_RESOURCE(resource))) {
+     resource->priv->is_from_table = FALSE;
+  }
+}
+
 /**
  * gom_resource_init:
  * @resource: (in): A #GomResource.
@@ -982,10 +1006,33 @@ gom_resource_class_init (GomResourceClass *klass)
 static void
 gom_resource_init (GomResource *resource)
 {
+   char *pkey_signal;
+   GomResourceClass *klass;
+
    resource->priv =
       G_TYPE_INSTANCE_GET_PRIVATE(resource,
                                   GOM_TYPE_RESOURCE,
                                   GomResourcePrivate);
+
+   /* Monitor the primary key */
+   klass = GOM_RESOURCE_CLASS (G_OBJECT_GET_CLASS(resource));
+   pkey_signal = g_strdup_printf("notify::%s", klass->primary_key);
+   g_signal_connect (G_OBJECT (resource), pkey_signal,
+                     G_CALLBACK (pkey_changed_cb), NULL);
+   g_free(pkey_signal);
+}
+
+gboolean
+gom_resource_get_is_from_table (GomResource *resource)
+{
+   return resource->priv->is_from_table;
+}
+
+void
+gom_resource_set_is_from_table (GomResource *resource,
+                                gboolean is_from_table)
+{
+   resource->priv->is_from_table = is_from_table;
 }
 
 GQuark
