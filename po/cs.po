@@ -1,7 +1,7 @@
 # Czech translation for gom.
 # Copyright (C) 2014 gom's COPYRIGHT HOLDER
 # This file is distributed under the same license as the gom package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
 # Marek Černocký <marek@manet.cz>, 2014.
 #
 msgid ""
@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: gom master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=gom&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-04-19 19:25+0000\n"
-"PO-Revision-Date: 2014-04-23 07:39+0200\n"
+"POT-Creation-Date: 2014-05-06 19:43+0000\n"
+"PO-Revision-Date: 2014-05-14 10:36+0100\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -20,72 +20,77 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Gtranslator 2.91.6\n"
 
-#: ../gom/gom-command-builder.c:930 ../gom/gom-resource-group.c:577
+#: ../gom/gom-command-builder.c:934 ../gom/gom-resource-group.c:577
 #: ../gom/gom-repository.c:886 ../gom/gom-command.c:494
 msgid "Adapter"
 msgstr "Adaptér"
 
-#: ../gom/gom-command-builder.c:931
+#: ../gom/gom-command-builder.c:935
 msgid "The GomAdapter."
 msgstr "GomAdapter."
 
-#: ../gom/gom-command-builder.c:939 ../gom/gom-resource-group.c:586
+#: ../gom/gom-command-builder.c:943 ../gom/gom-resource-group.c:586
 msgid "Filter"
 msgstr "Filtr"
 
-#: ../gom/gom-command-builder.c:940
+#: ../gom/gom-command-builder.c:944
 msgid "The filter for the command."
 msgstr "Filtr pro příkaz."
 
-#: ../gom/gom-command-builder.c:948
+#: ../gom/gom-command-builder.c:952
 msgid "Limit"
 msgstr "Omezení"
 
-#: ../gom/gom-command-builder.c:949
-msgid "The maximum number or results."
+#: ../gom/gom-command-builder.c:953
+msgid "The maximum number of results."
 msgstr "Maximální počet výsledků."
 
-#: ../gom/gom-command-builder.c:959
+#: ../gom/gom-command-builder.c:963
 msgid "Many-to-many table"
 msgstr "Tabulka M:N"
 
-#: ../gom/gom-command-builder.c:960
+#: ../gom/gom-command-builder.c:964
 msgid "The table to use for many-to-many queries."
 msgstr "Tabulka pro použití v dotazu M:N."
 
-#: ../gom/gom-command-builder.c:968
+#: ../gom/gom-command-builder.c:972
 msgid "Many-to-many type"
 msgstr "Typ M:N"
 
-#: ../gom/gom-command-builder.c:969
+#: ../gom/gom-command-builder.c:973
 msgid "The type for the join within m2m-table."
 msgstr "Typ pro propojení tabulek M:N."
 
-#: ../gom/gom-command-builder.c:977
+#: ../gom/gom-command-builder.c:981
 msgid "Offset"
 msgstr "Posun"
 
-#: ../gom/gom-command-builder.c:978
+#: ../gom/gom-command-builder.c:982
 msgid "The number of results to skip."
 msgstr "Počet výsledků, které se mají přeskočit."
 
-#: ../gom/gom-command-builder.c:988 ../gom/gom-resource-group.c:622
+#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:622
 msgid "Resource Type"
 msgstr "Typ prostředku"
 
-#: ../gom/gom-command-builder.c:989
+#: ../gom/gom-command-builder.c:993
 msgid "The resource type to query for."
 msgstr "Typ prostředku pro dotaz."
 
-#: ../gom/gom-resource.c:681
+#: ../gom/gom-resource.c:625
+#, c-format
+msgid "Cannot save resource, no repository set"
+msgstr "Prostředek nelze uložit, není nastaven žádný repozitář."
+
+#: ../gom/gom-resource.c:745
 msgid "No result was returned from the cursor."
 msgstr "Z kurzoru nebyl vrácen žádný výsledek."
 
-#: ../gom/gom-resource.c:864 ../gom/gom-resource-group.c:613
+#: ../gom/gom-resource.c:928 ../gom/gom-resource-group.c:613
 msgid "Repository"
 msgstr "Repozitář"
 
-#: ../gom/gom-resource.c:865
+#: ../gom/gom-resource.c:929
 msgid "The resources repository."
 msgstr "Repozitář prostředků."
 
