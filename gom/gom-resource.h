@@ -66,6 +66,16 @@ struct _GomResourceClass
 typedef GBytes * (*GomResourceToBytesFunc) (GValue *value);
 typedef void (*GomResourceFromBytesFunc) (GBytes *bytes, GValue *value);
 
+GQuark            gom_resource_new_in_version_quark  (void) G_GNUC_CONST;
+GQuark            gom_resource_not_mapped_quark      (void) G_GNUC_CONST;
+GQuark            gom_resource_to_bytes_func_quark   (void) G_GNUC_CONST;
+GQuark            gom_resource_from_bytes_func_quark (void) G_GNUC_CONST;
+GQuark            gom_resource_ref_table_class       (void) G_GNUC_CONST;
+GQuark            gom_resource_ref_property_name     (void) G_GNUC_CONST;
+GQuark            gom_resource_unique                (void) G_GNUC_CONST;
+GQuark            gom_resource_notnull               (void) G_GNUC_CONST;
+GType             gom_resource_get_type              (void) G_GNUC_CONST;
+
 void              gom_resource_class_set_table       (GomResourceClass *resource_class,
                                                       const gchar      *table);
 void              gom_resource_class_set_primary_key (GomResourceClass *resource_class,
@@ -105,15 +115,6 @@ gboolean          gom_resource_delete_finish         (GomResource          *reso
                                                       GError              **error);
 gboolean          gom_resource_delete_sync           (GomResource          *resource,
                                                       GError              **error);
-GQuark            gom_resource_new_in_version_quark  (void) G_GNUC_CONST;
-GQuark            gom_resource_not_mapped_quark      (void) G_GNUC_CONST;
-GQuark            gom_resource_to_bytes_func_quark   (void) G_GNUC_CONST;
-GQuark            gom_resource_from_bytes_func_quark (void) G_GNUC_CONST;
-GQuark            gom_resource_ref_table_class       (void) G_GNUC_CONST;
-GQuark            gom_resource_ref_property_name     (void) G_GNUC_CONST;
-GQuark            gom_resource_unique                (void) G_GNUC_CONST;
-GQuark            gom_resource_notnull               (void) G_GNUC_CONST;
-GType             gom_resource_get_type              (void) G_GNUC_CONST;
 void              gom_resource_save_async            (GomResource          *resource,
                                                       GAsyncReadyCallback   callback,
                                                       gpointer              user_data);
