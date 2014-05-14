@@ -531,7 +531,7 @@ has_primary_key (GomResource *resource)
 
    g_value_init(&value, pspec->value_type);
    g_object_get_property(G_OBJECT(resource), klass->primary_key, &value);
-   ret = !value.data[0].v_pointer;
+   ret = !!value.data[0].v_pointer;
    g_value_unset(&value);
 
    return ret;
@@ -560,7 +560,7 @@ gom_resource_do_save (GomResource  *resource,
                           "adapter", adapter,
                           NULL);
 
-   is_insert = has_primary_key(resource);
+   is_insert = !has_primary_key(resource);
 
    do {
       types = g_slist_prepend(types, GINT_TO_POINTER(resource_type));
