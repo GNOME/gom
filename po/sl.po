@@ -1,0 +1,216 @@
+# Slovenian translation for gom.
+# Copyright (C) 2014 gom's COPYRIGHT HOLDER
+# This file is distributed under the same license as the gom package.
+#
+# Matej Urbančič <mateju@svn.gnome.org>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gom master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=gom&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2014-05-17 08:13+0000\n"
+"PO-Revision-Date: 2014-05-17 19:43+0100\n"
+"Last-Translator: Matej Urbančič <mateju@svn.gnome.org>\n"
+"Language-Team: Slovenian <gnome-si@googlegroups.com>\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 or n"
+"%100==4 ? 3 : 0) ;\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: ../gom/gom-command-builder.c:986 ../gom/gom-resource-group.c:580
+#: ../gom/gom-repository.c:886 ../gom/gom-command.c:494
+msgid "Adapter"
+msgstr "Vmesnik"
+
+#: ../gom/gom-command-builder.c:987
+msgid "The GomAdapter."
+msgstr "Program GomAdapter."
+
+#: ../gom/gom-command-builder.c:995 ../gom/gom-resource-group.c:589
+msgid "Filter"
+msgstr "Filter"
+
+#: ../gom/gom-command-builder.c:996
+#, fuzzy
+msgid "The filter for the command."
+msgstr "Argumenti za ukaz"
+
+#: ../gom/gom-command-builder.c:1004
+msgid "Limit"
+msgstr "Omejitev"
+
+#: ../gom/gom-command-builder.c:1005
+#, fuzzy
+msgid "The maximum number of results."
+msgstr ""
+"Največje število\n"
+"rezultatov:"
+
+#: ../gom/gom-command-builder.c:1015
+#, fuzzy
+msgid "Many-to-many table"
+msgstr "Razpredelnica za brisanje"
+
+#: ../gom/gom-command-builder.c:1016
+msgid "The table to use for many-to-many queries."
+msgstr ""
+
+#: ../gom/gom-command-builder.c:1024
+#, fuzzy
+msgid "Many-to-many type"
+msgstr "Vtipkajte za iskanje ..."
+
+#: ../gom/gom-command-builder.c:1025
+msgid "The type for the join within m2m-table."
+msgstr ""
+
+#: ../gom/gom-command-builder.c:1033
+msgid "Offset"
+msgstr "Odmik"
+
+#: ../gom/gom-command-builder.c:1034
+#, fuzzy
+msgid "The number of results to skip."
+msgstr "Logični izrazi, ki naj bodo prezrti:"
+
+#: ../gom/gom-command-builder.c:1044 ../gom/gom-resource-group.c:625
+msgid "Resource Type"
+msgstr "Vrsta vira"
+
+#: ../gom/gom-command-builder.c:1045
+#, fuzzy
+msgid "The resource type to query for."
+msgstr "Izvedi poizvedovanje ročnika za vrsto MIME"
+
+#: ../gom/gom-resource.c:675
+#, c-format
+msgid "Cannot save resource, no repository set"
+msgstr ""
+
+#: ../gom/gom-resource.c:795
+msgid "No result was returned from the cursor."
+msgstr "Ni rezultatov, vrnjenih s kazalke."
+
+#: ../gom/gom-resource.c:979 ../gom/gom-resource-group.c:616
+msgid "Repository"
+msgstr "Skladišče"
+
+#: ../gom/gom-resource.c:980
+msgid "The resources repository."
+msgstr "Skladišče virov."
+
+#: ../gom/gom-filter.c:501
+msgid "Mode"
+msgstr "Način"
+
+#: ../gom/gom-filter.c:502
+#, fuzzy
+msgid "The mode of the filter."
+msgstr "Filtrirni način pregledovalnika datotek"
+
+#: ../gom/gom-filter.c:511 ../gom/gom-command.c:503
+msgid "SQL"
+msgstr "SQL"
+
+#: ../gom/gom-filter.c:512
+#, fuzzy
+msgid "The sql for the filter."
+msgstr "Urejanje pogoja za filter: "
+
+#: ../gom/gom-cursor.c:299
+msgid "Statement"
+msgstr "Izjava"
+
+#: ../gom/gom-cursor.c:300
+#, fuzzy
+msgid "A pointer to a sqlite3_stmt."
+msgstr "Kazalec na povezavo FTP (%s)"
+
+#: ../gom/gom-resource-group.c:569
+msgid "Count"
+msgstr "Števec"
+
+#: ../gom/gom-resource-group.c:570
+msgid "The size of the resource group."
+msgstr "Velikost skupine virov"
+
+#: ../gom/gom-resource-group.c:581
+#, fuzzy
+msgid "The adapter used for queries."
+msgstr "Ikona uporabljena za gumb"
+
+#: ../gom/gom-resource-group.c:590
+msgid "The query filter."
+msgstr "Filter poizvedbe"
+
+#: ../gom/gom-resource-group.c:598
+#, fuzzy
+msgid "Many-to-Many Table"
+msgstr "Razpredelnica za brisanje"
+
+#: ../gom/gom-resource-group.c:599
+msgid "The table used to join a Many to Many query."
+msgstr ""
+
+#: ../gom/gom-resource-group.c:607
+#, fuzzy
+msgid "Many-to-Many type"
+msgstr "Vtipkajte za iskanje ..."
+
+#: ../gom/gom-resource-group.c:608
+msgid "The type used in the m2m-table join."
+msgstr ""
+
+#: ../gom/gom-resource-group.c:617
+#, fuzzy
+msgid "The repository for object storage."
+msgstr "Predmet ni shramba"
+
+#: ../gom/gom-resource-group.c:626
+#, fuzzy
+msgid "The type of resources contained."
+msgstr "Izvorni blok slike"
+
+#: ../gom/gom-repository.c:686 ../gom/gom-repository.c:732
+#, c-format
+msgid "No resources were found."
+msgstr "Ni najdenih virov."
+
+#: ../gom/gom-repository.c:887
+#, fuzzy
+msgid "The adapter for the repository."
+msgstr "Dodaj v skladišče"
+
+#: ../gom/gom-adapter.c:198
+#, fuzzy, c-format
+msgid "Failed to open database at %s"
+msgstr "Datoteke '%s' ni mogoče odpreti za pisanje: %s\n"
+
+#: ../gom/gom-command.c:273
+#, fuzzy, c-format
+msgid "The command does not contain any SQL"
+msgstr "Izjava SELECT ne vsebuje izraza"
+
+#: ../gom/gom-command.c:280
+#, c-format
+msgid "sqlite3_prepare_v2 failed: %s: %s"
+msgstr "Ukaz sqlite3_prepare_v2 je spodletel: %s: %s"
+
+#: ../gom/gom-command.c:307
+#, fuzzy, c-format
+msgid "Failed to access SQLite handle."
+msgstr "Ni mogoč dostop do vira nastavitev: %s\n"
+
+#: ../gom/gom-command.c:495
+#, fuzzy
+msgid "The GomAdapter for the command."
+msgstr "Argumenti za ukaz"
+
+#: ../gom/gom-command.c:504
+#, fuzzy
+msgid "The SQL for the command."
+msgstr "Argumenti za ukaz"
