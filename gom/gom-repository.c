@@ -368,6 +368,7 @@ gom_repository_automatic_migrator (GomRepository  *repository,
     }
 
 bail_object:
+    g_list_free(object_types);
     g_list_free_full(cmds, g_object_unref);
     g_type_class_unref(klass);
     if (*error)
