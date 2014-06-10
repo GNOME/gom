@@ -439,8 +439,9 @@ gom_adapter_close_finish (GomAdapter    *adapter,
 
 /**
  * gom_adapter_execute_sql:
- * @adapter: (in): A #GomAdapter.
- * @sql: (in): SQL to execute.
+ * @adapter: A #GomAdapter.
+ * @sql: SQL to execute.
+ * @error: a #GError
  *
  * This is a helper function to make simple execution of SQL easier.
  * It is primarily meant for things like "BEGIN;" and "COMMIT;".

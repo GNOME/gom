@@ -226,7 +226,7 @@ out:
  * @version: (in): The version to migrate to.
  * @migrator: (in) (scope call): A function to perform the migrations.
  * @migrator_data: (in): User data for @migrator.
- * @error:
+ * @error: a #GError
  *
  * Performs a migration on the underlying database. This will
  * call @migrator from the SQLite thread for each migration to perform.
@@ -280,6 +280,7 @@ gom_repository_migrate_sync (GomRepository          *repository,
  * @repository: (in): A #GomRepository.
  * @version: (in): The version to migrate to.
  * @migrator: (in) (scope async): A function to perform the migrations.
+ * @migrator_data: (in): User data for @migrator
  * @callback: (in): A callback to execute upon completion.
  * @user_data: (in): User data for @callback.
  *
@@ -382,7 +383,7 @@ bail_object:
  * @repository: (in): A #GomRepository.
  * @version: (in): The version to migrate to.
  * @object_types: (element-type GType) (transfer container): a #GList of #GType
- * @error:
+ * @error: a #GError
  *
  * Performs an automatic migration on the underlying database. For
  * each of the #GType passed in @object_types, the table will be
