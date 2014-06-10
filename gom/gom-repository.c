@@ -368,7 +368,6 @@ gom_repository_automatic_migrator (GomRepository  *repository,
     }
 
 bail_object:
-    g_list_free(object_types);
     g_list_free_full(cmds, g_object_unref);
     g_type_class_unref(klass);
     if (*error)
@@ -398,13 +397,19 @@ gom_repository_automatic_migrate_sync (GomRepository          *repository,
                                        GList                  *object_types,
                                        GError                **error)
 {
+   gboolean ret;
+
    g_return_val_if_fail(GOM_IS_REPOSITORY(repository), FALSE);
    g_return_val_if_fail(version >= 1, FALSE);
    g_return_val_if_fail(object_types != NULL, FALSE);
 
-   return gom_repository_migrate_sync(repository, version,
-                                      gom_repository_automatic_migrator, object_types,
-                                      error);
+   ret = gom_repository_migrate_sync(repository, version,
+                                     gom_repository_automatic_migrator, object_types,
+                                     error);
+
+   g_list_free(object_types);
+
+   return ret;
 }
 
 /**
@@ -433,6 +438,7 @@ gom_repository_automatic_migrate_async (GomRepository         *repository,
    g_return_if_fail(version >= 1);
    g_return_if_fail(object_types != NULL);
 
+   g_object_set_data_full (G_OBJECT (repository), "object-types", object_types, (GDestroyNotify) g_list_free);
    gom_repository_migrate_async (repository, version,
                                  gom_repository_automatic_migrator, object_types,
                                  callback, user_data);
@@ -443,7 +449,11 @@ gom_repository_automatic_migrate_finish (GomRepository  *repository,
                                          GAsyncResult   *result,
                                          GError        **error)
 {
-  return gom_repository_migrate_finish(repository, result, error);
+   g_return_val_if_fail(GOM_IS_REPOSITORY(repository), FALSE);
+   g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(result), FALSE);
+
+   g_object_set_data(G_OBJECT(repository), "object-types", NULL);
+   return gom_repository_migrate_finish(repository, result, error);
 }
 
 static void

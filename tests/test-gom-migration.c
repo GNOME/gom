@@ -247,8 +247,6 @@ migrate_cb (GObject      *object,
    gboolean ret;
    GError *error = NULL;
 
-   g_object_set_data (object, "object-types", NULL);
-
    ret = gom_repository_migrate_finish(repository, result, &error);
    g_assert_no_error(error);
    g_assert(ret);
@@ -279,7 +277,6 @@ open_cb (GObject      *object,
    gom_repository_migrate_async(repository, 2, do_migrate, NULL, migrate_cb, user_data);
 #else
    object_types = g_list_prepend(NULL, GINT_TO_POINTER(BOOKMARKS_TYPE_RESOURCE));
-   g_object_set_data_full (G_OBJECT (repository), "object-types", object_types, (GDestroyNotify) g_list_free);
    gom_repository_automatic_migrate_async(repository, 2, object_types, migrate_cb, user_data);
 #endif
    g_object_unref(repository);
