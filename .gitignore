@@ -26,6 +26,7 @@ stamp-h1
 test-gom-adapter
 test-gom-repository
 test-gom-find
+test-gom-find-specific
 test-gom-stress
 test-gom-transform
 test-gom-migration

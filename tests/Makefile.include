@@ -2,6 +2,7 @@ noinst_PROGRAMS =
 noinst_PROGRAMS += test-gom-adapter
 noinst_PROGRAMS += test-gom-repository
 noinst_PROGRAMS += test-gom-find
+noinst_PROGRAMS += test-gom-find-specific
 noinst_PROGRAMS += test-gom-transform
 noinst_PROGRAMS += test-gom-stress
 noinst_PROGRAMS += test-gom-migration
@@ -11,6 +12,7 @@ noinst_PROGRAMS += test-gom-insert
 TEST_PROGS += test-gom-adapter
 TEST_PROGS += test-gom-repository
 TEST_PROGS += test-gom-find
+TEST_PROGS += test-gom-find-specific
 TEST_PROGS += test-gom-transform
 TEST_PROGS += test-gom-stress
 TEST_PROGS += test-gom-migration
@@ -48,5 +50,9 @@ test_gom_constraints_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-
 test_gom_insert_SOURCES = $(top_srcdir)/tests/test-gom-insert.c
 test_gom_insert_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS)
 test_gom_insert_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
+
+test_gom_find_specific_SOURCES = $(top_srcdir)/tests/test-gom-find-specific.c
+test_gom_find_specific_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS)
+test_gom_find_specific_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
 EXTRA_DIST = $(top_srcdir)/tests/grl-bookmarks.db $(top_srcdir)/tests/gnome.png
