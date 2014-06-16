@@ -59,10 +59,14 @@ sql_type_for_column (GParamSpec *pspec)
    GType parent_type;
 
    switch (pspec->value_type) {
+   case G_TYPE_CHAR:
    case G_TYPE_INT:
    case G_TYPE_INT64:
+   case G_TYPE_LONG:
+   case G_TYPE_UCHAR:
    case G_TYPE_UINT:
    case G_TYPE_UINT64:
+   case G_TYPE_ULONG:
    case G_TYPE_BOOLEAN:
       return "INTEGER";
    case G_TYPE_STRING:
