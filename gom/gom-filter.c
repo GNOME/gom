@@ -379,13 +379,7 @@ gom_filter_get_values (GomFilter *filter)
    }
    case GOM_FILTER_AND:
    case GOM_FILTER_OR:
-      va = g_array_new(FALSE, FALSE, sizeof(GValue));
-      g_array_set_clear_func(va, (GDestroyNotify) g_value_unset);
-
-      tmp = gom_filter_get_values(priv->left);
-      join_value_array(va, tmp);
-      g_array_unref(tmp);
-
+      va = gom_filter_get_values(priv->left);
       tmp = gom_filter_get_values(priv->right);
       join_value_array(va, tmp);
       g_array_unref(tmp);
