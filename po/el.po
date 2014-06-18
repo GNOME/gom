@@ -1,0 +1,198 @@
+# Greek translation for gom.
+# Copyright (C) 2014 gom's COPYRIGHT HOLDER
+# This file is distributed under the same license as the gom package.
+# Tom Tryfonidis <tomtryf@gmail.com>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gom master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=gom&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2014-06-18 08:13+0000\n"
+"PO-Revision-Date: 2014-06-18 13:40+0200\n"
+"Last-Translator: Tom Tryfonidis <tomtryf@gmail.com>\n"
+"Language-Team: Greek <team@lists.gnome.gr>\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.6.5\n"
+
+#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:580
+#: ../gom/gom-repository.c:898 ../gom/gom-command.c:508
+msgid "Adapter"
+msgstr "Προσαρμογέας"
+
+#: ../gom/gom-command-builder.c:993
+msgid "The GomAdapter."
+msgstr "Το GomAdapter."
+
+#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:589
+msgid "Filter"
+msgstr "Φίλτρο"
+
+#: ../gom/gom-command-builder.c:1002
+msgid "The filter for the command."
+msgstr "Το φίλτρο για την εντολή."
+
+#: ../gom/gom-command-builder.c:1010
+msgid "Limit"
+msgstr "Όριο"
+
+#: ../gom/gom-command-builder.c:1011
+#| msgid "The maximum number or results."
+msgid "The maximum number of results."
+msgstr "Ο μέγιστος αριθμός των αποτελεσμάτων."
+
+#: ../gom/gom-command-builder.c:1021
+msgid "Many-to-many table"
+msgstr "Πίνακας πολλά-προς-πολλά"
+
+#: ../gom/gom-command-builder.c:1022
+msgid "The table to use for many-to-many queries."
+msgstr "Ο πίνακας που θα χρησιμοποιηθεί για ερωτήματα πολλά-προς-πολλά."
+
+#: ../gom/gom-command-builder.c:1030
+msgid "Many-to-many type"
+msgstr "Τύπος πολλά-προς-πολλά"
+
+#: ../gom/gom-command-builder.c:1031
+msgid "The type for the join within m2m-table."
+msgstr "Ο τύπος για την ένωση με πίνανα πολλά προς πολλά."
+
+#: ../gom/gom-command-builder.c:1039
+msgid "Offset"
+msgstr "Μετατόπιση"
+
+#: ../gom/gom-command-builder.c:1040
+msgid "The number of results to skip."
+msgstr "Ο αριθμός των αποτελεσμάτων που θα παρακαμφθούν"
+
+#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:625
+msgid "Resource Type"
+msgstr "Τύπος πηγής"
+
+#: ../gom/gom-command-builder.c:1051
+msgid "The resource type to query for."
+msgstr "Ο τύπος πηγής για το ερώτημα."
+
+#: ../gom/gom-resource.c:675
+#, c-format
+#| msgid "The resources repository."
+msgid "Cannot save resource, no repository set"
+msgstr "Αδυναμία αποθήκευσης πόρου, δεν έχει οριστεί αποθετήριο"
+
+#: ../gom/gom-resource.c:795
+msgid "No result was returned from the cursor."
+msgstr "Δεν επιστράφηκαν αποτελέσματα από το δρομέα."
+
+#: ../gom/gom-resource.c:979 ../gom/gom-resource-group.c:616
+msgid "Repository"
+msgstr "Αποθετήριο"
+
+#: ../gom/gom-resource.c:980
+msgid "The resources repository."
+msgstr "Το αποθετήριο των πηγών."
+
+#: ../gom/gom-filter.c:495
+msgid "Mode"
+msgstr "Κατάσταση"
+
+#: ../gom/gom-filter.c:496
+msgid "The mode of the filter."
+msgstr "Η κατάσταση του φίλτρου."
+
+#: ../gom/gom-filter.c:505 ../gom/gom-command.c:517
+msgid "SQL"
+msgstr "SQL"
+
+#: ../gom/gom-filter.c:506
+msgid "The sql for the filter."
+msgstr "Η sql για το φίλτρο."
+
+#: ../gom/gom-cursor.c:299
+msgid "Statement"
+msgstr "Δήλωση"
+
+#: ../gom/gom-cursor.c:300
+msgid "A pointer to a sqlite3_stmt."
+msgstr "Ένας δείκτης σε ένα sqlite3_stmt."
+
+#: ../gom/gom-resource-group.c:569
+msgid "Count"
+msgstr "Πλήθος"
+
+#: ../gom/gom-resource-group.c:570
+msgid "The size of the resource group."
+msgstr "Το μέγεθος της ομάδας πηγής"
+
+#: ../gom/gom-resource-group.c:581
+msgid "The adapter used for queries."
+msgstr "Ο προσαρμογέας που χρησιμοποιείται για ερωτήματα."
+
+#: ../gom/gom-resource-group.c:590
+msgid "The query filter."
+msgstr "Το φίλτρο ερωτήματος"
+
+#: ../gom/gom-resource-group.c:598
+msgid "Many-to-Many Table"
+msgstr "Πίνακας πολλά-προς-πολλά"
+
+#: ../gom/gom-resource-group.c:599
+msgid "The table used to join a Many to Many query."
+msgstr ""
+"Ο πίνακας που θα χρησιμοποιηθεί για την ένωση ερωτημάτων πολλά προς πολλά."
+
+#: ../gom/gom-resource-group.c:607
+msgid "Many-to-Many type"
+msgstr "Τύπος πολλά-προς-πολλά"
+
+#: ../gom/gom-resource-group.c:608
+msgid "The type used in the m2m-table join."
+msgstr "Ο τύπος που χρησιμοποιήθηκε για την ένωση πίνακα πολλά προς πολλά."
+
+#: ../gom/gom-resource-group.c:617
+msgid "The repository for object storage."
+msgstr "Το αποθετήριο για την αποθήκευση των αντικειμένων."
+
+#: ../gom/gom-resource-group.c:626
+msgid "The type of resources contained."
+msgstr "Ο τύποςτων πόρων που περιλαμβάνονται."
+
+#: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
+#, c-format
+msgid "No resources were found."
+msgstr "Δεν βρέθηκαν πηγές."
+
+#: ../gom/gom-repository.c:899
+msgid "The adapter for the repository."
+msgstr "Ο προσαρμογέας για το αποθετήριο."
+
+#: ../gom/gom-adapter.c:198
+#, c-format
+msgid "Failed to open database at %s"
+msgstr "Αποτυχία ανοίγματος της βάσης δεδομένων στο %s"
+
+#: ../gom/gom-command.c:287
+#, c-format
+msgid "The command does not contain any SQL"
+msgstr "Η εντολή δεν περιέχει κώδικα SQL"
+
+#: ../gom/gom-command.c:294
+#, c-format
+msgid "sqlite3_prepare_v2 failed: %s: %s"
+msgstr "Απέτυχε το sqlite3_prepare_v2: %s: %s"
+
+#: ../gom/gom-command.c:321
+#, c-format
+msgid "Failed to access SQLite handle."
+msgstr "Αδυναμία πρόσβασης χειρισμού του SQLite"
+
+#: ../gom/gom-command.c:509
+msgid "The GomAdapter for the command."
+msgstr "Το GomAdapter για την εντολή."
+
+#: ../gom/gom-command.c:518
+msgid "The SQL for the command."
+msgstr "Η SQL για την εντολή"
