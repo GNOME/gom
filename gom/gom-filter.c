@@ -332,6 +332,8 @@ join_value_array (GArray *dst,
    g_return_if_fail(src);
 
    g_array_append_vals(dst, src->data, src->len);
+   g_array_set_clear_func(src, NULL);
+   g_array_unref(src);
 }
 
 /**
@@ -382,7 +384,6 @@ gom_filter_get_values (GomFilter *filter)
       va = gom_filter_get_values(priv->left);
       tmp = gom_filter_get_values(priv->right);
       join_value_array(va, tmp);
-      g_array_unref(tmp);
 
       return va;
    default:
