@@ -1,0 +1,196 @@
+# Hungarian translation for gom.
+# Copyright (C) 2014 gom's COPYRIGHT HOLDER
+# This file is distributed under the same license as the gom package.
+#
+# Balázs Úr <urbalazs@gmail.com>, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: gom master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=gom&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2014-07-26 08:20+0000\n"
+"PO-Revision-Date: 2014-07-26 12:12+0200\n"
+"Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
+"Language-Team: Hungarian <gnome-hu-list@gnome.org>\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 1.2\n"
+
+#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:580
+#: ../gom/gom-repository.c:898 ../gom/gom-command.c:508
+msgid "Adapter"
+msgstr "Csatlakozó"
+
+#: ../gom/gom-command-builder.c:993
+msgid "The GomAdapter."
+msgstr "A Gom csatlakozó."
+
+#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:589
+msgid "Filter"
+msgstr "Szűrő"
+
+#: ../gom/gom-command-builder.c:1002
+msgid "The filter for the command."
+msgstr "A szűrő a parancshoz."
+
+#: ../gom/gom-command-builder.c:1010
+msgid "Limit"
+msgstr "Határ"
+
+#: ../gom/gom-command-builder.c:1011
+msgid "The maximum number of results."
+msgstr "Az eredmények legnagyobb száma."
+
+#: ../gom/gom-command-builder.c:1021
+msgid "Many-to-many table"
+msgstr "Több-a-többhöz tábla"
+
+#: ../gom/gom-command-builder.c:1022
+msgid "The table to use for many-to-many queries."
+msgstr "Több-a-többhöz lekérdezésekhez használandó tábla."
+
+#: ../gom/gom-command-builder.c:1030
+msgid "Many-to-many type"
+msgstr "Több-a-többhöz típus"
+
+#: ../gom/gom-command-builder.c:1031
+msgid "The type for the join within m2m-table."
+msgstr "Típus a több-a-többhöz táblán belüli illesztéshez."
+
+#: ../gom/gom-command-builder.c:1039
+msgid "Offset"
+msgstr "Eltolás"
+
+#: ../gom/gom-command-builder.c:1040
+msgid "The number of results to skip."
+msgstr "A kihagyandó eredmények száma."
+
+#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:625
+msgid "Resource Type"
+msgstr "Erőforrástípus"
+
+#: ../gom/gom-command-builder.c:1051
+msgid "The resource type to query for."
+msgstr "Erőforrástípus a lekérdezéshez."
+
+#: ../gom/gom-resource.c:675
+#, c-format
+msgid "Cannot save resource, no repository set"
+msgstr "Nem lehet elmenteni az erőforrást, nincs tároló beállítva"
+
+#: ../gom/gom-resource.c:795
+msgid "No result was returned from the cursor."
+msgstr "Nem került eredmény visszaadásra a kurzortól."
+
+#: ../gom/gom-resource.c:979 ../gom/gom-resource-group.c:616
+msgid "Repository"
+msgstr "Tároló"
+
+#: ../gom/gom-resource.c:980
+msgid "The resources repository."
+msgstr "Az erőforrások tárolója."
+
+#: ../gom/gom-filter.c:496
+msgid "Mode"
+msgstr "Mód"
+
+#: ../gom/gom-filter.c:497
+msgid "The mode of the filter."
+msgstr "A szűrő módja."
+
+#: ../gom/gom-filter.c:506 ../gom/gom-command.c:517
+msgid "SQL"
+msgstr "SQL"
+
+#: ../gom/gom-filter.c:507
+msgid "The sql for the filter."
+msgstr "Az SQL a szűrőhöz."
+
+#: ../gom/gom-cursor.c:299
+msgid "Statement"
+msgstr "Utasítás"
+
+#: ../gom/gom-cursor.c:300
+msgid "A pointer to a sqlite3_stmt."
+msgstr "Mutató egy sqlite3_stmt utasításra."
+
+#: ../gom/gom-resource-group.c:569
+msgid "Count"
+msgstr "Darabszám"
+
+#: ../gom/gom-resource-group.c:570
+msgid "The size of the resource group."
+msgstr "Az erőforráscsoport mérete."
+
+#: ../gom/gom-resource-group.c:581
+msgid "The adapter used for queries."
+msgstr "A lekérdezésekhez használt csatlakozó."
+
+#: ../gom/gom-resource-group.c:590
+msgid "The query filter."
+msgstr "A lekérdezésszűrő."
+
+#: ../gom/gom-resource-group.c:598
+msgid "Many-to-Many Table"
+msgstr "Több-a-többhöz tábla"
+
+#: ../gom/gom-resource-group.c:599
+msgid "The table used to join a Many to Many query."
+msgstr "Egy több-a-többhöz lekérdezés illesztéséhez használt tábla."
+
+#: ../gom/gom-resource-group.c:607
+msgid "Many-to-Many type"
+msgstr "Több-a-többhöz típus"
+
+#: ../gom/gom-resource-group.c:608
+msgid "The type used in the m2m-table join."
+msgstr "A több-a-többhöz táblán belüli illesztésben használt típus."
+
+#: ../gom/gom-resource-group.c:617
+msgid "The repository for object storage."
+msgstr "A tároló az objektumtároláshoz."
+
+#: ../gom/gom-resource-group.c:626
+msgid "The type of resources contained."
+msgstr "A tartalmazott erőforrások típusa."
+
+#: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
+#, c-format
+msgid "No resources were found."
+msgstr "Nem találhatók erőforrások."
+
+#: ../gom/gom-repository.c:899
+msgid "The adapter for the repository."
+msgstr "A csatlakozó a tárolóhoz."
+
+#: ../gom/gom-adapter.c:198
+#, c-format
+msgid "Failed to open database at %s"
+msgstr "Az adatbázis megnyitása nem sikerült itt: %s"
+
+#: ../gom/gom-command.c:287
+#, c-format
+msgid "The command does not contain any SQL"
+msgstr "A parancs nem tartalmaz SQL lekérdezést"
+
+#: ../gom/gom-command.c:294
+#, c-format
+msgid "sqlite3_prepare_v2 failed: %s: %s"
+msgstr "sqlite3_prepare_v2 sikertelen: %s: %s"
+
+#: ../gom/gom-command.c:321
+#, c-format
+msgid "Failed to access SQLite handle."
+msgstr "Nem sikerült hozzáférni az SQLite leíróhoz."
+
+#: ../gom/gom-command.c:509
+msgid "The GomAdapter for the command."
+msgstr "A Gom csatlakozó a parancshoz."
+
+#: ../gom/gom-command.c:518
+msgid "The SQL for the command."
+msgstr "Az SQL a parancshoz."
+
