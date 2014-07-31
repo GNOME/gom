@@ -604,6 +604,7 @@ gom_resource_do_save (GomResource  *resource,
          g_value_init(&value, G_TYPE_INT64);
          g_value_set_int64(&value, row_id);
          set_pkey(resource, &value);
+         gom_resource_set_is_from_table(resource, TRUE);
          g_value_unset(&value);
       }
 
