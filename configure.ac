@@ -3,7 +3,7 @@ dnl Versioning Macros
 dnl **************************************************************************
 m4_define([gom_major_version], [0])
 m4_define([gom_minor_version], [2])
-m4_define([gom_micro_version], [0])
+m4_define([gom_micro_version], [1])
 m4_define([gom_version],
           [gom_major_version.gom_minor_version.gom_micro_version])
 m4_define([gom_binary_age], [m4_eval(100 * gom_minor_version +

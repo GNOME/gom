@@ -1,5 +1,12 @@
 Major changes in version
 
+0.2.1
+-----
+
+- Fix possible crashers with AND/OR filters
+- Add support for short and long integers
+- Mark resources as "from table" after it's been inserted
+
 0.2.0
 -----
 
