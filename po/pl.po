@@ -1,0 +1,199 @@
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Aviary.pl
+# Jeśli masz jakiekolwiek uwagi odnoszące się do tłumaczenia lub chcesz
+# pomóc w jego rozwijaniu i pielęgnowaniu, napisz do nas:
+# gnomepl@aviary.pl
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Piotr Drąg <piotrdrag@gmail.com>, 2014.
+# Aviary.pl <gnomepl@aviary.pl>, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: gom\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-09-07 02:47+0200\n"
+"PO-Revision-Date: 2014-09-07 02:48+0200\n"
+"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
+"Language-Team: Polish <gnomepl@aviary.pl>\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+"X-Poedit-Language: Polish\n"
+"X-Poedit-Country: Poland\n"
+
+#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:580
+#: ../gom/gom-repository.c:898 ../gom/gom-command.c:508
+msgid "Adapter"
+msgstr "Adapter"
+
+#: ../gom/gom-command-builder.c:993
+msgid "The GomAdapter."
+msgstr "GomAdapter."
+
+#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:589
+msgid "Filter"
+msgstr "Filtr"
+
+#: ../gom/gom-command-builder.c:1002
+msgid "The filter for the command."
+msgstr "Filtr dla polecenia."
+
+#: ../gom/gom-command-builder.c:1010
+msgid "Limit"
+msgstr "Ograniczenie"
+
+#: ../gom/gom-command-builder.c:1011
+msgid "The maximum number of results."
+msgstr "Maksymalna liczba wyników."
+
+#: ../gom/gom-command-builder.c:1021
+msgid "Many-to-many table"
+msgstr "Tablica wiele-do-wielu"
+
+#: ../gom/gom-command-builder.c:1022
+msgid "The table to use for many-to-many queries."
+msgstr "Tablica używana do zapytań wiele-do-wielu."
+
+#: ../gom/gom-command-builder.c:1030
+msgid "Many-to-many type"
+msgstr "Typ wielu-do-wielu"
+
+#: ../gom/gom-command-builder.c:1031
+msgid "The type for the join within m2m-table."
+msgstr "Typ do dołączania w m2m-table."
+
+#: ../gom/gom-command-builder.c:1039
+msgid "Offset"
+msgstr "Offset"
+
+#: ../gom/gom-command-builder.c:1040
+msgid "The number of results to skip."
+msgstr "Liczba wyników do pominięcia."
+
+#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:625
+msgid "Resource Type"
+msgstr "Typ zasobu"
+
+#: ../gom/gom-command-builder.c:1051
+msgid "The resource type to query for."
+msgstr "Typ zasobu, który odpytywać."
+
+#: ../gom/gom-resource.c:676
+#, c-format
+msgid "Cannot save resource, no repository set"
+msgstr "Nie można zapisać zasobu, nie ustawiono repozytorium"
+
+#: ../gom/gom-resource.c:796
+msgid "No result was returned from the cursor."
+msgstr "Brak wyników zwróconych z kursora."
+
+#: ../gom/gom-resource.c:980 ../gom/gom-resource-group.c:616
+msgid "Repository"
+msgstr "Repozytorium"
+
+#: ../gom/gom-resource.c:981
+msgid "The resources repository."
+msgstr "Repozytorium zasobów."
+
+#: ../gom/gom-filter.c:496
+msgid "Mode"
+msgstr "Tryb"
+
+#: ../gom/gom-filter.c:497
+msgid "The mode of the filter."
+msgstr "Tryb filtru."
+
+#: ../gom/gom-filter.c:506 ../gom/gom-command.c:517
+msgid "SQL"
+msgstr "SQL"
+
+#: ../gom/gom-filter.c:507
+msgid "The SQL for the filter."
+msgstr "SQL filtru."
+
+#: ../gom/gom-cursor.c:299
+msgid "Statement"
+msgstr "Instrukcja"
+
+#: ../gom/gom-cursor.c:300
+msgid "A pointer to a sqlite3_stmt."
+msgstr "Wskaźnik do sqlite3_stmt."
+
+#: ../gom/gom-resource-group.c:569
+msgid "Count"
+msgstr "Liczba"
+
+#: ../gom/gom-resource-group.c:570
+msgid "The size of the resource group."
+msgstr "Rozmiar grupy zasobów."
+
+#: ../gom/gom-resource-group.c:581
+msgid "The adapter used for queries."
+msgstr "Adapter używany do zapytań."
+
+#: ../gom/gom-resource-group.c:590
+msgid "The query filter."
+msgstr "Filtr zapytań."
+
+#: ../gom/gom-resource-group.c:598
+msgid "Many-to-Many Table"
+msgstr "Tablica wiele-do-wielu"
+
+#: ../gom/gom-resource-group.c:599
+msgid "The table used to join a Many to Many query."
+msgstr "Tablica używana do dołączania zapytania wiele-do-wielu."
+
+#: ../gom/gom-resource-group.c:607
+msgid "Many-to-Many type"
+msgstr "Typ wiele-do-wielu"
+
+#: ../gom/gom-resource-group.c:608
+msgid "The type used in the m2m-table join."
+msgstr "Typ używany w dołączaniu m2m-table."
+
+#: ../gom/gom-resource-group.c:617
+msgid "The repository for object storage."
+msgstr "Repozytorium do przechowywania obiektów."
+
+#: ../gom/gom-resource-group.c:626
+msgid "The type of resources contained."
+msgstr "Typ zawartych zasobów."
+
+#: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
+#, c-format
+msgid "No resources were found."
+msgstr "Nie odnaleziono żadnych zasobów."
+
+#: ../gom/gom-repository.c:899
+msgid "The adapter for the repository."
+msgstr "Adapter dla repozytorium."
+
+#: ../gom/gom-adapter.c:198
+#, c-format
+msgid "Failed to open database at %s"
+msgstr "Otwarcie bazy danych w %s się nie powiodło"
+
+#: ../gom/gom-command.c:287
+#, c-format
+msgid "The command does not contain any SQL"
+msgstr "Polecenie nie zawiera SQL"
+
+#: ../gom/gom-command.c:294
+#, c-format
+msgid "sqlite3_prepare_v2 failed: %s: %s"
+msgstr "sqlite3_prepare_v2 się nie powiodło: %s: %s"
+
+#: ../gom/gom-command.c:321
+#, c-format
+msgid "Failed to access SQLite handle."
+msgstr "Uzyskanie dostępu do obsługi SQLite się nie powiodło."
+
+#: ../gom/gom-command.c:509
+msgid "The GomAdapter for the command."
+msgstr "GomAdapter dla polecenia."
+
+#: ../gom/gom-command.c:518
+msgid "The SQL for the command."
+msgstr "SQL dla polecenia."
