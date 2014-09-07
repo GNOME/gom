@@ -504,7 +504,7 @@ gom_filter_class_init (GomFilterClass *klass)
    gParamSpecs[PROP_SQL] =
       g_param_spec_string("sql",
                           _("SQL"),
-                          _("The sql for the filter."),
+                          _("The SQL for the filter."),
                           NULL,
                           G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_SQL,
