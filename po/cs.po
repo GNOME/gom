@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: gom master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=gom&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-05-06 19:43+0000\n"
+"POT-Creation-Date: 2014-09-07 00:48+0000\n"
 "PO-Revision-Date: 2014-05-14 10:36+0100\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
@@ -20,94 +20,94 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Gtranslator 2.91.6\n"
 
-#: ../gom/gom-command-builder.c:934 ../gom/gom-resource-group.c:577
-#: ../gom/gom-repository.c:886 ../gom/gom-command.c:494
+#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:580
+#: ../gom/gom-repository.c:898 ../gom/gom-command.c:508
 msgid "Adapter"
 msgstr "Adaptér"
 
-#: ../gom/gom-command-builder.c:935
+#: ../gom/gom-command-builder.c:993
 msgid "The GomAdapter."
 msgstr "GomAdapter."
 
-#: ../gom/gom-command-builder.c:943 ../gom/gom-resource-group.c:586
+#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:589
 msgid "Filter"
 msgstr "Filtr"
 
-#: ../gom/gom-command-builder.c:944
+#: ../gom/gom-command-builder.c:1002
 msgid "The filter for the command."
 msgstr "Filtr pro příkaz."
 
-#: ../gom/gom-command-builder.c:952
+#: ../gom/gom-command-builder.c:1010
 msgid "Limit"
 msgstr "Omezení"
 
-#: ../gom/gom-command-builder.c:953
+#: ../gom/gom-command-builder.c:1011
 msgid "The maximum number of results."
 msgstr "Maximální počet výsledků."
 
-#: ../gom/gom-command-builder.c:963
+#: ../gom/gom-command-builder.c:1021
 msgid "Many-to-many table"
 msgstr "Tabulka M:N"
 
-#: ../gom/gom-command-builder.c:964
+#: ../gom/gom-command-builder.c:1022
 msgid "The table to use for many-to-many queries."
 msgstr "Tabulka pro použití v dotazu M:N."
 
-#: ../gom/gom-command-builder.c:972
+#: ../gom/gom-command-builder.c:1030
 msgid "Many-to-many type"
 msgstr "Typ M:N"
 
-#: ../gom/gom-command-builder.c:973
+#: ../gom/gom-command-builder.c:1031
 msgid "The type for the join within m2m-table."
 msgstr "Typ pro propojení tabulek M:N."
 
-#: ../gom/gom-command-builder.c:981
+#: ../gom/gom-command-builder.c:1039
 msgid "Offset"
 msgstr "Posun"
 
-#: ../gom/gom-command-builder.c:982
+#: ../gom/gom-command-builder.c:1040
 msgid "The number of results to skip."
 msgstr "Počet výsledků, které se mají přeskočit."
 
-#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:622
+#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:625
 msgid "Resource Type"
 msgstr "Typ prostředku"
 
-#: ../gom/gom-command-builder.c:993
+#: ../gom/gom-command-builder.c:1051
 msgid "The resource type to query for."
 msgstr "Typ prostředku pro dotaz."
 
-#: ../gom/gom-resource.c:625
+#: ../gom/gom-resource.c:676
 #, c-format
 msgid "Cannot save resource, no repository set"
 msgstr "Prostředek nelze uložit, není nastaven žádný repozitář."
 
-#: ../gom/gom-resource.c:745
+#: ../gom/gom-resource.c:796
 msgid "No result was returned from the cursor."
 msgstr "Z kurzoru nebyl vrácen žádný výsledek."
 
-#: ../gom/gom-resource.c:928 ../gom/gom-resource-group.c:613
+#: ../gom/gom-resource.c:980 ../gom/gom-resource-group.c:616
 msgid "Repository"
 msgstr "Repozitář"
 
-#: ../gom/gom-resource.c:929
+#: ../gom/gom-resource.c:981
 msgid "The resources repository."
 msgstr "Repozitář prostředků."
 
-#: ../gom/gom-filter.c:501
+#: ../gom/gom-filter.c:496
 msgid "Mode"
 msgstr "Režim"
 
-#: ../gom/gom-filter.c:502
+#: ../gom/gom-filter.c:497
 msgid "The mode of the filter."
 msgstr "Režim filtru."
 
-#: ../gom/gom-filter.c:511 ../gom/gom-command.c:503
+#: ../gom/gom-filter.c:506 ../gom/gom-command.c:517
 msgid "SQL"
 msgstr "SQL"
 
-#: ../gom/gom-filter.c:512
-msgid "The sql for the filter."
+#: ../gom/gom-filter.c:507
+msgid "The SQL for the filter."
 msgstr "SQL pro filtr."
 
 #: ../gom/gom-cursor.c:299
@@ -118,52 +118,52 @@ msgstr "Výraz"
 msgid "A pointer to a sqlite3_stmt."
 msgstr "Ukazatel na sqlite3_stmt."
 
-#: ../gom/gom-resource-group.c:566
+#: ../gom/gom-resource-group.c:569
 msgid "Count"
 msgstr "Počet"
 
-#: ../gom/gom-resource-group.c:567
+#: ../gom/gom-resource-group.c:570
 msgid "The size of the resource group."
 msgstr "Velikost skupiny prostředků."
 
-#: ../gom/gom-resource-group.c:578
+#: ../gom/gom-resource-group.c:581
 msgid "The adapter used for queries."
 msgstr "Adaptér použitý pro dotazy."
 
-#: ../gom/gom-resource-group.c:587
+#: ../gom/gom-resource-group.c:590
 msgid "The query filter."
 msgstr "Filtr dotazu."
 
-#: ../gom/gom-resource-group.c:595
+#: ../gom/gom-resource-group.c:598
 msgid "Many-to-Many Table"
 msgstr "Tabulka M:N"
 
-#: ../gom/gom-resource-group.c:596
+#: ../gom/gom-resource-group.c:599
 msgid "The table used to join a Many to Many query."
 msgstr "Tabulka použitá v dotazu s propojením M:N."
 
-#: ../gom/gom-resource-group.c:604
+#: ../gom/gom-resource-group.c:607
 msgid "Many-to-Many type"
 msgstr "Typ M:N"
 
-#: ../gom/gom-resource-group.c:605
+#: ../gom/gom-resource-group.c:608
 msgid "The type used in the m2m-table join."
 msgstr "Typ použitý v propojení tabulek M:N."
 
-#: ../gom/gom-resource-group.c:614
+#: ../gom/gom-resource-group.c:617
 msgid "The repository for object storage."
 msgstr "Repozitář pro úložiště objektu."
 
-#: ../gom/gom-resource-group.c:623
+#: ../gom/gom-resource-group.c:626
 msgid "The type of resources contained."
 msgstr "Typ obsažených prostředků."
 
-#: ../gom/gom-repository.c:686 ../gom/gom-repository.c:732
+#: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
 #, c-format
 msgid "No resources were found."
 msgstr "Žádné prostředky nebyly nalezeny."
 
-#: ../gom/gom-repository.c:887
+#: ../gom/gom-repository.c:899
 msgid "The adapter for the repository."
 msgstr "Adaptér pro repozitář."
 
@@ -172,25 +172,25 @@ msgstr "Adaptér pro repozitář."
 msgid "Failed to open database at %s"
 msgstr "Selhalo otevření databáze v %s"
 
-#: ../gom/gom-command.c:273
+#: ../gom/gom-command.c:287
 #, c-format
 msgid "The command does not contain any SQL"
 msgstr "Příkaz neobsahuje žádné SQL"
 
-#: ../gom/gom-command.c:280
+#: ../gom/gom-command.c:294
 #, c-format
 msgid "sqlite3_prepare_v2 failed: %s: %s"
 msgstr "Selhala funkce sqlite3_prepare_v2: %s: %s"
 
-#: ../gom/gom-command.c:307
+#: ../gom/gom-command.c:321
 #, c-format
 msgid "Failed to access SQLite handle."
 msgstr "Selhal přístup k popisovači SQLite."
 
-#: ../gom/gom-command.c:495
+#: ../gom/gom-command.c:509
 msgid "The GomAdapter for the command."
 msgstr "GomAdapter pro příkaz."
 
-#: ../gom/gom-command.c:504
+#: ../gom/gom-command.c:518
 msgid "The SQL for the command."
 msgstr "SQL pro příkaz."
