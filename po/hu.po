@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: gom master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=gom&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-07-26 08:20+0000\n"
-"PO-Revision-Date: 2014-07-26 12:12+0200\n"
+"POT-Creation-Date: 2014-09-07 00:48+0000\n"
+"PO-Revision-Date: 2014-09-11 20:26+0200\n"
 "Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
 "Language-Team: Hungarian <gnome-hu-list@gnome.org>\n"
 "Language: hu\n"
@@ -76,20 +76,20 @@ msgstr "Erőforrástípus"
 msgid "The resource type to query for."
 msgstr "Erőforrástípus a lekérdezéshez."
 
-#: ../gom/gom-resource.c:675
+#: ../gom/gom-resource.c:676
 #, c-format
 msgid "Cannot save resource, no repository set"
 msgstr "Nem lehet elmenteni az erőforrást, nincs tároló beállítva"
 
-#: ../gom/gom-resource.c:795
+#: ../gom/gom-resource.c:796
 msgid "No result was returned from the cursor."
 msgstr "Nem került eredmény visszaadásra a kurzortól."
 
-#: ../gom/gom-resource.c:979 ../gom/gom-resource-group.c:616
+#: ../gom/gom-resource.c:980 ../gom/gom-resource-group.c:616
 msgid "Repository"
 msgstr "Tároló"
 
-#: ../gom/gom-resource.c:980
+#: ../gom/gom-resource.c:981
 msgid "The resources repository."
 msgstr "Az erőforrások tárolója."
 
@@ -106,7 +106,8 @@ msgid "SQL"
 msgstr "SQL"
 
 #: ../gom/gom-filter.c:507
-msgid "The sql for the filter."
+#| msgid "The sql for the filter."
+msgid "The SQL for the filter."
 msgstr "Az SQL a szűrőhöz."
 
 #: ../gom/gom-cursor.c:299
