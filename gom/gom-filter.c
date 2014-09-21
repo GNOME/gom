@@ -173,7 +173,7 @@ gom_filter_new_lte (GType         resource_type,
    return gom_filter_new_for_param(resource_type, property_name, GOM_FILTER_LTE, value);
 }
 
-GomFilterMode
+static GomFilterMode
 gom_filter_get_mode (GomFilter *filter)
 {
    g_return_val_if_fail(GOM_IS_FILTER(filter), 0);

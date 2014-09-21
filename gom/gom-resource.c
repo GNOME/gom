@@ -251,7 +251,7 @@ gom_resource_class_set_notnull (GomResourceClass *resource_class,
                                GUINT_TO_POINTER (TRUE), NULL);
 }
 
-GomRepository *
+static GomRepository *
 gom_resource_get_repository (GomResource *resource)
 {
    g_return_val_if_fail(GOM_IS_RESOURCE(resource), NULL);

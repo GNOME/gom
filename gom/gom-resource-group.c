@@ -55,7 +55,7 @@ enum
 
 static GParamSpec *gParamSpecs[LAST_PROP];
 
-GomFilter *
+static GomFilter *
 gom_resource_group_get_filter (GomResourceGroup *group)
 {
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), NULL);
@@ -110,7 +110,7 @@ gom_resource_group_set_m2m_table (GomResourceGroup *group,
    g_object_notify_by_pspec(G_OBJECT(group), gParamSpecs[PROP_M2M_TABLE]);
 }
 
-GType
+static GType
 gom_resource_group_get_m2m_type (GomResourceGroup *group)
 {
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), 0);
@@ -126,7 +126,7 @@ gom_resource_group_set_m2m_type (GomResourceGroup *group,
    g_object_notify_by_pspec(G_OBJECT(group), gParamSpecs[PROP_M2M_TYPE]);
 }
 
-GomRepository *
+static GomRepository *
 gom_resource_group_get_repository (GomResourceGroup *group)
 {
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), NULL);
@@ -144,7 +144,7 @@ gom_resource_group_set_repository (GomResourceGroup *group,
    g_object_notify_by_pspec(G_OBJECT(group), gParamSpecs[PROP_REPOSITORY]);
 }
 
-GType
+static GType
 gom_resource_group_get_resource_type (GomResourceGroup *group)
 {
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), G_TYPE_INVALID);
@@ -369,7 +369,7 @@ gom_resource_group_fetch_async (GomResourceGroup    *group,
    g_object_set_data(G_OBJECT(simple), "offset", GINT_TO_POINTER(index_));
    g_object_set_data(G_OBJECT(simple), "limit", GINT_TO_POINTER(count));
 
-   adapter = gom_repository_get_adapter(group->priv->repository);
+   adapter = gom_repository_get_adapter(priv->repository);
    gom_adapter_queue_read(adapter, gom_resource_group_fetch_cb, simple);
 }
 
