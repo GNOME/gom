@@ -34,6 +34,7 @@ AM_PATH_GLIB_2_0
 LT_PREREQ([2.2])
 LT_INIT
 
+GNOME_COMPILE_WARNINGS([maximum])
 
 dnl **************************************************************************
 dnl Versioning Definitions

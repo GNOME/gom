@@ -37,6 +37,7 @@ libgom_1_0_la_CPPFLAGS += $(GIO_CFLAGS)
 libgom_1_0_la_CPPFLAGS += $(GOBJECT_CFLAGS)
 libgom_1_0_la_CPPFLAGS += $(INCLUDE_CFLAGS)
 libgom_1_0_la_CPPFLAGS += $(SQLITE3_CFLAGS)
+libgom_1_0_la_CPPFLAGS += $(WARN_CFLAGS)
 
 libgom_1_0_la_LIBADD =
 libgom_1_0_la_LIBADD += $(GIO_LIBS)
