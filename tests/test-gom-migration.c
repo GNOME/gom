@@ -30,6 +30,8 @@ typedef struct {
   GomResourceClass parent_class;
 } BookmarksResourceClass;
 
+GType bookmarks_resource_get_type(void);
+
 G_DEFINE_TYPE(BookmarksResource, bookmarks_resource, GOM_TYPE_RESOURCE)
 
 enum {

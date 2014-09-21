@@ -26,6 +26,8 @@ typedef struct {
   GomResourceClass parent_class;
 } ItemResourceClass;
 
+GType item_resource_get_type(void);
+
 G_DEFINE_TYPE(ItemResource, item_resource, GOM_TYPE_RESOURCE)
 
 enum {

@@ -35,6 +35,8 @@ typedef struct {
   GomResourceClass parent_class;
 } ItemResourceClass;
 
+GType item_resource_get_type(void);
+
 G_DEFINE_TYPE(ItemResource, item_resource, GOM_TYPE_RESOURCE)
 
 static GParamSpec *item_specs[LAST_PROP];
@@ -169,6 +171,8 @@ typedef struct {
 typedef struct {
   GomResourceClass parent_class;
 } Item2ResourceClass;
+
+GType item2_resource_get_type(void);
 
 G_DEFINE_TYPE(Item2Resource, item2_resource, GOM_TYPE_RESOURCE)
 
@@ -356,9 +360,6 @@ stress_item2 (void)
    gboolean ret;
    GomRepository *repository;
    GList *object_types;
-   GValue value = { 0, };
-   GomFilter *filter;
-   char *s1, *s2;
    Item2Resource *it;
    int id, id2;
 

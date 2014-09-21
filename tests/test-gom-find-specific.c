@@ -2,7 +2,6 @@
 #include <glib/gstdio.h>
 
 static GMainLoop *gMainLoop;
-static char *db_dir_path = NULL;
 
 /* EpisodeResource object */
 
@@ -40,6 +39,8 @@ typedef struct
 {
    GomResourceClass parent_class;
 } EpisodeResourceClass;
+
+GType episode_resource_get_type(void);
 
 G_DEFINE_TYPE(EpisodeResource, episode_resource, GOM_TYPE_RESOURCE)
 
@@ -266,7 +267,6 @@ static void
 find_simple (void)
 {
   GError *error = NULL;
-  gboolean ret;
   GValue value = { 0, };
   GomFilter *filter;
   char *s1, *s2;
@@ -316,7 +316,6 @@ static void
 find_specific (void)
 {
   GError *error = NULL;
-  gboolean ret;
   GValue value = { 0, };
   GomFilter *filter1, *filter2, *filter3, *filter4, *filter5;
   char *s1, *s2;
