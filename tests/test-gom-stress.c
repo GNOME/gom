@@ -158,7 +158,7 @@ stress (void)
    GValue value = { 0, };
    GomFilter *filter;
    guint i;
-   char *s1, *s2;
+   char *s1, *s2, *name, *surname;
    ItemResource *it;
 
    adapter = gom_adapter_new();
@@ -209,8 +209,13 @@ stress (void)
                 NULL);
    g_object_unref(it);
 
-   g_assert_cmpstr(s1, ==, "First name #500");
-   g_assert_cmpstr(s2, ==, "Surname #500");
+   name = g_strdup_printf ("First name #%d", ITEM_TO_GET);
+   surname = g_strdup_printf ("Surname #%d", ITEM_TO_GET);
+
+   g_assert_cmpstr(s1, ==, name);
+   g_free(name);
+   g_assert_cmpstr(s2, ==, surname);
+   g_free(surname);
    g_free(s1);
    g_free(s2);
 
