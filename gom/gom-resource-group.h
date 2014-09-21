@@ -35,6 +35,7 @@ typedef struct _GomResourceGroup        GomResourceGroup;
 typedef struct _GomResourceGroupClass   GomResourceGroupClass;
 typedef struct _GomResourceGroupPrivate GomResourceGroupPrivate;
 
+#include "gom-repository.h"
 #include "gom-resource.h"
 
 struct _GomResourceGroup
@@ -49,6 +50,18 @@ struct _GomResourceGroupClass
 {
    GObjectClass parent_class;
 };
+
+GomResourceGroup *gom_resource_group_new          (GomRepository       *repository);
+gboolean          gom_resource_group_append       (GomResourceGroup    *group,
+                                                   GomResource         *resource);
+gboolean          gom_resource_group_write_sync   (GomResourceGroup    *group,
+                                                   GError             **error);
+void              gom_resource_group_write_async  (GomResourceGroup    *group,
+                                                   GAsyncReadyCallback  callback,
+                                                   gpointer             user_data);
+gboolean          gom_resource_group_write_finish (GomResourceGroup    *group,
+                                                   GAsyncResult        *result,
+                                                   GError             **error);
 
 void         gom_resource_group_fetch_async   (GomResourceGroup     *group,
                                                guint                 index_,
