@@ -119,7 +119,7 @@ is_new_in_version (GParamSpec *pspec,
    /* This is a bit ugly, but this allows us to consider
     * an unset value to be new in version 1. Version 0
     * is for "pre-GOM" SQLite usage. */
-   return GPOINTER_TO_INT(g_param_spec_get_qdata(pspec, GOM_RESOURCE_NEW_IN_VERSION) + 1) == version;
+   return (GPOINTER_TO_INT(g_param_spec_get_qdata(pspec, GOM_RESOURCE_NEW_IN_VERSION)) + 1) == version;
 }
 
 static void
