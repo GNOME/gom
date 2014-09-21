@@ -576,7 +576,7 @@ value_free (gpointer data)
    g_free (value);
 }
 
-static void
+void
 gom_resource_build_save_cmd (GomResource *resource,
                              GomAdapter  *adapter)
 {
@@ -637,7 +637,7 @@ gom_resource_build_save_cmd (GomResource *resource,
    g_object_unref (builder);
 }
 
-static gboolean
+gboolean
 gom_resource_do_save (GomResource  *resource,
                       GomAdapter   *adapter,
                       GError      **error)
