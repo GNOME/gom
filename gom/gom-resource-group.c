@@ -33,7 +33,6 @@ G_DEFINE_TYPE(GomResourceGroup, gom_resource_group, G_TYPE_OBJECT)
 struct _GomResourceGroupPrivate
 {
    GomRepository *repository;
-   GomAdapter *adapter;
    guint count;
    GomFilter *filter;
    GType resource_type;
@@ -45,7 +44,6 @@ struct _GomResourceGroupPrivate
 enum
 {
    PROP_0,
-   PROP_ADAPTER,
    PROP_COUNT,
    PROP_FILTER,
    PROP_M2M_TABLE,
@@ -56,25 +54,6 @@ enum
 };
 
 static GParamSpec *gParamSpecs[LAST_PROP];
-
-GomAdapter *
-gom_resource_group_get_adapter (GomResourceGroup *group)
-{
-   g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), NULL);
-   return group->priv->adapter;
-}
-
-static void
-gom_resource_group_set_adapter (GomResourceGroup *group,
-                                GomAdapter       *adapter)
-{
-   g_return_if_fail(GOM_IS_RESOURCE_GROUP(group));
-   g_return_if_fail(GOM_IS_ADAPTER(adapter));
-
-   g_clear_object(&group->priv->adapter);
-   group->priv->adapter = g_object_ref(adapter);
-   g_object_notify_by_pspec(G_OBJECT(group), gParamSpecs[PROP_ADAPTER]);
-}
 
 GomFilter *
 gom_resource_group_get_filter (GomResourceGroup *group)
@@ -251,7 +230,6 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
 
    group = GOM_RESOURCE_GROUP(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
    g_object_get(group,
-                "adapter", &adapter,
                 "filter", &filter,
                 "m2m-table", &m2m_table,
                 "m2m-type", &m2m_type,
@@ -268,7 +246,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    queue = g_object_get_data(G_OBJECT(simple), "queue");
 
    builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
-                          "adapter", adapter,
+                          "adapter", gom_repository_get_adapter(repository),
                           "filter", filter,
                           "limit", limit,
                           "m2m-table", m2m_table,
@@ -312,7 +290,6 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
 
 out:
    g_object_unref(group);
-   g_clear_object(&adapter);
    g_clear_object(&builder);
    g_clear_object(&command);
    g_clear_object(&cursor);
@@ -346,6 +323,7 @@ gom_resource_group_fetch_sync (GomResourceGroup  *group,
    GSimpleAsyncResult *simple;
    gboolean ret;
    GAsyncQueue *queue;
+   GomAdapter *adapter;
 
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), FALSE);
 
@@ -357,7 +335,8 @@ gom_resource_group_fetch_sync (GomResourceGroup  *group,
    g_object_set_data(G_OBJECT(simple), "limit", GINT_TO_POINTER(count));
    g_object_set_data(G_OBJECT(simple), "queue", queue);
 
-   gom_adapter_queue_read(group->priv->adapter, gom_resource_group_fetch_cb, simple);
+   adapter = gom_repository_get_adapter(group->priv->repository);
+   gom_adapter_queue_read(adapter, gom_resource_group_fetch_cb, simple);
    g_async_queue_pop(queue);
    g_async_queue_unref(queue);
 
@@ -378,6 +357,7 @@ gom_resource_group_fetch_async (GomResourceGroup    *group,
 {
    GomResourceGroupPrivate *priv;
    GSimpleAsyncResult *simple;
+   GomAdapter *adapter;
 
    g_return_if_fail(GOM_IS_RESOURCE_GROUP(group));
    g_return_if_fail(callback != NULL);
@@ -389,7 +369,8 @@ gom_resource_group_fetch_async (GomResourceGroup    *group,
    g_object_set_data(G_OBJECT(simple), "offset", GINT_TO_POINTER(index_));
    g_object_set_data(G_OBJECT(simple), "limit", GINT_TO_POINTER(count));
 
-   gom_adapter_queue_read(priv->adapter, gom_resource_group_fetch_cb, simple);
+   adapter = gom_repository_get_adapter(group->priv->repository);
+   gom_adapter_queue_read(adapter, gom_resource_group_fetch_cb, simple);
 }
 
 gboolean
@@ -452,7 +433,6 @@ gom_resource_group_finalize (GObject *object)
    GomResourceGroupPrivate *priv = GOM_RESOURCE_GROUP(object)->priv;
 
    g_clear_object(&priv->repository);
-   g_clear_object(&priv->adapter);
    g_clear_object(&priv->filter);
    g_clear_pointer(&priv->items, g_hash_table_unref);
 
@@ -477,9 +457,6 @@ gom_resource_group_get_property (GObject    *object,
    GomResourceGroup *group = GOM_RESOURCE_GROUP(object);
 
    switch (prop_id) {
-   case PROP_ADAPTER:
-      g_value_set_object(value, gom_resource_group_get_adapter(group));
-      break;
    case PROP_COUNT:
       g_value_set_uint(value, gom_resource_group_get_count(group));
       break;
@@ -521,9 +498,6 @@ gom_resource_group_set_property (GObject      *object,
    GomResourceGroup *group = GOM_RESOURCE_GROUP(object);
 
    switch (prop_id) {
-   case PROP_ADAPTER:
-      gom_resource_group_set_adapter(group, g_value_get_object(value));
-      break;
    case PROP_COUNT:
       gom_resource_group_set_count(group, g_value_get_uint(value));
       break;
@@ -574,15 +548,6 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_COUNT,
                                    gParamSpecs[PROP_COUNT]);
-
-   gParamSpecs[PROP_ADAPTER] =
-      g_param_spec_object("adapter",
-                          _("Adapter"),
-                          _("The adapter used for queries."),
-                          GOM_TYPE_ADAPTER,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
-   g_object_class_install_property(object_class, PROP_ADAPTER,
-                                   gParamSpecs[PROP_ADAPTER]);
 
    gParamSpecs[PROP_FILTER] =
       g_param_spec_object("filter",

@@ -799,7 +799,6 @@ gom_resource_fetch_m2m_cb (GomAdapter *adapter,
 
    count = gom_cursor_get_column_int64(cursor, 0);
    group = g_object_new(GOM_TYPE_RESOURCE_GROUP,
-                        "adapter", adapter,
                         "count", count,
                         "filter", filter,
                         "m2m-table", m2m_table,
