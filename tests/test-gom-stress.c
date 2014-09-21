@@ -37,7 +37,7 @@ enum {
   LAST_PROP
 };
 
-#define NUM_RECORDS 1000
+#define NUM_RECORDS 100000
 #define ITEM_TO_GET (NUM_RECORDS/2)
 
 static GParamSpec *specs[LAST_PROP];
@@ -227,10 +227,120 @@ stress (void)
    g_object_unref(adapter);
 }
 
+static void
+stress2 (void)
+{
+   GomAdapter *adapter;
+   GError *error = NULL;
+   gboolean ret;
+   GomRepository *repository;
+   GList *object_types;
+   GValue value = { 0, };
+   GomFilter *filter;
+   guint i;
+   char *s1, *s2, *name, *surname;
+   ItemResource *it;
+   GomResourceGroup *group;
+
+   adapter = gom_adapter_new();
+   //ret = gom_adapter_open_sync(adapter, "file:test.db", &error);
+   ret = gom_adapter_open_sync(adapter, ":memory:", &error);
+   g_assert_no_error(error);
+   g_assert(ret);
+
+   repository = gom_repository_new(adapter);
+
+   object_types = g_list_prepend(NULL, GINT_TO_POINTER(ITEM_TYPE_RESOURCE));
+   ret = gom_repository_automatic_migrate_sync(repository, 1, object_types, &error);
+   g_assert_no_error(error);
+   g_assert(ret);
+
+   group = gom_resource_group_new(repository);
+
+   for (i = 1; i <= NUM_RECORDS; i++) {
+      ItemResource *item;
+      char *first_name, *surname;
+
+      first_name = g_strdup_printf("%s #%d", "First name", i);
+      surname = g_strdup_printf("%s #%d", "Surname", i);
+
+      item = g_object_new (ITEM_TYPE_RESOURCE,
+                           "repository", repository,
+                           "first-name", first_name,
+                           "surname", surname,
+                           NULL);
+      gom_resource_group_append(group, GOM_RESOURCE(item));
+      g_object_unref(item);
+   }
+
+   gom_resource_group_write_sync(group, &error);
+   g_assert_no_error(error);
+   g_object_unref(group);
+
+   g_value_init(&value, G_TYPE_UINT);
+   g_value_set_uint(&value, ITEM_TO_GET);
+   filter = gom_filter_new_eq(ITEM_TYPE_RESOURCE, "id", &value);
+   g_value_unset(&value);
+
+   it = ITEM_RESOURCE (gom_repository_find_one_sync(repository,
+                                                    ITEM_TYPE_RESOURCE,
+                                                    filter,
+                                                    &error));
+   g_assert_no_error(error);
+   g_assert(it);
+   g_object_unref(filter);
+
+   g_object_get(it,
+                "first-name", &s1,
+                "surname", &s2,
+                NULL);
+   g_object_unref(it);
+
+   name = g_strdup_printf ("First name #%d", ITEM_TO_GET);
+   surname = g_strdup_printf ("Surname #%d", ITEM_TO_GET);
+
+   g_assert_cmpstr(s1, ==, name);
+   g_free(name);
+   g_assert_cmpstr(s2, ==, surname);
+   g_free(surname);
+   g_free(s1);
+   g_free(s2);
+
+   ret = gom_adapter_close_sync(adapter, &error);
+   g_assert_no_error(error);
+   g_assert(ret);
+
+   g_object_unref(repository);
+   g_object_unref(adapter);
+}
+
+static void
+stress_time(void)
+{
+   GTimer *timer;
+   gdouble test1, test2;
+
+   timer = g_timer_new();
+   stress();
+   g_timer_stop(timer);
+   test1 = g_timer_elapsed(timer, NULL);
+
+   g_timer_start(timer);
+   stress2();
+   g_timer_stop(timer);
+   test2 = g_timer_elapsed(timer, NULL);
+
+   g_timer_destroy(timer);
+
+   g_assert_cmpfloat(test1, >, test2);
+}
+
 gint
 main (int argc, char **argv)
 {
    g_test_init(&argc, &argv, NULL);
    g_test_add_func("/GomRepository/stress", stress);
+   g_test_add_func("/GomRepository/stress2", stress2);
+   //g_test_add_func("/GomRepository/stress_time", stress_time);
    return g_test_run();
 }
