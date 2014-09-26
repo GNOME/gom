@@ -58,20 +58,22 @@ gom_resource_class_set_primary_key (GomResourceClass *resource_class,
 
    pspec = g_object_class_find_property(G_OBJECT_CLASS(resource_class), primary_key);
    if (!pspec) {
-      g_warning("Property for primary key '%s' isn't declared yet. Are you running gom_resource_class_set_primary_key() too early?",
-                primary_key);
+      g_warning("Property for primary key '%s' (class %s) isn't declared yet. Are you running gom_resource_class_set_primary_key() too early?",
+                primary_key, G_OBJECT_CLASS_NAME(resource_class));
       return;
    }
 
    if (pspec->flags & G_PARAM_CONSTRUCT_ONLY) {
-      g_warning("Property for primary key '%s' is declared as construct-only. This will not work as expected.", primary_key);
+      g_warning("Property for primary key '%s' (class %s) is declared as construct-only. This will not work as expected.",
+                primary_key, G_OBJECT_CLASS_NAME(resource_class));
       return;
    }
 
    /* Same check as in has_primary_key() */
    value = g_param_spec_get_default_value (pspec);
    if (value->data[0].v_pointer) {
-      g_warning("Property for primary key '%s' has a non-NULL/non-zero default value. This will not work as expected.", primary_key);
+      g_warning("Property for primary key '%s' (class %s) has a non-NULL/non-zero default value. This will not work as expected.",
+                primary_key, G_OBJECT_CLASS_NAME(resource_class));
       return;
    }
 
