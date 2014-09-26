@@ -532,7 +532,8 @@ has_primary_key (GomResource *resource)
 
    pspec = g_object_class_find_property(G_OBJECT_CLASS(klass),
                                         klass->primary_key);
-   g_assert(pspec);
+   if (!pspec)
+      return FALSE;
 
    g_value_init(&value, pspec->value_type);
    g_object_get_property(G_OBJECT(resource), klass->primary_key, &value);
