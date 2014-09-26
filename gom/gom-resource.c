@@ -71,7 +71,8 @@ gom_resource_class_set_primary_key (GomResourceClass *resource_class,
 
    /* Same check as in has_primary_key() */
    value = g_param_spec_get_default_value (pspec);
-   if (value->data[0].v_pointer) {
+   if (value->data[0].v_pointer &&
+       *((char *) value->data[0].v_pointer) != '\0') {
       g_warning("Property for primary key '%s' (class %s) has a non-NULL/non-zero default value. This will not work as expected.",
                 primary_key, G_OBJECT_CLASS_NAME(resource_class));
       return;
