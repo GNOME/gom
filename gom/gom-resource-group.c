@@ -140,6 +140,7 @@ gom_resource_group_set_repository (GomResourceGroup *group,
    g_return_if_fail(GOM_IS_RESOURCE_GROUP(group));
    g_return_if_fail(GOM_IS_REPOSITORY(repository));
 
+   g_clear_object(&group->priv->repository);
    group->priv->repository = g_object_ref(repository);
    g_object_notify_by_pspec(G_OBJECT(group), gParamSpecs[PROP_REPOSITORY]);
 }
