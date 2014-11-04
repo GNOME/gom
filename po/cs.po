@@ -1,7 +1,6 @@
 # Czech translation for gom.
 # Copyright (C) 2014 gom's COPYRIGHT HOLDER
 # This file is distributed under the same license as the gom package.
-#
 # Marek Černocký <marek@manet.cz>, 2014.
 #
 msgid ""
@@ -9,8 +8,8 @@ msgstr ""
 "Project-Id-Version: gom master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=gom&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-09-07 00:48+0000\n"
-"PO-Revision-Date: 2014-05-14 10:36+0100\n"
+"POT-Creation-Date: 2014-11-04 18:56+0000\n"
+"PO-Revision-Date: 2014-11-04 21:19+0100\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -20,8 +19,8 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Gtranslator 2.91.6\n"
 
-#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:580
-#: ../gom/gom-repository.c:898 ../gom/gom-command.c:508
+#: ../gom/gom-command-builder.c:992 ../gom/gom-repository.c:898
+#: ../gom/gom-command.c:508
 msgid "Adapter"
 msgstr "Adaptér"
 
@@ -29,7 +28,7 @@ msgstr "Adaptér"
 msgid "The GomAdapter."
 msgstr "GomAdapter."
 
-#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:589
+#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:770
 msgid "Filter"
 msgstr "Filtr"
 
@@ -69,7 +68,7 @@ msgstr "Posun"
 msgid "The number of results to skip."
 msgstr "Počet výsledků, které se mají přeskočit."
 
-#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:625
+#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:806
 msgid "Resource Type"
 msgstr "Typ prostředku"
 
@@ -77,20 +76,20 @@ msgstr "Typ prostředku"
 msgid "The resource type to query for."
 msgstr "Typ prostředku pro dotaz."
 
-#: ../gom/gom-resource.c:676
+#: ../gom/gom-resource.c:744
 #, c-format
 msgid "Cannot save resource, no repository set"
 msgstr "Prostředek nelze uložit, není nastaven žádný repozitář."
 
-#: ../gom/gom-resource.c:796
+#: ../gom/gom-resource.c:875
 msgid "No result was returned from the cursor."
 msgstr "Z kurzoru nebyl vrácen žádný výsledek."
 
-#: ../gom/gom-resource.c:980 ../gom/gom-resource-group.c:616
+#: ../gom/gom-resource.c:1058 ../gom/gom-resource-group.c:797
 msgid "Repository"
 msgstr "Repozitář"
 
-#: ../gom/gom-resource.c:981
+#: ../gom/gom-resource.c:1059
 msgid "The resources repository."
 msgstr "Repozitář prostředků."
 
@@ -118,45 +117,49 @@ msgstr "Výraz"
 msgid "A pointer to a sqlite3_stmt."
 msgstr "Ukazatel na sqlite3_stmt."
 
-#: ../gom/gom-resource-group.c:569
+#: ../gom/gom-resource-group.c:759
 msgid "Count"
 msgstr "Počet"
 
-#: ../gom/gom-resource-group.c:570
+#: ../gom/gom-resource-group.c:760
 msgid "The size of the resource group."
 msgstr "Velikost skupiny prostředků."
 
-#: ../gom/gom-resource-group.c:581
-msgid "The adapter used for queries."
-msgstr "Adaptér použitý pro dotazy."
-
-#: ../gom/gom-resource-group.c:590
+#: ../gom/gom-resource-group.c:771
 msgid "The query filter."
 msgstr "Filtr dotazu."
 
-#: ../gom/gom-resource-group.c:598
+#: ../gom/gom-resource-group.c:779
 msgid "Many-to-Many Table"
 msgstr "Tabulka M:N"
 
-#: ../gom/gom-resource-group.c:599
+#: ../gom/gom-resource-group.c:780
 msgid "The table used to join a Many to Many query."
 msgstr "Tabulka použitá v dotazu s propojením M:N."
 
-#: ../gom/gom-resource-group.c:607
+#: ../gom/gom-resource-group.c:788
 msgid "Many-to-Many type"
 msgstr "Typ M:N"
 
-#: ../gom/gom-resource-group.c:608
+#: ../gom/gom-resource-group.c:789
 msgid "The type used in the m2m-table join."
 msgstr "Typ použitý v propojení tabulek M:N."
 
-#: ../gom/gom-resource-group.c:617
+#: ../gom/gom-resource-group.c:798
 msgid "The repository for object storage."
 msgstr "Repozitář pro úložiště objektu."
 
-#: ../gom/gom-resource-group.c:626
+#: ../gom/gom-resource-group.c:807
 msgid "The type of resources contained."
 msgstr "Typ obsažených prostředků."
+
+#: ../gom/gom-resource-group.c:815
+msgid "Is Writable"
+msgstr "Je zapisovatelné"
+
+#: ../gom/gom-resource-group.c:816
+msgid "Whether the group contains resources to be written."
+msgstr "Zda skupina obsahuje prostředky, které se mají zapisovat."
 
 #: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
 #, c-format
