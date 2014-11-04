@@ -273,16 +273,17 @@ gom_resource_set_repository (GomResource   *resource,
 
    priv = resource->priv;
 
-   if ((old = priv->repository)) {
+   old = priv->repository;
+   if (old) {
+      g_object_remove_weak_pointer(G_OBJECT(priv->repository),
+                                   (gpointer *)&priv->repository);
       priv->repository = NULL;
-      g_object_remove_weak_pointer(G_OBJECT(old),
-                                   (gpointer  *)&priv->repository);
    }
 
    if (repository) {
       priv->repository = repository;
       g_object_add_weak_pointer(G_OBJECT(priv->repository),
-                                (gpointer  *)&priv->repository);
+                                (gpointer *)&priv->repository);
       g_object_notify_by_pspec(G_OBJECT(resource),
                                gParamSpecs[PROP_REPOSITORY]);
    }
