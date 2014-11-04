@@ -610,6 +610,8 @@ gom_resource_do_save (GomResource  *resource,
          set_pkey(resource, &value);
          gom_resource_set_is_from_table(resource, TRUE);
          g_value_unset(&value);
+
+         is_insert = FALSE;
       }
 
       g_object_unref(command);
