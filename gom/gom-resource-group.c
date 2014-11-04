@@ -83,6 +83,7 @@ gom_resource_group_append (GomResourceGroup *group,
 
    if (!group->priv->to_write)
       group->priv->to_write = g_ptr_array_new_with_free_func(g_object_unref);
+   gom_resource_build_save_cmd(resource, gom_repository_get_adapter(group->priv->repository));
    g_ptr_array_add (group->priv->to_write, g_object_ref(resource));
 
    return TRUE;
@@ -172,7 +173,6 @@ gom_resource_group_write_sync (GomResourceGroup  *group,
    gboolean ret;
    GAsyncQueue *queue;
    GomAdapter *adapter;
-   guint i;
 
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), FALSE);
    g_return_val_if_fail(group->priv->is_writable, FALSE);
@@ -183,14 +183,12 @@ gom_resource_group_write_sync (GomResourceGroup  *group,
                                       gom_resource_group_write_sync);
    if (!group->priv->to_write)
       return TRUE;
-   adapter = gom_repository_get_adapter(group->priv->repository);
 
    g_object_set_data(G_OBJECT(simple), "queue", queue);
-   for (i = 0; i < group->priv->to_write->len; i++)
-     gom_resource_build_save_cmd(g_ptr_array_index(group->priv->to_write, i) , adapter);
    g_object_set_data(G_OBJECT(simple), "items", group->priv->to_write);
    group->priv->to_write = NULL;
 
+   adapter = gom_repository_get_adapter(group->priv->repository);
    gom_adapter_queue_write(adapter, gom_resource_group_write_cb, simple);
    g_async_queue_pop(queue);
    g_async_queue_unref(queue);
@@ -211,7 +209,6 @@ gom_resource_group_write_async (GomResourceGroup    *group,
    GomResourceGroupPrivate *priv;
    GSimpleAsyncResult *simple;
    GomAdapter *adapter;
-   guint i;
 
    g_return_if_fail(GOM_IS_RESOURCE_GROUP(group));
    g_return_if_fail(callback != NULL);
@@ -226,13 +223,11 @@ gom_resource_group_write_async (GomResourceGroup    *group,
       g_simple_async_result_complete_in_idle(simple);
       return;
    }
-   adapter = gom_repository_get_adapter(priv->repository);
 
-   for (i = 0; i < group->priv->to_write->len; i++)
-     gom_resource_build_save_cmd(g_ptr_array_index(group->priv->to_write, i) , adapter);
    g_object_set_data(G_OBJECT(simple), "items", group->priv->to_write);
    group->priv->to_write = NULL;
 
+   adapter = gom_repository_get_adapter(priv->repository);
    gom_adapter_queue_read(adapter, gom_resource_group_write_cb, simple);
 }
 
