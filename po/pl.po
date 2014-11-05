@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gom\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-09-07 02:47+0200\n"
-"PO-Revision-Date: 2014-09-07 02:48+0200\n"
+"POT-Creation-Date: 2014-11-05 13:41+0100\n"
+"PO-Revision-Date: 2014-11-05 13:42+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <gnomepl@aviary.pl>\n"
 "Language: pl\n"
@@ -23,8 +23,8 @@ msgstr ""
 "X-Poedit-Language: Polish\n"
 "X-Poedit-Country: Poland\n"
 
-#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:580
-#: ../gom/gom-repository.c:898 ../gom/gom-command.c:508
+#: ../gom/gom-command-builder.c:992 ../gom/gom-repository.c:898
+#: ../gom/gom-command.c:508
 msgid "Adapter"
 msgstr "Adapter"
 
@@ -32,7 +32,7 @@ msgstr "Adapter"
 msgid "The GomAdapter."
 msgstr "GomAdapter."
 
-#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:589
+#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:770
 msgid "Filter"
 msgstr "Filtr"
 
@@ -72,7 +72,7 @@ msgstr "Offset"
 msgid "The number of results to skip."
 msgstr "Liczba wyników do pominięcia."
 
-#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:625
+#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:806
 msgid "Resource Type"
 msgstr "Typ zasobu"
 
@@ -80,20 +80,20 @@ msgstr "Typ zasobu"
 msgid "The resource type to query for."
 msgstr "Typ zasobu, który odpytywać."
 
-#: ../gom/gom-resource.c:676
+#: ../gom/gom-resource.c:744
 #, c-format
 msgid "Cannot save resource, no repository set"
 msgstr "Nie można zapisać zasobu, nie ustawiono repozytorium"
 
-#: ../gom/gom-resource.c:796
+#: ../gom/gom-resource.c:875
 msgid "No result was returned from the cursor."
 msgstr "Brak wyników zwróconych z kursora."
 
-#: ../gom/gom-resource.c:980 ../gom/gom-resource-group.c:616
+#: ../gom/gom-resource.c:1058 ../gom/gom-resource-group.c:797
 msgid "Repository"
 msgstr "Repozytorium"
 
-#: ../gom/gom-resource.c:981
+#: ../gom/gom-resource.c:1059
 msgid "The resources repository."
 msgstr "Repozytorium zasobów."
 
@@ -121,45 +121,49 @@ msgstr "Instrukcja"
 msgid "A pointer to a sqlite3_stmt."
 msgstr "Wskaźnik do sqlite3_stmt."
 
-#: ../gom/gom-resource-group.c:569
+#: ../gom/gom-resource-group.c:759
 msgid "Count"
 msgstr "Liczba"
 
-#: ../gom/gom-resource-group.c:570
+#: ../gom/gom-resource-group.c:760
 msgid "The size of the resource group."
 msgstr "Rozmiar grupy zasobów."
 
-#: ../gom/gom-resource-group.c:581
-msgid "The adapter used for queries."
-msgstr "Adapter używany do zapytań."
-
-#: ../gom/gom-resource-group.c:590
+#: ../gom/gom-resource-group.c:771
 msgid "The query filter."
 msgstr "Filtr zapytań."
 
-#: ../gom/gom-resource-group.c:598
+#: ../gom/gom-resource-group.c:779
 msgid "Many-to-Many Table"
 msgstr "Tablica wiele-do-wielu"
 
-#: ../gom/gom-resource-group.c:599
+#: ../gom/gom-resource-group.c:780
 msgid "The table used to join a Many to Many query."
 msgstr "Tablica używana do dołączania zapytania wiele-do-wielu."
 
-#: ../gom/gom-resource-group.c:607
+#: ../gom/gom-resource-group.c:788
 msgid "Many-to-Many type"
 msgstr "Typ wiele-do-wielu"
 
-#: ../gom/gom-resource-group.c:608
+#: ../gom/gom-resource-group.c:789
 msgid "The type used in the m2m-table join."
 msgstr "Typ używany w dołączaniu m2m-table."
 
-#: ../gom/gom-resource-group.c:617
+#: ../gom/gom-resource-group.c:798
 msgid "The repository for object storage."
 msgstr "Repozytorium do przechowywania obiektów."
 
-#: ../gom/gom-resource-group.c:626
+#: ../gom/gom-resource-group.c:807
 msgid "The type of resources contained."
 msgstr "Typ zawartych zasobów."
+
+#: ../gom/gom-resource-group.c:815
+msgid "Is Writable"
+msgstr "Jest zapisywalna"
+
+#: ../gom/gom-resource-group.c:816
+msgid "Whether the group contains resources to be written."
+msgstr "Czy grupa zawiera zasoby do zapisania."
 
 #: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
 #, c-format
