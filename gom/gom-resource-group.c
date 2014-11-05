@@ -60,6 +60,11 @@ enum
    LAST_PROP
 };
 
+typedef struct {
+   GomResource *resource;
+   GHashTable  *ht;
+} ItemData;
+
 static GParamSpec *gParamSpecs[LAST_PROP];
 
 GomResourceGroup *
@@ -363,21 +368,68 @@ gom_resource_group_set_resource_type (GomResourceGroup *group,
 }
 
 static void
-set_props (GomResource *resource,
-           GomCursor   *cursor)
+value_free (gpointer data)
+{
+   GValue *value = data;
+
+   if (value == NULL)
+      return;
+   g_value_unset(value);
+   g_free(value);
+}
+
+static void
+item_data_free (gpointer data)
+{
+   ItemData *itemdata = data;
+   if (itemdata == NULL)
+      return;
+   g_clear_object(&itemdata->resource);
+   g_clear_pointer(&itemdata->ht, g_hash_table_destroy);
+}
+
+static void
+foreach_prop (gpointer key,
+              gpointer value,
+              gpointer user_data)
+{
+   g_object_set_property(user_data, key, value);
+}
+
+static void
+item_data_ensure_resource (ItemData      *itemdata,
+                           GType          resource_type,
+                           GomRepository *repository)
+{
+   if (itemdata->resource)
+      return;
+
+   itemdata->resource = g_object_new(resource_type,
+                                     "repository", repository,
+                                     NULL);
+   g_hash_table_foreach(itemdata->ht, foreach_prop, itemdata->resource);
+   gom_resource_set_is_from_table(itemdata->resource, TRUE);
+   g_clear_pointer(&itemdata->ht, g_hash_table_destroy);
+}
+
+static ItemData *
+set_props (GType         resource_type,
+           GomCursor    *cursor)
 {
    GObjectClass *klass;
    const gchar *name;
    GParamSpec *pspec;
-   GValue value = { 0 };
    guint n_cols;
    guint i;
+   GHashTable *ht;
+   ItemData *itemdata;
 
-   g_assert(GOM_IS_RESOURCE(resource));
    g_assert(GOM_IS_CURSOR(cursor));
 
-   klass = G_OBJECT_GET_CLASS(resource);
+   klass = g_type_class_ref(resource_type);
    n_cols = gom_cursor_get_n_columns(cursor);
+   ht = g_hash_table_new_full (g_str_hash, g_str_equal,
+                               g_free, value_free);
 
    for (i = 0; i < n_cols; i++) {
       name = gom_cursor_get_column_name(cursor, i);
@@ -386,22 +438,32 @@ set_props (GomResource *resource,
 
          from_bytes = g_param_spec_get_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC);
          if (from_bytes) {
-            GValue converted = { 0, };
+            GValue *converted;
+            GValue value = { 0, };
 
+            converted = g_new0 (GValue, 1);
             g_value_init(&value, G_TYPE_BYTES);
             gom_cursor_get_column(cursor, i, &value);
-            (*from_bytes) (g_value_get_boxed(&value), &converted);
+            (*from_bytes) (g_value_get_boxed(&value), converted);
             g_value_unset(&value);
-            g_object_set_property(G_OBJECT(resource), name, &converted);
-            g_value_unset(&converted);
+            g_hash_table_insert(ht, g_strdup(name), converted);
          } else {
-            g_value_init(&value, pspec->value_type);
-            gom_cursor_get_column(cursor, i, &value);
-            g_object_set_property(G_OBJECT(resource), name, &value);
-            g_value_unset(&value);
+            GValue *value;
+
+            value = g_new0 (GValue, 1);
+            g_value_init(value, pspec->value_type);
+            gom_cursor_get_column(cursor, i, value);
+            g_hash_table_insert(ht, g_strdup(name), value);
          }
       }
    }
+
+   g_type_class_unref (klass);
+
+   itemdata = g_new0(ItemData, 1);
+   itemdata->ht = ht;
+
+   return itemdata;
 }
 
 static void
@@ -412,7 +474,6 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    GomCommandBuilder *builder = NULL;
    GomResourceGroup *group;
    GomRepository *repository = NULL;
-   GomResource *resource;
    GomCommand *command = NULL;
    GomCursor *cursor = NULL;
    GomFilter *filter = NULL;
@@ -470,20 +531,19 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
 
    if (!group->priv->items) {
       group->priv->items = g_hash_table_new_full(g_int_hash, g_int_equal,
-                                                 g_free, g_object_unref);
+                                                 g_free, item_data_free);
    }
 
    idx = offset;
 
    while (gom_cursor_next(cursor)) {
-      guint *key = g_new0(guint, 1);
+      ItemData *itemdata;
+      guint *key;
+
+      key = g_new0(guint, 1);
       *key = idx++;
-      resource = g_object_new(resource_type,
-                              "repository", repository,
-                              NULL);
-      set_props(resource, cursor);
-      gom_resource_set_is_from_table(resource, TRUE);
-      g_hash_table_insert(group->priv->items, key, resource);
+      itemdata = set_props(resource_type, cursor);
+      g_hash_table_insert(group->priv->items, key, itemdata);
    }
 
    g_simple_async_result_set_op_res_gboolean(simple, TRUE);
@@ -618,7 +678,11 @@ gom_resource_group_get_index (GomResourceGroup *group,
    priv = group->priv;
 
    if (priv->items) {
-      return g_hash_table_lookup(priv->items, &index_);
+      ItemData *itemdata;
+
+      itemdata = g_hash_table_lookup(priv->items, &index_);
+      item_data_ensure_resource(itemdata, priv->resource_type, priv->repository);
+      return itemdata->resource;
    }
 
    return NULL;
