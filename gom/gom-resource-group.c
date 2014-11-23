@@ -386,6 +386,7 @@ item_data_free (gpointer data)
       return;
    g_clear_object(&itemdata->resource);
    g_clear_pointer(&itemdata->ht, g_hash_table_destroy);
+   g_free (itemdata);
 }
 
 static void
