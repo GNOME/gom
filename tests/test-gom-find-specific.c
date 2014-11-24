@@ -383,12 +383,60 @@ find_specific (void)
   free_memory_db (adapter, repository);
 }
 
+static void
+find_glob (void)
+{
+  GomAdapter *adapter;
+  GomRepository *repository;
+
+  GValue value = { 0, };
+  GomFilter *filter;
+  GError *error = NULL;
+
+  GomResource *resource;
+  EpisodeResource *eres;
+
+  char *s1, *s2;
+
+  create_memory_db (&adapter, &repository);
+
+  g_value_init (&value, G_TYPE_STRING);
+  g_value_set_string (&value, "New York *");
+  filter = gom_filter_new_glob (EPISODE_TYPE_RESOURCE,
+                                EPISODE_COLUMN_EPISODE_NAME,
+                                &value);
+  g_value_unset (&value);
+
+  resource = gom_repository_find_one_sync (repository,
+                                           EPISODE_TYPE_RESOURCE,
+                                           filter,
+                                           &error);
+  g_assert_no_error (error);
+  g_assert (resource);
+  g_object_unref (filter);
+  eres = EPISODE_RESOURCE (resource);
+
+  g_object_get(eres,
+               EPISODE_COLUMN_SERIES_ID, &s1,
+               EPISODE_COLUMN_EPISODE_NAME, &s2,
+               NULL);
+  g_object_unref(eres);
+
+  g_assert_cmpstr (s1, ==, values[0].series_id);
+  g_assert_cmpstr (s2, ==, values[0].episode_name);
+  g_free (s1);
+  g_free (s2);
+
+  free_memory_db (adapter, repository);
+}
+
 gint
 main (gint argc, gchar *argv[])
 {
    g_test_init (&argc, &argv, NULL);
    g_test_add_func ("/GomRepository/find-simple", find_simple);
    g_test_add_func ("/GomRepository/find-specific", find_specific);
+   g_test_add_func ("/GomRepository/find-glob", find_glob);
    gMainLoop = g_main_loop_new (NULL, FALSE);
    return g_test_run ();
 }
