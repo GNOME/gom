@@ -58,7 +58,8 @@ static const gchar *gOperators[] = {
    ">=",
    "<",
    "<=",
-   "LIKE"
+   "LIKE",
+   "GLOB"
 };
 
 /**
@@ -123,6 +124,14 @@ gom_filter_new_like (GType         resource_type,
                      const GValue *value)
 {
   return gom_filter_new_for_param(resource_type, property_name, GOM_FILTER_LIKE, value);
+}
+
+GomFilter *
+gom_filter_new_glob (GType         resource_type,
+                     const gchar  *property_name,
+                     const GValue *value)
+{
+  return gom_filter_new_for_param(resource_type, property_name, GOM_FILTER_GLOB, value);
 }
 
 GomFilter *
@@ -292,6 +301,7 @@ gom_filter_get_sql (GomFilter  *filter,
    case GOM_FILTER_LT:
    case GOM_FILTER_LTE:
    case GOM_FILTER_LIKE:
+   case GOM_FILTER_GLOB:
       table = get_table(priv->pspec, priv->type, table_map);
       ret = g_strdup_printf("'%s'.'%s' %s ?",
                             table,
@@ -370,7 +380,8 @@ gom_filter_get_values (GomFilter *filter)
    case GOM_FILTER_GTE:
    case GOM_FILTER_LT:
    case GOM_FILTER_LTE:
-   case GOM_FILTER_LIKE: {
+   case GOM_FILTER_LIKE:
+   case GOM_FILTER_GLOB: {
       GValue v = { 0 };
       g_value_init(&v, G_VALUE_TYPE(&priv->value));
       g_value_copy(&priv->value, &v);
@@ -543,6 +554,7 @@ gom_filter_mode_get_type (void)
       { GOM_FILTER_LT,  "GOM_FILTER_LT",  "LT" },
       { GOM_FILTER_LTE, "GOM_FILTER_LTE", "LTE" },
       { GOM_FILTER_LIKE, "GOM_FILTER_LIKE", "LIKE" },
+      { GOM_FILTER_GLOB, "GOM_FILTER_GLOB", "GLOB" },
       { 0 }
    };
 
