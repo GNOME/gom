@@ -158,7 +158,7 @@ stress (void)
    GValue value = { 0, };
    GomFilter *filter;
    guint i;
-   char *s1, *s2, *name, *surname;
+   char *s1, *s2, *name, *first_name, *surname;
    ItemResource *it;
 
    adapter = gom_adapter_new();
@@ -176,7 +176,6 @@ stress (void)
 
    for (i = 1; i <= NUM_RECORDS; i++) {
       ItemResource *item;
-      char *first_name, *surname;
 
       first_name = g_strdup_printf("%s #%d", "First name", i);
       surname = g_strdup_printf("%s #%d", "Surname", i);
@@ -238,7 +237,7 @@ stress2 (void)
    GValue value = { 0, };
    GomFilter *filter;
    guint i;
-   char *s1, *s2, *name, *surname;
+   char *s1, *s2, *name, *first_name, *surname;
    ItemResource *it;
    GomResourceGroup *group;
 
@@ -259,7 +258,6 @@ stress2 (void)
 
    for (i = 1; i <= NUM_RECORDS; i++) {
       ItemResource *item;
-      char *first_name, *surname;
 
       first_name = g_strdup_printf("%s #%d", "First name", i);
       surname = g_strdup_printf("%s #%d", "Surname", i);
