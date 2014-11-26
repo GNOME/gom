@@ -111,12 +111,52 @@ migrate (void)
    g_assert(success);
 }
 
+static void
+test_repo_finalize (void)
+{
+  GomAdapter *adapter;
+  GomRepository *repository;
+  gboolean ret;
+  GError *error = NULL;
+
+  /* Unref repo, then close and unref adapter */
+  adapter = gom_adapter_new();
+  ret = gom_adapter_open_sync (adapter, ":memory:", &error);
+  g_assert_no_error (error);
+  g_assert (ret);
+
+  repository = gom_repository_new (adapter);
+
+  g_clear_object (&repository);
+  ret = gom_adapter_close_sync (adapter, &error);
+  g_assert_no_error (error);
+  g_assert (ret);
+
+  g_clear_object (&adapter);
+
+  /* Close and unref adapter, then unref repo */
+  adapter = gom_adapter_new();
+  ret = gom_adapter_open_sync (adapter, ":memory:", &error);
+  g_assert_no_error (error);
+  g_assert (ret);
+
+  repository = gom_repository_new (adapter);
+
+  ret = gom_adapter_close_sync (adapter, &error);
+  g_assert_no_error (error);
+  g_assert (ret);
+  g_clear_object (&adapter);
+
+  g_clear_object (&repository);
+}
+
 gint
 main (gint   argc,
 	  gchar *argv[])
 {
    g_test_init(&argc, &argv, NULL);
    g_test_add_func("/GomRepository/migrate", migrate);
+   g_test_add_func ("/GomRepository/test-repo-finalize", test_repo_finalize);
    gMainLoop = g_main_loop_new(NULL, FALSE);
    return g_test_run();
 }
