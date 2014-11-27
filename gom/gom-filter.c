@@ -429,6 +429,12 @@ gom_filter_get_sql (GomFilter  *filter,
          f = g_queue_peek_nth(priv->subfilters, i);
          s = gom_filter_get_sql(f, table_map);
 
+         if ((f->priv->mode == GOM_FILTER_AND) || (f->priv->mode == GOM_FILTER_OR)) {
+            gchar *tmp = g_strdup_printf("(%s)", s);
+            g_free(s);
+            s = tmp;
+         }
+
          sqls[i] = s;
       }
       sqls[i] = NULL;
