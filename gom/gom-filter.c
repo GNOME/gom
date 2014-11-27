@@ -144,6 +144,30 @@ gom_filter_new_for_subfilters_full (GomFilterMode  mode,
    return filter;
 }
 
+static GomFilter *
+gom_filter_new_for_subfilters_fullv (GomFilterMode   mode,
+                                     GomFilter     **filter_array)
+{
+   GomFilter *filter, *f;
+   guint i;
+
+   filter = g_object_new(GOM_TYPE_FILTER, "mode", mode, NULL);
+   filter->priv->subfilters = g_queue_new();
+
+   i = 0;
+   f = filter_array[i];
+
+   while (f != NULL) {
+      g_return_val_if_fail(GOM_IS_FILTER(f), NULL);
+      g_queue_push_tail(filter->priv->subfilters, g_object_ref(f));
+
+      i += 1;
+      f = filter_array[i];
+   }
+
+   return filter;
+}
+
 GomFilter *
 gom_filter_new_like (GType         resource_type,
                      const gchar  *property_name,
@@ -301,6 +325,21 @@ gom_filter_new_and_full (GomFilter *first,
 }
 
 /**
+ * gom_filter_new_and_fullv: (constructor)
+ * @filter_array: (in): A %NULL-terminated array of #GomFilter.
+ *
+ * Creates a new filter that requires that all filters passed as arguments
+ * equate to #TRUE.
+ *
+ * Returns: (transfer full): A #GomFilter.
+ */
+GomFilter *
+gom_filter_new_and_fullv (GomFilter **filter_array)
+{
+   return gom_filter_new_for_subfilters_fullv(GOM_FILTER_AND, filter_array);
+}
+
+/**
  * gom_filter_new_or: (constructor)
  * @left: (in): A #GomFilter.
  * @right: (in): A #GomFilter.
@@ -351,6 +390,21 @@ gom_filter_new_or_full (GomFilter *first,
    va_end(args);
 
    return filter;
+}
+
+/**
+ * gom_filter_new_or_fullv: (constructor)
+ * @filter_array: (in): A %NULL-terminated array of #GomFilter.
+ *
+ * Creates a new filter that requires either of the filters passed as
+ * arguments equate to #TRUE.
+ *
+ * Returns: (transfer full): A #GomFilter.
+ */
+GomFilter *
+gom_filter_new_or_fullv (GomFilter **filter_array)
+{
+   return gom_filter_new_for_subfilters_fullv(GOM_FILTER_OR, filter_array);
 }
 
 gchar *

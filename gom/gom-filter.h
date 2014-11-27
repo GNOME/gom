@@ -76,10 +76,12 @@ GomFilter   *gom_filter_new_or        (GomFilter    *left,
                                        GomFilter    *right);
 GomFilter   *gom_filter_new_or_full   (GomFilter    *first,
                                        ...);
+GomFilter   *gom_filter_new_or_fullv  (GomFilter   **filter_array);
 GomFilter   *gom_filter_new_and       (GomFilter    *left,
                                        GomFilter    *right);
 GomFilter   *gom_filter_new_and_full  (GomFilter    *first,
                                        ...);
+GomFilter   *gom_filter_new_and_fullv (GomFilter   **filter_array);
 GomFilter   *gom_filter_new_eq        (GType         resource_type,
                                        const gchar  *property_name,
                                        const GValue *value);

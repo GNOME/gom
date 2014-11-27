@@ -451,6 +451,77 @@ find_specific_and_full (void)
   free_memory_db(adapter, repository);
 }
 
+/* Same as find_specific, but using the _fullv filter constructors */
+static void
+find_specific_and_fullv (void)
+{
+  GError *error = NULL;
+  GValue value = { 0, };
+  GomFilter **filter_array = g_new(GomFilter *, 4);
+  GomFilter *filter;
+  char *s1, *s2;
+  GomResource *resource;
+  EpisodeResource *eres;
+  GomAdapter *adapter;
+  GomRepository *repository;
+
+  create_memory_db(&adapter, &repository);
+
+  /* Season Number */
+  g_value_init(&value, G_TYPE_INT64);
+  g_value_set_int64(&value, values[0].season_number);
+  filter_array[0] = gom_filter_new_eq(EPISODE_TYPE_RESOURCE,
+                                      EPISODE_COLUMN_SEASON_NUMBER,
+                                      &value);
+  g_value_unset(&value);
+
+  /* Episode Number */
+  g_value_init(&value, G_TYPE_INT64);
+  g_value_set_int64(&value, values[0].episode_number);
+  filter_array[1] = gom_filter_new_eq(EPISODE_TYPE_RESOURCE,
+                                      EPISODE_COLUMN_EPISODE_NUMBER,
+                                      &value);
+  g_value_unset(&value);
+
+  /* Series ID */
+  g_value_init(&value, G_TYPE_STRING);
+  g_value_set_string(&value, values[0].series_id);
+  filter_array[2] = gom_filter_new_like(EPISODE_TYPE_RESOURCE,
+                                        EPISODE_COLUMN_SERIES_ID,
+                                        &value);
+  g_value_unset(&value);
+
+  /* Season Number and Episode Number and Series ID */
+  filter_array[3] = NULL;
+  filter = gom_filter_new_and_fullv(filter_array);
+  g_object_unref(filter_array[0]);
+  g_object_unref(filter_array[1]);
+  g_object_unref(filter_array[2]);
+  g_free(filter_array);
+
+  resource = gom_repository_find_one_sync(repository,
+                                          EPISODE_TYPE_RESOURCE,
+                                          filter,
+                                          &error);
+  g_assert_no_error(error);
+  g_assert(resource);
+  g_object_unref(filter);
+  eres = EPISODE_RESOURCE(resource);
+
+  g_object_get(eres,
+               EPISODE_COLUMN_SERIES_ID, &s1,
+               EPISODE_COLUMN_IMDB_ID, &s2,
+               NULL);
+  g_object_unref(eres);
+
+  g_assert_cmpstr(s1, ==, values[0].series_id);
+  g_assert_cmpstr(s2, ==, values[0].imdb_id);
+  g_free(s1);
+  g_free(s2);
+
+  free_memory_db(adapter, repository);
+}
+
 static void
 find_glob (void)
 {
@@ -505,6 +576,7 @@ main (gint argc, gchar *argv[])
    g_test_add_func ("/GomRepository/find-simple", find_simple);
    g_test_add_func ("/GomRepository/find-specific", find_specific);
    g_test_add_func ("/GomRepository/find-specific-and-full", find_specific_and_full);
+   g_test_add_func ("/GomRepository/find-specific-and-fullv", find_specific_and_fullv);
    g_test_add_func ("/GomRepository/find-glob", find_glob);
    gMainLoop = g_main_loop_new (NULL, FALSE);
    return g_test_run ();
