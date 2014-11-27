@@ -27,8 +27,11 @@ test-gom-adapter
 test-gom-repository
 test-gom-find
 test-gom-find-specific
+test-gom-insert
 test-gom-stress
 test-gom-transform
 test-gom-migration
 test-gom-constraints
 *.typelib
+*.gmo
+*.pot
