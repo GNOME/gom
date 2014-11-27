@@ -74,8 +74,12 @@ GomFilter   *gom_filter_new_sql       (const gchar  *sql,
                                        GArray       *values);
 GomFilter   *gom_filter_new_or        (GomFilter    *left,
                                        GomFilter    *right);
+GomFilter   *gom_filter_new_or_full   (GomFilter    *first,
+                                       ...);
 GomFilter   *gom_filter_new_and       (GomFilter    *left,
                                        GomFilter    *right);
+GomFilter   *gom_filter_new_and_full  (GomFilter    *first,
+                                       ...);
 GomFilter   *gom_filter_new_eq        (GType         resource_type,
                                        const gchar  *property_name,
                                        const GValue *value);

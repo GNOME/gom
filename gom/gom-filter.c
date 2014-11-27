@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdarg.h>
+
 #include <glib/gi18n.h>
 
 #include "gom-filter.h"
@@ -113,6 +115,31 @@ gom_filter_new_for_param (GType          resource_type,
    filter->priv->type = resource_type;
    g_value_init(&filter->priv->value, G_VALUE_TYPE(value));
    g_value_copy(value, &filter->priv->value);
+
+   return filter;
+}
+
+static GomFilter *
+gom_filter_new_for_subfilters_full (GomFilterMode  mode,
+                                    GomFilter     *first,
+                                    va_list        filters)
+{
+   GomFilter *filter, *f;
+
+   g_return_val_if_fail(GOM_IS_FILTER(first), NULL);
+
+   filter = g_object_new(GOM_TYPE_FILTER, "mode", mode, NULL);
+   filter->priv->subfilters = g_queue_new();
+   g_queue_push_tail(filter->priv->subfilters, g_object_ref(first));
+
+   f = va_arg(filters, GomFilter*);
+
+   while (f != NULL) {
+      g_return_val_if_fail(GOM_IS_FILTER(f), NULL);
+      g_queue_push_tail(filter->priv->subfilters, g_object_ref(f));
+
+      f = va_arg(filters, GomFilter*);
+   }
 
    return filter;
 }
@@ -250,6 +277,30 @@ gom_filter_new_and (GomFilter *left,
 }
 
 /**
+ * gom_filter_new_and_full: (constructor)
+ * @first: (in): A #GomFilter.
+ * @...: (in): A %NULL-terminated list of #GomFilter.
+ *
+ * Creates a new filter that requires that all filters passed as arguments
+ * equate to #TRUE.
+ *
+ * Returns: (transfer full): A #GomFilter.
+ */
+GomFilter *
+gom_filter_new_and_full (GomFilter *first,
+                         ...)
+{
+   GomFilter *filter;
+   va_list args;
+
+   va_start(args, first);
+   filter = gom_filter_new_for_subfilters_full(GOM_FILTER_AND, first, args);
+   va_end(args);
+
+   return filter;
+}
+
+/**
  * gom_filter_new_or: (constructor)
  * @left: (in): A #GomFilter.
  * @right: (in): A #GomFilter.
@@ -274,6 +325,30 @@ gom_filter_new_or (GomFilter *left,
    filter->priv->subfilters = g_queue_new();
    g_queue_push_tail(filter->priv->subfilters, g_object_ref(left));
    g_queue_push_tail(filter->priv->subfilters, g_object_ref(right));
+
+   return filter;
+}
+
+/**
+ * gom_filter_new_or_full: (constructor)
+ * @first: (in): A #GomFilter.
+ * @...: (in): A %NULL-terminated list of #GomFilter.
+ *
+ * Creates a new filter that requires either of the filters passed as
+ * arguments equate to #TRUE.
+ *
+ * Returns: (transfer full): A #GomFilter.
+ */
+GomFilter *
+gom_filter_new_or_full (GomFilter *first,
+                        ...)
+{
+   GomFilter *filter;
+   va_list args;
+
+   va_start(args, first);
+   filter = gom_filter_new_for_subfilters_full(GOM_FILTER_OR, first, args);
+   va_end(args);
 
    return filter;
 }
