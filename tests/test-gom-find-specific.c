@@ -58,11 +58,11 @@ enum {
 static GParamSpec *specs[LAST_PROP];
 
 static struct {
-  gchar      *series_id;
-  gchar      *imdb_id;
-  guint8      season_number;
-  guint8      episode_number;
-  gchar      *episode_name;
+  const gchar *series_id;
+  const gchar *imdb_id;
+  guint8       season_number;
+  guint8       episode_number;
+  const gchar *episode_name;
 } values[] = {
   { "84947", "tt2483070", 4, 1, "New York Sour" },
   { "84947", "tt2778300", 4, 2, "Resignation" },
