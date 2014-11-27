@@ -34,8 +34,7 @@ struct _GomFilterPrivate
    GParamSpec *pspec;
    GType type;
 
-   GomFilter *left;
-   GomFilter *right;
+   GQueue *subfilters;
 };
 
 enum
@@ -243,8 +242,9 @@ gom_filter_new_and (GomFilter *left,
    filter = g_object_new(GOM_TYPE_FILTER,
                          "mode", GOM_FILTER_AND,
                          NULL);
-   filter->priv->left = g_object_ref(left);
-   filter->priv->right = g_object_ref(right);
+   filter->priv->subfilters = g_queue_new();
+   g_queue_push_tail(filter->priv->subfilters, g_object_ref(left));
+   g_queue_push_tail(filter->priv->subfilters, g_object_ref(right));
 
    return filter;
 }
@@ -271,8 +271,9 @@ gom_filter_new_or (GomFilter *left,
    filter = g_object_new(GOM_TYPE_FILTER,
                          "mode", GOM_FILTER_OR,
                          NULL);
-   filter->priv->left = g_object_ref(left);
-   filter->priv->right = g_object_ref(right);
+   filter->priv->subfilters = g_queue_new();
+   g_queue_push_tail(filter->priv->subfilters, g_object_ref(left));
+   g_queue_push_tail(filter->priv->subfilters, g_object_ref(right));
 
    return filter;
 }
@@ -283,9 +284,10 @@ gom_filter_get_sql (GomFilter  *filter,
 {
    GomFilterPrivate *priv;
    gchar *table;
-   gchar *left;
-   gchar *right;
-   gchar *ret;
+   GomFilter *f;
+   gchar **sqls;
+   gint i, len;
+   gchar *sep, *s, *ret;
 
    g_return_val_if_fail(GOM_IS_FILTER(filter), NULL);
 
@@ -311,11 +313,23 @@ gom_filter_get_sql (GomFilter  *filter,
       return ret;
    case GOM_FILTER_AND:
    case GOM_FILTER_OR:
-      left = gom_filter_get_sql(priv->left, table_map);
-      right = gom_filter_get_sql(priv->right, table_map);
-      ret = g_strdup_printf("%s %s %s", left, gOperators[priv->mode], right);
-      g_free(left);
-      g_free(right);
+      len = g_queue_get_length(priv->subfilters);
+      sqls = g_new(gchar *, 1 + len);
+
+      for (i = 0; i < len; i++) {
+         f = g_queue_peek_nth(priv->subfilters, i);
+         s = gom_filter_get_sql(f, table_map);
+
+         sqls[i] = s;
+      }
+      sqls[i] = NULL;
+
+      sep = g_strdup_printf(" %s ", gOperators[priv->mode]);
+      ret = g_strjoinv(sep, sqls);
+
+      g_free(sep);
+      g_strfreev(sqls);
+
       return ret;
    default:
       break;
@@ -359,8 +373,10 @@ GArray *
 gom_filter_get_values (GomFilter *filter)
 {
    GomFilterPrivate *priv;
+   GomFilter *f;
    GArray *tmp;
    GArray *va;
+   gint i, len;
 
    g_return_val_if_fail(GOM_IS_FILTER(filter), NULL);
 
@@ -392,9 +408,14 @@ gom_filter_get_values (GomFilter *filter)
    }
    case GOM_FILTER_AND:
    case GOM_FILTER_OR:
-      va = gom_filter_get_values(priv->left);
-      tmp = gom_filter_get_values(priv->right);
-      join_value_array(va, tmp);
+      len = g_queue_get_length(priv->subfilters);
+      va = g_array_new(FALSE, FALSE, sizeof(GValue));
+
+      for (i = 0; i < len; i++) {
+         f = g_queue_peek_nth(priv->subfilters, i);
+         tmp = gom_filter_get_values(f);
+         join_value_array(va, tmp);
+      }
 
       return va;
    default:
@@ -427,8 +448,8 @@ gom_filter_finalize (GObject *object)
       g_value_unset(&priv->value);
    }
 
-   g_clear_object (&priv->left);
-   g_clear_object (&priv->right);
+   if (priv->subfilters != NULL)
+      g_queue_free_full(priv->subfilters, g_object_unref);
 
    G_OBJECT_CLASS(gom_filter_parent_class)->finalize(object);
 }
