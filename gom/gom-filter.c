@@ -427,6 +427,9 @@ gom_filter_finalize (GObject *object)
       g_value_unset(&priv->value);
    }
 
+   g_clear_object (&priv->left);
+   g_clear_object (&priv->right);
+
    G_OBJECT_CLASS(gom_filter_parent_class)->finalize(object);
 }
 
