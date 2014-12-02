@@ -285,19 +285,9 @@ GomFilter *
 gom_filter_new_and (GomFilter *left,
                     GomFilter *right)
 {
-   GomFilter *filter;
+   GomFilter *filter_array[3] = { left, right, NULL };
 
-   g_return_val_if_fail(GOM_IS_FILTER(left), NULL);
-   g_return_val_if_fail(GOM_IS_FILTER(right), NULL);
-
-   filter = g_object_new(GOM_TYPE_FILTER,
-                         "mode", GOM_FILTER_AND,
-                         NULL);
-   filter->priv->subfilters = g_queue_new();
-   g_queue_push_tail(filter->priv->subfilters, g_object_ref(left));
-   g_queue_push_tail(filter->priv->subfilters, g_object_ref(right));
-
-   return filter;
+   return gom_filter_new_for_subfilters_fullv(GOM_FILTER_AND, filter_array);
 }
 
 /**
@@ -353,19 +343,9 @@ GomFilter *
 gom_filter_new_or (GomFilter *left,
                    GomFilter *right)
 {
-   GomFilter *filter;
+   GomFilter *filter_array[3] = { left, right, NULL };
 
-   g_return_val_if_fail(GOM_IS_FILTER(left), NULL);
-   g_return_val_if_fail(GOM_IS_FILTER(right), NULL);
-
-   filter = g_object_new(GOM_TYPE_FILTER,
-                         "mode", GOM_FILTER_OR,
-                         NULL);
-   filter->priv->subfilters = g_queue_new();
-   g_queue_push_tail(filter->priv->subfilters, g_object_ref(left));
-   g_queue_push_tail(filter->priv->subfilters, g_object_ref(right));
-
-   return filter;
+   return gom_filter_new_for_subfilters_fullv(GOM_FILTER_OR, filter_array);
 }
 
 /**
