@@ -1,5 +1,5 @@
 # Hungarian translation for gom.
-# Copyright (C) 2014 gom's COPYRIGHT HOLDER
+# Copyright (C) 2014 Free Software Foundation, Inc.
 # This file is distributed under the same license as the gom package.
 #
 # Balázs Úr <urbalazs@gmail.com>, 2014.
@@ -8,10 +8,10 @@ msgstr ""
 "Project-Id-Version: gom master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=gom&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-09-07 00:48+0000\n"
-"PO-Revision-Date: 2014-09-11 20:26+0200\n"
+"POT-Creation-Date: 2014-11-04 18:56+0000\n"
+"PO-Revision-Date: 2014-12-07 12:48+0100\n"
 "Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
-"Language-Team: Hungarian <gnome-hu-list@gnome.org>\n"
+"Language-Team: Hungarian <openscope at googlegroups dot com>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,8 +19,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 1.2\n"
 
-#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:580
-#: ../gom/gom-repository.c:898 ../gom/gom-command.c:508
+#: ../gom/gom-command-builder.c:992 ../gom/gom-repository.c:898
+#: ../gom/gom-command.c:508
 msgid "Adapter"
 msgstr "Csatlakozó"
 
@@ -28,7 +28,7 @@ msgstr "Csatlakozó"
 msgid "The GomAdapter."
 msgstr "A Gom csatlakozó."
 
-#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:589
+#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:770
 msgid "Filter"
 msgstr "Szűrő"
 
@@ -68,7 +68,7 @@ msgstr "Eltolás"
 msgid "The number of results to skip."
 msgstr "A kihagyandó eredmények száma."
 
-#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:625
+#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:806
 msgid "Resource Type"
 msgstr "Erőforrástípus"
 
@@ -76,20 +76,20 @@ msgstr "Erőforrástípus"
 msgid "The resource type to query for."
 msgstr "Erőforrástípus a lekérdezéshez."
 
-#: ../gom/gom-resource.c:676
+#: ../gom/gom-resource.c:744
 #, c-format
 msgid "Cannot save resource, no repository set"
 msgstr "Nem lehet elmenteni az erőforrást, nincs tároló beállítva"
 
-#: ../gom/gom-resource.c:796
+#: ../gom/gom-resource.c:875
 msgid "No result was returned from the cursor."
 msgstr "Nem került eredmény visszaadásra a kurzortól."
 
-#: ../gom/gom-resource.c:980 ../gom/gom-resource-group.c:616
+#: ../gom/gom-resource.c:1058 ../gom/gom-resource-group.c:797
 msgid "Repository"
 msgstr "Tároló"
 
-#: ../gom/gom-resource.c:981
+#: ../gom/gom-resource.c:1059
 msgid "The resources repository."
 msgstr "Az erőforrások tárolója."
 
@@ -106,7 +106,6 @@ msgid "SQL"
 msgstr "SQL"
 
 #: ../gom/gom-filter.c:507
-#| msgid "The sql for the filter."
 msgid "The SQL for the filter."
 msgstr "Az SQL a szűrőhöz."
 
@@ -118,45 +117,49 @@ msgstr "Utasítás"
 msgid "A pointer to a sqlite3_stmt."
 msgstr "Mutató egy sqlite3_stmt utasításra."
 
-#: ../gom/gom-resource-group.c:569
+#: ../gom/gom-resource-group.c:759
 msgid "Count"
 msgstr "Darabszám"
 
-#: ../gom/gom-resource-group.c:570
+#: ../gom/gom-resource-group.c:760
 msgid "The size of the resource group."
 msgstr "Az erőforráscsoport mérete."
 
-#: ../gom/gom-resource-group.c:581
-msgid "The adapter used for queries."
-msgstr "A lekérdezésekhez használt csatlakozó."
-
-#: ../gom/gom-resource-group.c:590
+#: ../gom/gom-resource-group.c:771
 msgid "The query filter."
 msgstr "A lekérdezésszűrő."
 
-#: ../gom/gom-resource-group.c:598
+#: ../gom/gom-resource-group.c:779
 msgid "Many-to-Many Table"
 msgstr "Több-a-többhöz tábla"
 
-#: ../gom/gom-resource-group.c:599
+#: ../gom/gom-resource-group.c:780
 msgid "The table used to join a Many to Many query."
 msgstr "Egy több-a-többhöz lekérdezés illesztéséhez használt tábla."
 
-#: ../gom/gom-resource-group.c:607
+#: ../gom/gom-resource-group.c:788
 msgid "Many-to-Many type"
 msgstr "Több-a-többhöz típus"
 
-#: ../gom/gom-resource-group.c:608
+#: ../gom/gom-resource-group.c:789
 msgid "The type used in the m2m-table join."
 msgstr "A több-a-többhöz táblán belüli illesztésben használt típus."
 
-#: ../gom/gom-resource-group.c:617
+#: ../gom/gom-resource-group.c:798
 msgid "The repository for object storage."
 msgstr "A tároló az objektumtároláshoz."
 
-#: ../gom/gom-resource-group.c:626
+#: ../gom/gom-resource-group.c:807
 msgid "The type of resources contained."
 msgstr "A tartalmazott erőforrások típusa."
+
+#: ../gom/gom-resource-group.c:815
+msgid "Is Writable"
+msgstr "Írható"
+
+#: ../gom/gom-resource-group.c:816
+msgid "Whether the group contains resources to be written."
+msgstr "Az erőforrásokat tartalmazó csoportoknak írhatónak kell-e lenniük."
 
 #: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
 #, c-format
@@ -195,3 +198,5 @@ msgstr "A Gom csatlakozó a parancshoz."
 msgid "The SQL for the command."
 msgstr "Az SQL a parancshoz."
 
+#~ msgid "The adapter used for queries."
+#~ msgstr "A lekérdezésekhez használt csatlakozó."
