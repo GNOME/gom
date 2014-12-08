@@ -64,7 +64,9 @@ static struct {
   guint8      episode_number;
   gchar      *episode_name;
 } values[] = {
-  { "84947", "tt2483070", 4, 1, "New York Sour" }
+  { "84947", "tt2483070", 4, 1, "New York Sour" },
+  { "84947", "tt2778300", 4, 2, "Resignation" },
+  { "84947", "tt3767076", 5, 2, "The Good Listener" }
 };
 
 static void
@@ -219,6 +221,7 @@ create_memory_db (GomAdapter **adapter,
   GError *error = NULL;
   GList *object_types;
   EpisodeResource *eres;
+  guint i;
 
   *adapter = gom_adapter_new();
   ret = gom_adapter_open_sync (*adapter, ":memory:", &error);
@@ -233,18 +236,20 @@ create_memory_db (GomAdapter **adapter,
   g_assert_no_error (error);
   g_assert (ret);
 
-  eres = g_object_new (EPISODE_TYPE_RESOURCE,
-                       "repository", *repository,
-                       EPISODE_COLUMN_SERIES_ID, values[0].series_id,
-                       EPISODE_COLUMN_IMDB_ID, values[0].imdb_id,
-                       EPISODE_COLUMN_SEASON_NUMBER, values[0].season_number,
-                       EPISODE_COLUMN_EPISODE_NUMBER, values[0].episode_number,
-                       EPISODE_COLUMN_EPISODE_NAME, values[0].episode_name,
-                       NULL);
-  ret = gom_resource_save_sync (GOM_RESOURCE (eres), &error);
-  g_assert (ret);
-  g_assert_no_error (error);
-  g_object_unref (eres);
+  for (i = 0; i < G_N_ELEMENTS(values); i++) {
+    eres = g_object_new (EPISODE_TYPE_RESOURCE,
+                         "repository", *repository,
+                         EPISODE_COLUMN_SERIES_ID, values[i].series_id,
+                         EPISODE_COLUMN_IMDB_ID, values[i].imdb_id,
+                         EPISODE_COLUMN_SEASON_NUMBER, values[i].season_number,
+                         EPISODE_COLUMN_EPISODE_NUMBER, values[i].episode_number,
+                         EPISODE_COLUMN_EPISODE_NAME, values[i].episode_name,
+                         NULL);
+    ret = gom_resource_save_sync (GOM_RESOURCE (eres), &error);
+    g_assert (ret);
+    g_assert_no_error (error);
+    g_object_unref (eres);
+  }
 }
 
 static void
