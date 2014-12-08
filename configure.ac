@@ -57,7 +57,6 @@ dnl **************************************************************************
 PKG_CHECK_MODULES(GIO,     [gio-2.0 >= 2.36])
 PKG_CHECK_MODULES(GOBJECT, [gobject-2.0 >= 2.36])
 PKG_CHECK_MODULES(SQLITE3, [sqlite3 >= 3.7])
-PKG_CHECK_MODULES(PIXBUF, [gdk-pixbuf-2.0])
 
 
 dnl **************************************************************************
@@ -126,6 +125,7 @@ dnl Unit Tests
 dnl **************************************************************************
 AC_PATH_PROG([GTESTER], [gtester])
 AC_PATH_PROG([GTESTER_REPORT], [gtester-report])
+PKG_CHECK_MODULES(PIXBUF, [gdk-pixbuf-2.0], [], [enable_glibtest=no])
 AM_CONDITIONAL(ENABLE_GLIB_TEST, test "x$enable_glibtest" = "xyes")
 
 
