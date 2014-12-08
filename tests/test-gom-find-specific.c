@@ -527,6 +527,76 @@ find_specific_and_fullv (void)
   free_memory_db(adapter, repository);
 }
 
+/* Ensure we respect filter priorities */
+static void
+find_specific_ensure_priorities (void)
+{
+   GomAdapter *adapter;
+   GomRepository *repository;
+   GomFilter *filter1, *filter2, *filter3, *filter4, *filter5;
+   GomResourceGroup *group;
+   GValue value = { 0, };
+   GError *error = NULL;
+   guint count;
+
+   create_memory_db(&adapter, &repository);
+
+   g_value_init(&value, G_TYPE_INT64);
+   g_value_set_int64(&value, 4);
+   filter1 = gom_filter_new_eq(EPISODE_TYPE_RESOURCE,
+                               EPISODE_COLUMN_SEASON_NUMBER, &value);
+   g_value_unset(&value);
+
+   g_value_init(&value, G_TYPE_INT64);
+   g_value_set_int64(&value, 1);
+   filter2 = gom_filter_new_eq(EPISODE_TYPE_RESOURCE,
+                               EPISODE_COLUMN_EPISODE_NUMBER, &value);
+   g_value_unset(&value);
+
+   g_value_init(&value, G_TYPE_INT64);
+   g_value_set_int64(&value, 2);
+   filter3 = gom_filter_new_eq(EPISODE_TYPE_RESOURCE,
+                               EPISODE_COLUMN_EPISODE_NUMBER, &value);
+   g_value_unset(&value);
+
+   /* Search for:
+    *   ( season-number=4 AND episode-number=1 ) OR episode-number=2
+    */
+   filter4 = gom_filter_new_and_full(filter1, filter2, NULL);
+   filter5 = gom_filter_new_or_full(filter4, filter3, NULL);
+
+   group = gom_repository_find_sync(repository, EPISODE_TYPE_RESOURCE,
+                                    filter5, &error);
+   g_assert_no_error(error);
+
+   count = gom_resource_group_get_count(group);
+   g_assert_cmpuint(count, ==, 3);
+
+   g_object_unref(filter4);
+   g_object_unref(filter5);
+
+   /* Now search for:
+    *   season-number=4 AND ( episode-number=1 OR episode-number=2 )
+    */
+   filter4 = gom_filter_new_or_full(filter2, filter3, NULL);
+   filter5 = gom_filter_new_and_full(filter1, filter4, NULL);
+
+   group = gom_repository_find_sync(repository, EPISODE_TYPE_RESOURCE,
+                                    filter5, &error);
+   g_assert_no_error(error);
+
+   count = gom_resource_group_get_count(group);
+   g_assert_cmpuint(count, ==, 2);
+
+   g_object_unref(filter1);
+   g_object_unref(filter2);
+   g_object_unref(filter3);
+   g_object_unref(filter4);
+   g_object_unref(filter5);
+
+   free_memory_db(adapter, repository);
+}
+
 static void
 find_glob (void)
 {
@@ -582,6 +652,7 @@ main (gint argc, gchar *argv[])
    g_test_add_func ("/GomRepository/find-specific", find_specific);
    g_test_add_func ("/GomRepository/find-specific-and-full", find_specific_and_full);
    g_test_add_func ("/GomRepository/find-specific-and-fullv", find_specific_and_fullv);
+   g_test_add_func ("/GomRepository/find-specific-ensure-priorities", find_specific_ensure_priorities);
    g_test_add_func ("/GomRepository/find-glob", find_glob);
    gMainLoop = g_main_loop_new (NULL, FALSE);
    return g_test_run ();
