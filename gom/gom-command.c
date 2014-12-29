@@ -332,7 +332,52 @@ gom_command_execute (GomCommand  *command,
    gom_command_bind_params(command);
 
 #if 0
-   g_debug("%s", sqlite3_sql(priv->stmt));
+   g_print("%s", sqlite3_sql(priv->stmt));
+
+   if (priv->params != NULL) {
+      GHashTableIter iter;
+      gpointer key;
+      gpointer value;
+      gboolean first = TRUE;
+
+      g_print(" (");
+
+      g_hash_table_iter_init(&iter, priv->params);
+      while (g_hash_table_iter_next(&iter, &key, &value)) {
+         GValue *v = (GValue *)value;
+
+         if (!first)
+            g_print(", ");
+
+         if (G_VALUE_HOLDS_BOOLEAN(v)) {
+            gboolean b = g_value_get_boolean(v);
+            g_print("%s", b ? "TRUE" : "FALSE");
+         } else if (G_VALUE_HOLDS_INT(v)) {
+            gint i = g_value_get_int(v);
+            g_print("%d", i);
+         } else if (G_VALUE_HOLDS_INT64(v)) {
+            gint64 i = g_value_get_int64(v);
+            g_print("%" G_GINT64_FORMAT, i);
+         } else if (G_VALUE_HOLDS_STRING(v)) {
+            const gchar *s = g_value_get_string(v);
+            g_print("'%s'", s);
+         } else if (G_VALUE_HOLDS_UCHAR(v)) {
+            guchar i = g_value_get_uchar(v);
+            g_print("%c", i);
+         } else if (G_VALUE_HOLDS_UINT(v)) {
+            guint i = g_value_get_uint(v);
+            g_print("%u", i);
+         } else {
+            g_print("'unknown'");
+         }
+
+         first = FALSE;
+      }
+
+      g_print(")");
+   }
+
+   g_print("\n");
 #endif
 
    if (!cursor) {
