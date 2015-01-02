@@ -23,7 +23,7 @@ AC_INIT([gom],[gom_version])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([-Wno-portability no-dist-gzip dist-xz])
+AM_INIT_AUTOMAKE([-Wno-portability no-dist-gzip dist-xz subdir-objects])
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AS_AM_REALLY_SILENT
