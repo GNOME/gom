@@ -2,15 +2,15 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# Daniel Mustieles <daniel.mustieles@gmail.com>, 2014.
+# Daniel Mustieles <daniel.mustieles@gmail.com>, 2014, 2015.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=gom&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-06-17 08:11+0000\n"
-"PO-Revision-Date: 2014-06-17 19:34+0200\n"
+"POT-Creation-Date: 2014-11-04 18:56+0000\n"
+"PO-Revision-Date: 2015-01-12 19:02+0100\n"
 "Last-Translator: Daniel Mustieles <daniel.mustieles@gmail.com>\n"
 "Language-Team: Español; Castellano <gnome-es-list@gnome.org>\n"
 "Language: \n"
@@ -20,8 +20,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 2.91.6\n"
 
-#: ../gom/gom-command-builder.c:992 ../gom/gom-resource-group.c:580
-#: ../gom/gom-repository.c:898 ../gom/gom-command.c:508
+#: ../gom/gom-command-builder.c:992 ../gom/gom-repository.c:898
+#: ../gom/gom-command.c:508
 msgid "Adapter"
 msgstr "Adaptador"
 
@@ -29,7 +29,7 @@ msgstr "Adaptador"
 msgid "The GomAdapter."
 msgstr "El GomAdapter."
 
-#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:589
+#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:770
 msgid "Filter"
 msgstr "Filtro"
 
@@ -69,7 +69,7 @@ msgstr "Desplazamiento"
 msgid "The number of results to skip."
 msgstr "El número de resultados que omitir."
 
-#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:625
+#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:806
 msgid "Resource Type"
 msgstr "Tipo de recurso"
 
@@ -77,37 +77,38 @@ msgstr "Tipo de recurso"
 msgid "The resource type to query for."
 msgstr "EL tipo de recurso por el que preguntar"
 
-#: ../gom/gom-resource.c:675
+#: ../gom/gom-resource.c:744
 #, c-format
 msgid "Cannot save resource, no repository set"
 msgstr "No se puede guardar el recurso, no hay ningún repositorio configurado"
 
-#: ../gom/gom-resource.c:795
+#: ../gom/gom-resource.c:875
 msgid "No result was returned from the cursor."
 msgstr "El cursor no ha devuelto resultados."
 
-#: ../gom/gom-resource.c:979 ../gom/gom-resource-group.c:616
+#: ../gom/gom-resource.c:1058 ../gom/gom-resource-group.c:797
 msgid "Repository"
 msgstr "Repositorio"
 
-#: ../gom/gom-resource.c:980
+#: ../gom/gom-resource.c:1059
 msgid "The resources repository."
 msgstr "El repositorio de recursos."
 
-#: ../gom/gom-filter.c:495
+#: ../gom/gom-filter.c:496
 msgid "Mode"
 msgstr "Modo"
 
-#: ../gom/gom-filter.c:496
+#: ../gom/gom-filter.c:497
 msgid "The mode of the filter."
 msgstr "El modo del filtro."
 
-#: ../gom/gom-filter.c:505 ../gom/gom-command.c:517
+#: ../gom/gom-filter.c:506 ../gom/gom-command.c:517
 msgid "SQL"
 msgstr "SQL"
 
-#: ../gom/gom-filter.c:506
-msgid "The sql for the filter."
+#: ../gom/gom-filter.c:507
+#| msgid "The sql for the filter."
+msgid "The SQL for the filter."
 msgstr "El SQL para el filtro."
 
 #: ../gom/gom-cursor.c:299
@@ -118,45 +119,49 @@ msgstr "Sentencia"
 msgid "A pointer to a sqlite3_stmt."
 msgstr "Un puntero a sqlite3_stmt."
 
-#: ../gom/gom-resource-group.c:569
+#: ../gom/gom-resource-group.c:759
 msgid "Count"
 msgstr "Conteo"
 
-#: ../gom/gom-resource-group.c:570
+#: ../gom/gom-resource-group.c:760
 msgid "The size of the resource group."
 msgstr "El tamaño del grupo de recursos."
 
-#: ../gom/gom-resource-group.c:581
-msgid "The adapter used for queries."
-msgstr "El adaptador usado para las consultas."
-
-#: ../gom/gom-resource-group.c:590
+#: ../gom/gom-resource-group.c:771
 msgid "The query filter."
 msgstr "El filtro de la consulta."
 
-#: ../gom/gom-resource-group.c:598
+#: ../gom/gom-resource-group.c:779
 msgid "Many-to-Many Table"
 msgstr "Tabla muchos-a-muchos"
 
-#: ../gom/gom-resource-group.c:599
+#: ../gom/gom-resource-group.c:780
 msgid "The table used to join a Many to Many query."
 msgstr "La tabla usada para unir una consulta muchos a muchos."
 
-#: ../gom/gom-resource-group.c:607
+#: ../gom/gom-resource-group.c:788
 msgid "Many-to-Many type"
 msgstr "Tipo de muchos-a-muchos"
 
-#: ../gom/gom-resource-group.c:608
+#: ../gom/gom-resource-group.c:789
 msgid "The type used in the m2m-table join."
 msgstr "El tipo usado en la unión con la tabla m2m."
 
-#: ../gom/gom-resource-group.c:617
+#: ../gom/gom-resource-group.c:798
 msgid "The repository for object storage."
 msgstr "El repositorio para almacenar objetos."
 
-#: ../gom/gom-resource-group.c:626
+#: ../gom/gom-resource-group.c:807
 msgid "The type of resources contained."
 msgstr "El tipo de los recursos contenidos."
+
+#: ../gom/gom-resource-group.c:815
+msgid "Is Writable"
+msgstr "Se puede escribir"
+
+#: ../gom/gom-resource-group.c:816
+msgid "Whether the group contains resources to be written."
+msgstr "Indica si el grupo contiene recursos que escribir."
 
 #: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
 #, c-format
@@ -194,3 +199,6 @@ msgstr "EL GomAdapter para el comando."
 #: ../gom/gom-command.c:518
 msgid "The SQL for the command."
 msgstr "El SQL para el comando."
+
+#~ msgid "The adapter used for queries."
+#~ msgstr "El adaptador usado para las consultas."
