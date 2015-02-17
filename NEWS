@@ -1,5 +1,18 @@
 Major changes in version
 
+0.3.0
+-----
+- Update COPYING to LGPL 2.1+ to match headers
+- Add support for batched writes
+- Support the GLOB operator
+- Fix stacking of filters
+- Fix possible crashes on exit
+- Remove "adapter" property from GomResourceGroup
+- Fix a bug in automatic migration
+- Fix a number of bugs related to using GOM in bindings and
+  in multi-thread unsafe interpreters
+- Make gdk-pixbuf an optional dependency
+
 0.2.1
 -----
 
