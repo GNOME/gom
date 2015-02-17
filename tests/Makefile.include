@@ -55,4 +55,4 @@ test_gom_find_specific_SOURCES = tests/test-gom-find-specific.c
 test_gom_find_specific_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS) $(WARN_CFLAGS)
 test_gom_find_specific_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
-EXTRA_DIST = $(top_srcdir)/tests/grl-bookmarks.db $(top_srcdir)/tests/gnome.png
+EXTRA_DIST += tests/grl-bookmarks.db tests/gnome.png
