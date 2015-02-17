@@ -26,9 +26,9 @@ CFILE_GLOB=$(top_srcdir)/gom/*.c
 # Header files to ignore when scanning
 IGNORE_HFILES=gom.h
 
-# CFLAGS and LDFLAGS for compiling scan program. Only needed
+# CPPFLAGS and LDFLAGS for compiling scan program. Only needed
 # if $(DOC_MODULE).types is non-empty.
-INCLUDES = \
+GTKDOC_CPPFLAGS = \
 	-I$(top_srcdir) 	\
 	$(GOBJECT_CFLAGS)
 
