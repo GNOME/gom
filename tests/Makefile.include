@@ -19,39 +19,39 @@ TEST_PROGS += test-gom-migration
 TEST_PROGS += test-gom-constraints
 TEST_PROGS += test-gom-insert
 
-test_gom_adapter_SOURCES = $(top_srcdir)/tests/test-gom-adapter.c
+test_gom_adapter_SOURCES = tests/test-gom-adapter.c
 test_gom_adapter_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS) $(WARN_CFLAGS)
 test_gom_adapter_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
-test_gom_repository_SOURCES = $(top_srcdir)/tests/test-gom-repository.c
+test_gom_repository_SOURCES = tests/test-gom-repository.c
 test_gom_repository_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS) $(WARN_CFLAGS)
 test_gom_repository_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
-test_gom_find_SOURCES = $(top_srcdir)/tests/test-gom-find.c
+test_gom_find_SOURCES = tests/test-gom-find.c
 test_gom_find_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS)  $(WARN_CFLAGS) -DDB="\"$(top_srcdir)/tests/grl-bookmarks.db\""
 test_gom_find_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
-test_gom_migration_SOURCES = $(top_srcdir)/tests/test-gom-migration.c
+test_gom_migration_SOURCES = tests/test-gom-migration.c
 test_gom_migration_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS)  $(WARN_CFLAGS) -DDB="\"$(top_srcdir)/tests/grl-bookmarks.db\""
 test_gom_migration_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
-test_gom_transform_SOURCES = $(top_srcdir)/tests/test-gom-transform.c
+test_gom_transform_SOURCES = tests/test-gom-transform.c
 test_gom_transform_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS) $(PIXBUF_CFLAGS) $(WARN_CFLAGS) -DIMAGE="\"$(top_srcdir)/tests/gnome.png\""
 test_gom_transform_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(PIXBUF_LIBS) $(top_builddir)/libgom-1.0.la
 
-test_gom_stress_SOURCES = $(top_srcdir)/tests/test-gom-stress.c
+test_gom_stress_SOURCES = tests/test-gom-stress.c
 test_gom_stress_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS) $(WARN_CFLAGS) -DDB="\"$(top_srcdir)/tests/grl-bookmarks.db\""
 test_gom_stress_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
-test_gom_constraints_SOURCES = $(top_srcdir)/tests/test-gom-constraints.c
+test_gom_constraints_SOURCES = tests/test-gom-constraints.c
 test_gom_constraints_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS) $(WARN_CFLAGS)
 test_gom_constraints_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
-test_gom_insert_SOURCES = $(top_srcdir)/tests/test-gom-insert.c
+test_gom_insert_SOURCES = tests/test-gom-insert.c
 test_gom_insert_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS) $(WARN_CFLAGS)
 test_gom_insert_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
-test_gom_find_specific_SOURCES = $(top_srcdir)/tests/test-gom-find-specific.c
+test_gom_find_specific_SOURCES = tests/test-gom-find-specific.c
 test_gom_find_specific_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS) $(WARN_CFLAGS)
 test_gom_find_specific_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
 
