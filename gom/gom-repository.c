@@ -89,7 +89,6 @@ gom_repository_set_adapter (GomRepository *repository,
 
    g_clear_object(&priv->adapter);
    priv->adapter = g_object_ref(adapter);
-   g_object_add_weak_pointer(G_OBJECT(priv->adapter), (gpointer *) &priv->adapter);
    g_object_notify_by_pspec(G_OBJECT(repository), gParamSpecs[PROP_ADAPTER]);
 }
 
