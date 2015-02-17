@@ -44,6 +44,10 @@ libgom_1_0_la_LIBADD += $(GIO_LIBS)
 libgom_1_0_la_LIBADD += $(GOBJECT_LIBS)
 libgom_1_0_la_LIBADD += $(SQLITE3_LIBS)
 
+libgom_1_0_la_LDFLAGS =
+libgom_1_0_la_LDFLAGS += -version-info $(GOM_LT_VERSION)
+libgom_1_0_la_LDFLAGS += -no-undefined
+
 if HAVE_INTROSPECTION
 
 -include $(INTROSPECTION_MAKEFILE)
