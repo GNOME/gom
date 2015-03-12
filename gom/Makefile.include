@@ -15,6 +15,7 @@ INST_H_FILES += gom/gom-filter.h
 INST_H_FILES += gom/gom-repository.h
 INST_H_FILES += gom/gom-resource-group.h
 INST_H_FILES += gom/gom-resource.h
+INST_H_FILES += gom/gom-autocleanups.h
 
 NOINST_H_FILES = gom/gom-resource-priv.h
 

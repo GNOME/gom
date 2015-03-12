@@ -35,6 +35,8 @@ G_BEGIN_DECLS
 #include "gom-resource-group.h"
 #include "gom-resource.h"
 
+#include "gom-autocleanups.h"
+
 #undef GOM_INSIDE
 
 G_END_DECLS
