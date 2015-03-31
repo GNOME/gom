@@ -708,6 +708,8 @@ gom_resource_save_cb (GomAdapter *adapter,
 
    if (!(ret = gom_resource_do_save(resource, adapter, &error))) {
       g_simple_async_result_take_error(simple, error);
+   } else {
+     g_object_set_data(G_OBJECT(resource), "is-from-table", GINT_TO_POINTER(TRUE));
    }
 
    g_simple_async_result_set_op_res_gboolean(simple, ret);
