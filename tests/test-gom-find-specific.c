@@ -66,7 +66,8 @@ static struct {
 } values[] = {
   { "84947", "tt2483070", 4, 1, "New York Sour" },
   { "84947", "tt2778300", 4, 2, "Resignation" },
-  { "84947", "tt3767076", 5, 2, "The Good Listener" }
+  { "84947", "tt3767076", 5, 2, "The Good Listener" },
+  { "84947", "tt3767078", 5, 3, NULL }
 };
 
 static void
@@ -644,6 +645,114 @@ find_glob (void)
   free_memory_db (adapter, repository);
 }
 
+static void
+find_null (void)
+{
+  GError *error = NULL;
+  GValue value = { 0, };
+  GomFilter *filter1, *filter2, *filter3;
+  char *s1, *s2;
+  GomResource *resource;
+  EpisodeResource *eres;
+  GomAdapter *adapter;
+  GomRepository *repository;
+
+  create_memory_db (&adapter, &repository);
+
+  /* Season Number */
+  g_value_init (&value, G_TYPE_INT64);
+  g_value_set_int64 (&value, values[3].season_number);
+  filter1 = gom_filter_new_eq (EPISODE_TYPE_RESOURCE,
+                               EPISODE_COLUMN_SEASON_NUMBER,
+                               &value);
+  g_value_unset (&value);
+
+  /* NULL name */
+  filter2 = gom_filter_new_is_null (EPISODE_TYPE_RESOURCE,
+                                    EPISODE_COLUMN_EPISODE_NAME);
+
+  /* Season and NULL name */
+  filter3 = gom_filter_new_and (filter1, filter2);
+  g_object_unref (filter1);
+  g_object_unref (filter2);
+
+  resource = gom_repository_find_one_sync (repository,
+                                           EPISODE_TYPE_RESOURCE,
+                                           filter3,
+                                           &error);
+  g_assert_no_error (error);
+  g_assert (resource);
+  g_object_unref (filter3);
+  eres = EPISODE_RESOURCE (resource);
+
+  g_object_get(eres,
+               EPISODE_COLUMN_SERIES_ID, &s1,
+               EPISODE_COLUMN_IMDB_ID, &s2,
+               NULL);
+  g_object_unref(eres);
+
+  g_assert_cmpstr (s1, ==, values[3].series_id);
+  g_assert_cmpstr (s2, ==, values[3].imdb_id);
+  g_free (s1);
+  g_free (s2);
+
+  free_memory_db (adapter, repository);
+}
+
+static void
+find_not_null (void)
+{
+  GError *error = NULL;
+  GValue value = { 0, };
+  GomFilter *filter1, *filter2, *filter3;
+  char *s1, *s2;
+  GomResource *resource;
+  EpisodeResource *eres;
+  GomAdapter *adapter;
+  GomRepository *repository;
+
+  create_memory_db (&adapter, &repository);
+
+  /* Season Number */
+  g_value_init (&value, G_TYPE_INT64);
+  g_value_set_int64 (&value, values[2].season_number);
+  filter1 = gom_filter_new_eq (EPISODE_TYPE_RESOURCE,
+                               EPISODE_COLUMN_SEASON_NUMBER,
+                               &value);
+  g_value_unset (&value);
+
+  /* NULL name */
+  filter2 = gom_filter_new_is_not_null (EPISODE_TYPE_RESOURCE,
+                                        EPISODE_COLUMN_EPISODE_NAME);
+
+  /* Season and NULL name */
+  filter3 = gom_filter_new_and (filter1, filter2);
+  g_object_unref (filter1);
+  g_object_unref (filter2);
+
+  resource = gom_repository_find_one_sync (repository,
+                                           EPISODE_TYPE_RESOURCE,
+                                           filter3,
+                                           &error);
+  g_assert_no_error (error);
+  g_assert (resource);
+  g_object_unref (filter3);
+  eres = EPISODE_RESOURCE (resource);
+
+  g_object_get(eres,
+               EPISODE_COLUMN_SERIES_ID, &s1,
+               EPISODE_COLUMN_IMDB_ID, &s2,
+               NULL);
+  g_object_unref(eres);
+
+  g_assert_cmpstr (s1, ==, values[2].series_id);
+  g_assert_cmpstr (s2, ==, values[2].imdb_id);
+  g_free (s1);
+  g_free (s2);
+
+  free_memory_db (adapter, repository);
+}
+
 gint
 main (gint argc, gchar *argv[])
 {
@@ -654,6 +763,8 @@ main (gint argc, gchar *argv[])
    g_test_add_func ("/GomRepository/find-specific-and-fullv", find_specific_and_fullv);
    g_test_add_func ("/GomRepository/find-specific-ensure-priorities", find_specific_ensure_priorities);
    g_test_add_func ("/GomRepository/find-glob", find_glob);
+   g_test_add_func ("/GomRepository/find-null", find_null);
+   g_test_add_func ("/GomRepository/find-not-null", find_not_null);
    gMainLoop = g_main_loop_new (NULL, FALSE);
    return g_test_run ();
 }
