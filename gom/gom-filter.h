@@ -44,7 +44,9 @@ enum _GomFilterMode
    GOM_FILTER_LT,
    GOM_FILTER_LTE,
    GOM_FILTER_LIKE,
-   GOM_FILTER_GLOB
+   GOM_FILTER_GLOB,
+   GOM_FILTER_IS_NULL,
+   GOM_FILTER_IS_NOT_NULL
 };
 
 typedef struct _GomFilter        GomFilter;
@@ -67,45 +69,49 @@ struct _GomFilterClass
 
 GType        gom_filter_mode_get_type (void) G_GNUC_CONST;
 GType        gom_filter_get_type      (void) G_GNUC_CONST;
-gchar       *gom_filter_get_sql       (GomFilter    *filter,
-                                       GHashTable   *table_map);
-GArray      *gom_filter_get_values    (GomFilter    *filter);
-GomFilter   *gom_filter_new_sql       (const gchar  *sql,
-                                       GArray       *values);
-GomFilter   *gom_filter_new_or        (GomFilter    *left,
-                                       GomFilter    *right);
-GomFilter   *gom_filter_new_or_full   (GomFilter    *first,
-                                       ...);
-GomFilter   *gom_filter_new_or_fullv  (GomFilter   **filter_array);
-GomFilter   *gom_filter_new_and       (GomFilter    *left,
-                                       GomFilter    *right);
-GomFilter   *gom_filter_new_and_full  (GomFilter    *first,
-                                       ...);
-GomFilter   *gom_filter_new_and_fullv (GomFilter   **filter_array);
-GomFilter   *gom_filter_new_eq        (GType         resource_type,
-                                       const gchar  *property_name,
-                                       const GValue *value);
-GomFilter   *gom_filter_new_neq       (GType         resource_type,
-                                       const gchar  *property_name,
-                                       const GValue *value);
-GomFilter   *gom_filter_new_gt        (GType         resource_type,
-                                       const gchar  *property_name,
-                                       const GValue *value);
-GomFilter   *gom_filter_new_gte       (GType         resource_type,
-                                       const gchar  *property_name,
-                                       const GValue *value);
-GomFilter   *gom_filter_new_lt        (GType         resource_type,
-                                       const gchar  *property_name,
-                                       const GValue *value);
-GomFilter   *gom_filter_new_lte       (GType         resource_type,
-                                       const gchar  *property_name,
-                                       const GValue *value);
-GomFilter   *gom_filter_new_like      (GType         resource_type,
-                                       const gchar  *property_name,
-                                       const GValue *value);
-GomFilter   *gom_filter_new_glob      (GType         resource_type,
-                                       const gchar  *property_name,
-                                       const GValue *value);
+gchar       *gom_filter_get_sql         (GomFilter     *filter,
+                                         GHashTable    *table_map);
+GArray      *gom_filter_get_values      (GomFilter     *filter);
+GomFilter   *gom_filter_new_sql         (const gchar   *sql,
+                                         GArray        *values);
+GomFilter   *gom_filter_new_or          (GomFilter     *left,
+                                         GomFilter     *right);
+GomFilter   *gom_filter_new_or_full     (GomFilter     *first,
+                                         ...);
+GomFilter   *gom_filter_new_or_fullv    (GomFilter    **filter_array);
+GomFilter   *gom_filter_new_and         (GomFilter     *left,
+                                         GomFilter     *right);
+GomFilter   *gom_filter_new_and_full    (GomFilter     *first,
+                                         ...);
+GomFilter   *gom_filter_new_and_fullv   (GomFilter    **filter_array);
+GomFilter   *gom_filter_new_eq          (GType          resource_type,
+                                         const gchar   *property_name,
+                                         const GValue  *value);
+GomFilter   *gom_filter_new_neq         (GType          resource_type,
+                                         const gchar   *property_name,
+                                         const GValue  *value);
+GomFilter   *gom_filter_new_gt          (GType          resource_type,
+                                         const gchar   *property_name,
+                                         const GValue  *value);
+GomFilter   *gom_filter_new_gte         (GType          resource_type,
+                                         const gchar   *property_name,
+                                         const GValue  *value);
+GomFilter   *gom_filter_new_lt          (GType          resource_type,
+                                         const gchar   *property_name,
+                                         const GValue  *value);
+GomFilter   *gom_filter_new_lte         (GType          resource_type,
+                                         const gchar   *property_name,
+                                         const GValue  *value);
+GomFilter   *gom_filter_new_like        (GType          resource_type,
+                                         const gchar   *property_name,
+                                         const GValue  *value);
+GomFilter   *gom_filter_new_glob        (GType          resource_type,
+                                         const gchar   *property_name,
+                                         const GValue  *value);
+GomFilter   *gom_filter_new_is_null     (GType          resource_type,
+                                         const gchar   *property_name);
+GomFilter   *gom_filter_new_is_not_null (GType          resource_type,
+                                         const gchar   *property_name);
 
 G_END_DECLS
 

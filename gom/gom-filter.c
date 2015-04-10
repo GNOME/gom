@@ -60,7 +60,9 @@ static const gchar *gOperators[] = {
    "<",
    "<=",
    "LIKE",
-   "GLOB"
+   "GLOB",
+   "IS NULL",
+   "IS NOT NULL"
 };
 
 /**
@@ -95,8 +97,10 @@ gom_filter_new_for_param (GType          resource_type,
    GomFilter *filter;
 
    g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), NULL);
-   g_return_val_if_fail(value != NULL, NULL);
-   g_return_val_if_fail(G_VALUE_TYPE(value), NULL);
+   if (mode != GOM_FILTER_IS_NULL && mode != GOM_FILTER_IS_NOT_NULL) {
+     g_return_val_if_fail(value != NULL, NULL);
+     g_return_val_if_fail(G_VALUE_TYPE(value), NULL);
+   }
 
    klass = g_type_class_ref(resource_type);
    pspec = g_object_class_find_property(klass, property_name);
@@ -113,8 +117,12 @@ gom_filter_new_for_param (GType          resource_type,
                          NULL);
    filter->priv->pspec = g_param_spec_ref(pspec);
    filter->priv->type = resource_type;
-   g_value_init(&filter->priv->value, G_VALUE_TYPE(value));
-   g_value_copy(value, &filter->priv->value);
+
+   if (value)
+     {
+       g_value_init(&filter->priv->value, G_VALUE_TYPE(value));
+       g_value_copy(value, &filter->priv->value);
+     }
 
    return filter;
 }
@@ -230,6 +238,20 @@ gom_filter_new_lte (GType         resource_type,
                     const GValue *value)
 {
    return gom_filter_new_for_param(resource_type, property_name, GOM_FILTER_LTE, value);
+}
+
+GomFilter   *
+gom_filter_new_is_null (GType          resource_type,
+                        const gchar   *property_name)
+{
+   return gom_filter_new_for_param(resource_type, property_name, GOM_FILTER_IS_NULL, NULL);
+}
+
+GomFilter   *
+gom_filter_new_is_not_null (GType          resource_type,
+                            const gchar   *property_name)
+{
+   return gom_filter_new_for_param(resource_type, property_name, GOM_FILTER_IS_NOT_NULL, NULL);
 }
 
 static GomFilterMode
@@ -420,6 +442,15 @@ gom_filter_get_sql (GomFilter  *filter,
                             gOperators[priv->mode]);
       g_free(table);
       return ret;
+   case GOM_FILTER_IS_NULL:
+   case GOM_FILTER_IS_NOT_NULL:
+      table = get_table(priv->pspec, priv->type, table_map);
+      ret = g_strdup_printf("'%s'.'%s' %s",
+                            table,
+                            priv->pspec->name,
+                            gOperators[priv->mode]);
+      g_free(table);
+      return ret;
    case GOM_FILTER_AND:
    case GOM_FILTER_OR:
       len = g_queue_get_length(priv->subfilters);
@@ -521,6 +552,11 @@ gom_filter_get_values (GomFilter *filter)
       g_array_append_val(va, v);
       return va;
    }
+   case GOM_FILTER_IS_NULL:
+   case GOM_FILTER_IS_NOT_NULL:
+      va = g_array_new(FALSE, FALSE, sizeof(GValue));
+      g_array_set_clear_func(va, (GDestroyNotify) g_value_unset);
+      return va;
    case GOM_FILTER_AND:
    case GOM_FILTER_OR:
       len = g_queue_get_length(priv->subfilters);
@@ -694,6 +730,8 @@ gom_filter_mode_get_type (void)
       { GOM_FILTER_LTE, "GOM_FILTER_LTE", "LTE" },
       { GOM_FILTER_LIKE, "GOM_FILTER_LIKE", "LIKE" },
       { GOM_FILTER_GLOB, "GOM_FILTER_GLOB", "GLOB" },
+      { GOM_FILTER_IS_NULL, "GOM_FILTER_IS_NULL", "IS_NULL" },
+      { GOM_FILTER_IS_NOT_NULL, "GOM_FILTER_IS_NOT_NULL", "IS_NOT_NULL" },
       { 0 }
    };
 
