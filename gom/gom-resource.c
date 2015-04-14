@@ -544,8 +544,8 @@ has_primary_key (GomResource *resource)
    return ret;
 }
 
-static void
-set_post_save_properties (GomResource *resource)
+void
+gom_resource_set_post_save_properties (GomResource *resource)
 {
    GValue *value;
 
@@ -766,7 +766,7 @@ gom_resource_save_sync (GomResource  *resource,
    }
 
    if (ret)
-      set_post_save_properties(resource);
+      gom_resource_set_post_save_properties(resource);
 
    g_object_unref(simple);
 
@@ -816,7 +816,7 @@ gom_resource_save_finish (GomResource   *resource,
    }
 
    if (ret)
-      set_post_save_properties(resource);
+      gom_resource_set_post_save_properties(resource);
 
    g_object_unref(simple);
 

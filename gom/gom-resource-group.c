@@ -127,7 +127,6 @@ gom_resource_group_write_cb (GomAdapter *adapter,
    g_assert(GOM_IS_ADAPTER(adapter));
 
    items = g_object_get_data(G_OBJECT(simple), "items");
-   g_ptr_array_set_free_func(items, NULL);
    queue = g_object_get_data(G_OBJECT(simple), "queue");
 
    /* do BEGIN */
@@ -143,7 +142,6 @@ gom_resource_group_write_cb (GomAdapter *adapter,
           !gom_resource_do_save (item, adapter, &error)) {
         got_error = TRUE;
       }
-      g_object_unref(item);
    }
 
    if (got_error)
@@ -162,7 +160,6 @@ error:
    g_simple_async_result_take_error(simple, error);
 
 out:
-   g_ptr_array_unref(items);
    g_object_unref(group);
    if (!queue)
       g_simple_async_result_complete_in_idle(simple);
@@ -178,6 +175,8 @@ gom_resource_group_write_sync (GomResourceGroup  *group,
    gboolean ret;
    GAsyncQueue *queue;
    GomAdapter *adapter;
+   GPtrArray *items;
+   int i;
 
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), FALSE);
    g_return_val_if_fail(group->priv->is_writable, FALSE);
@@ -190,7 +189,8 @@ gom_resource_group_write_sync (GomResourceGroup  *group,
       return TRUE;
 
    g_object_set_data(G_OBJECT(simple), "queue", queue);
-   g_object_set_data(G_OBJECT(simple), "items", group->priv->to_write);
+   items = group->priv->to_write;
+   g_object_set_data_full(G_OBJECT(simple), "items", items, (GDestroyNotify)g_ptr_array_unref);
    group->priv->to_write = NULL;
 
    adapter = gom_repository_get_adapter(group->priv->repository);
@@ -200,7 +200,14 @@ gom_resource_group_write_sync (GomResourceGroup  *group,
 
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
+   } else {
+      for (i=0; i < items->len; i++) {
+         GomResource *item = g_ptr_array_index(items, i);
+
+         gom_resource_set_post_save_properties (item);
+      }
    }
+
    g_object_unref(simple);
 
    return ret;
@@ -229,7 +236,7 @@ gom_resource_group_write_async (GomResourceGroup    *group,
       return;
    }
 
-   g_object_set_data(G_OBJECT(simple), "items", group->priv->to_write);
+   g_object_set_data_full(G_OBJECT(simple), "items", group->priv->to_write, (GDestroyNotify)g_ptr_array_unref);
    group->priv->to_write = NULL;
 
    adapter = gom_repository_get_adapter(priv->repository);
@@ -242,7 +249,9 @@ gom_resource_group_write_finish (GomResourceGroup  *group,
                                  GError           **error)
 {
    GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
+   GPtrArray *items;
    gboolean ret;
+   int i;
 
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), FALSE);
    g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple), FALSE);
@@ -250,6 +259,13 @@ gom_resource_group_write_finish (GomResourceGroup  *group,
 
    if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
       g_simple_async_result_propagate_error(simple, error);
+   } else {
+      items = g_object_get_data(G_OBJECT(simple), "items");
+      for (i=0; i < items->len; i++) {
+         GomResource *item = g_ptr_array_index(items, i);
+
+         gom_resource_set_post_save_properties (item);
+      }
    }
    g_object_unref(simple);
 

@@ -237,6 +237,7 @@ stress2 (void)
    GValue value = { 0, };
    GomFilter *filter;
    guint i;
+   GList *items, *l;
    char *s1, *s2, *name, *first_name, *surname;
    ItemResource *it;
    GomResourceGroup *group;
@@ -256,6 +257,8 @@ stress2 (void)
 
    group = gom_resource_group_new(repository);
 
+   items = NULL;
+
    for (i = 1; i <= NUM_RECORDS; i++) {
       ItemResource *item;
 
@@ -268,11 +271,18 @@ stress2 (void)
                            "surname", surname,
                            NULL);
       gom_resource_group_append(group, GOM_RESOURCE(item));
-      g_object_unref(item);
+      items = g_list_append (items, item);
    }
 
    gom_resource_group_write_sync(group, &error);
    g_assert_no_error(error);
+
+   i = 1;
+   for (l = items; l != NULL; l = l->next) {
+      ItemResource *item = l->data;
+      g_assert_cmpint (item->priv->id, ==, i++);
+   }
+
    g_object_unref(group);
 
    g_value_init(&value, G_TYPE_UINT);
@@ -303,6 +313,8 @@ stress2 (void)
    g_free(surname);
    g_free(s1);
    g_free(s2);
+
+   g_list_free_full (items, g_object_unref);
 
    ret = gom_adapter_close_sync(adapter, &error);
    g_assert_no_error(error);

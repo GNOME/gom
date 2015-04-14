@@ -23,14 +23,17 @@
 
 G_BEGIN_DECLS
 
-gboolean gom_resource_get_is_from_table (GomResource *resource);
-void     gom_resource_set_is_from_table (GomResource *resource, gboolean is_from_table);
-gboolean gom_resource_has_dynamic_pkey  (GType type);
-gboolean gom_resource_do_save           (GomResource  *resource,
-                                         GomAdapter   *adapter,
-                                         GError      **error);
-void     gom_resource_build_save_cmd    (GomResource  *resource,
-                                         GomAdapter   *adapter);
+gboolean gom_resource_get_is_from_table        (GomResource  *resource);
+void     gom_resource_set_is_from_table        (GomResource  *resource,
+                                                gboolean      is_from_table);
+gboolean gom_resource_has_dynamic_pkey         (GType         type);
+gboolean gom_resource_do_save                  (GomResource  *resource,
+                                                GomAdapter   *adapter,
+                                                GError      **error);
+void     gom_resource_build_save_cmd           (GomResource  *resource,
+                                                GomAdapter   *adapter);
+void     gom_resource_set_post_save_properties (GomResource  *resource);
+
 G_END_DECLS
 
 #endif /* GOM_RESOURCE_PRIV_H */
