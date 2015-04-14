@@ -160,6 +160,8 @@ stress (void)
    guint i;
    char *s1, *s2, *name, *first_name, *surname;
    ItemResource *it;
+   GList *items, *l;
+   GomResourceGroup *group;
 
    adapter = gom_adapter_new();
    //ret = gom_adapter_open_sync(adapter, "file:test.db", &error);
@@ -174,6 +176,7 @@ stress (void)
    g_assert_no_error(error);
    g_assert(ret);
 
+   items = NULL;
    for (i = 1; i <= NUM_RECORDS; i++) {
       ItemResource *item;
 
@@ -186,7 +189,9 @@ stress (void)
                            "surname", surname,
                            NULL);
       gom_resource_save_sync(GOM_RESOURCE(item), NULL);
-      g_object_unref(item);
+
+      g_assert_cmpint (item->priv->id, ==, i);
+      items = g_list_append (items, item);
    }
 
    g_value_init(&value, G_TYPE_UINT);
@@ -217,6 +222,28 @@ stress (void)
    g_free(surname);
    g_free(s1);
    g_free(s2);
+
+   /* Test deleting all but one item */
+   for (l = items; l != NULL; l = l->next) {
+      ItemResource *item = l->data;
+
+      if (item->priv->id != ITEM_TO_GET)
+        {
+          ret = gom_resource_delete_sync (GOM_RESOURCE(item), &error);
+          g_assert_no_error(error);
+          g_assert(ret);
+        }
+   }
+
+   /* We should have only one item now */
+   group = gom_repository_find_sync (repository, ITEM_TYPE_RESOURCE, NULL, &error);
+   g_assert_no_error(error);
+   g_assert (group != NULL);
+   g_assert_cmpint(gom_resource_group_get_count (group), ==,  1);
+   g_object_unref(group);
+
+
+   g_list_free_full (items, g_object_unref);
 
    ret = gom_adapter_close_sync(adapter, &error);
    g_assert_no_error(error);
