@@ -289,7 +289,7 @@ gom_resource_set_repository (GomResource   *resource,
    }
 }
 
-static gboolean
+gboolean
 gom_resource_do_delete (GomResource  *resource,
                         GomAdapter   *adapter,
                         GError      **error)

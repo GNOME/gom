@@ -62,6 +62,14 @@ void              gom_resource_group_write_async  (GomResourceGroup    *group,
 gboolean          gom_resource_group_write_finish (GomResourceGroup    *group,
                                                    GAsyncResult        *result,
                                                    GError             **error);
+gboolean          gom_resource_group_delete_sync  (GomResourceGroup    *group,
+                                                   GError             **error);
+void              gom_resource_group_delete_async (GomResourceGroup    *group,
+                                                   GAsyncReadyCallback  callback,
+                                                   gpointer             user_data);
+gboolean          gom_resource_group_delete_finish(GomResourceGroup    *group,
+                                                   GAsyncResult        *result,
+                                                   GError             **error);
 
 void         gom_resource_group_fetch_async   (GomResourceGroup     *group,
                                                guint                 index_,

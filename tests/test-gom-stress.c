@@ -314,6 +314,26 @@ stress2 (void)
    g_free(s1);
    g_free(s2);
 
+   /* Test deleting all but one item */
+   group = gom_resource_group_new(repository);
+
+   for (l = items; l != NULL; l = l->next) {
+      ItemResource *item = l->data;
+      if (item->priv->id != ITEM_TO_GET)
+         gom_resource_group_append(group, GOM_RESOURCE(item));
+   }
+
+   gom_resource_group_delete_sync(group, &error);
+   g_assert_no_error(error);
+   g_object_unref(group);
+
+   /* We should have only one item now */
+   group = gom_repository_find_sync (repository, ITEM_TYPE_RESOURCE, NULL, &error);
+   g_assert_no_error(error);
+   g_assert (group != NULL);
+   g_assert_cmpint(gom_resource_group_get_count (group), ==,  1);
+   g_object_unref(group);
+
    g_list_free_full (items, g_object_unref);
 
    ret = gom_adapter_close_sync(adapter, &error);

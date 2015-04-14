@@ -272,6 +272,152 @@ gom_resource_group_write_finish (GomResourceGroup  *group,
    return ret;
 }
 
+static void
+gom_resource_group_delete_cb (GomAdapter *adapter,
+                              gpointer    user_data)
+{
+   GSimpleAsyncResult *simple = user_data;
+   GomResourceGroup *group;
+   GError *error = NULL;
+   GAsyncQueue *queue;
+   guint i;
+   gboolean got_error;
+   GPtrArray *items;
+
+   g_return_if_fail(GOM_IS_ADAPTER(adapter));
+   g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
+
+   group = GOM_RESOURCE_GROUP(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
+
+   g_assert(GOM_IS_ADAPTER(adapter));
+
+   items = g_object_get_data(G_OBJECT(simple), "items");
+   queue = g_object_get_data(G_OBJECT(simple), "queue");
+
+   /* do BEGIN */
+   EXECUTE_OR_GOTO(adapter, "BEGIN;", &error, rollback);
+
+   got_error = FALSE;
+
+   for (i = 0; i < items->len; i++) {
+      GomResource *item;
+
+      item = g_ptr_array_index(items, i);
+      if (got_error ||
+          !gom_resource_do_delete (item, adapter, &error)) {
+        got_error = TRUE;
+      }
+   }
+
+   if (got_error)
+      goto rollback;
+
+   EXECUTE_OR_GOTO(adapter, "COMMIT;", &error, rollback);
+
+   g_simple_async_result_set_op_res_gboolean(simple, TRUE);
+   goto out;
+
+rollback:
+   EXECUTE_OR_GOTO(adapter, "ROLLBACK;", NULL, error);
+
+error:
+   g_assert(error);
+   g_simple_async_result_take_error(simple, error);
+
+out:
+   g_object_unref(group);
+   if (!queue)
+      g_simple_async_result_complete_in_idle(simple);
+   else
+      g_async_queue_push(queue, GINT_TO_POINTER(TRUE));
+}
+
+gboolean
+gom_resource_group_delete_sync (GomResourceGroup  *group,
+                                GError           **error)
+{
+   GSimpleAsyncResult *simple;
+   gboolean ret;
+   GAsyncQueue *queue;
+   GomAdapter *adapter;
+
+   g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), FALSE);
+   g_return_val_if_fail(group->priv->is_writable, FALSE);
+
+   queue = g_async_queue_new();
+
+   simple = g_simple_async_result_new(G_OBJECT(group), NULL, NULL,
+                                      gom_resource_group_delete_sync);
+   if (!group->priv->to_write)
+      return TRUE;
+
+   g_object_set_data(G_OBJECT(simple), "queue", queue);
+   g_object_set_data_full(G_OBJECT(simple), "items", group->priv->to_write, (GDestroyNotify)g_ptr_array_unref);
+   group->priv->to_write = NULL;
+
+   adapter = gom_repository_get_adapter(group->priv->repository);
+   gom_adapter_queue_write(adapter, gom_resource_group_delete_cb, simple);
+   g_async_queue_pop(queue);
+   g_async_queue_unref(queue);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+   g_object_unref(simple);
+
+   return ret;
+}
+
+void
+gom_resource_group_delete_async (GomResourceGroup    *group,
+                                 GAsyncReadyCallback  callback,
+                                 gpointer             user_data)
+{
+   GomResourceGroupPrivate *priv;
+   GSimpleAsyncResult *simple;
+   GomAdapter *adapter;
+
+   g_return_if_fail(GOM_IS_RESOURCE_GROUP(group));
+   g_return_if_fail(callback != NULL);
+   g_return_if_fail(group->priv->is_writable);
+
+   priv = group->priv;
+
+   simple = g_simple_async_result_new(G_OBJECT(group), callback, user_data,
+                                      gom_resource_group_delete_async);
+   if (!group->priv->to_write) {
+      g_simple_async_result_set_op_res_gboolean(simple, TRUE);
+      g_simple_async_result_complete_in_idle(simple);
+      return;
+   }
+
+   g_object_set_data_full(G_OBJECT(simple), "items", group->priv->to_write, (GDestroyNotify)g_ptr_array_unref);
+   group->priv->to_write = NULL;
+
+   adapter = gom_repository_get_adapter(priv->repository);
+   gom_adapter_queue_read(adapter, gom_resource_group_delete_cb, simple);
+}
+
+gboolean
+gom_resource_group_delete_finish (GomResourceGroup  *group,
+                                  GAsyncResult      *result,
+                                  GError           **error)
+{
+   GSimpleAsyncResult *simple = (GSimpleAsyncResult *)result;
+   gboolean ret;
+
+   g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), FALSE);
+   g_return_val_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple), FALSE);
+   g_return_val_if_fail(group->priv->is_writable, FALSE);
+
+   if (!(ret = g_simple_async_result_get_op_res_gboolean(simple))) {
+      g_simple_async_result_propagate_error(simple, error);
+   }
+   g_object_unref(simple);
+
+   return ret;
+}
+
 static GomFilter *
 gom_resource_group_get_filter (GomResourceGroup *group)
 {

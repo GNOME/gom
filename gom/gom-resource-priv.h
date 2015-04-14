@@ -30,6 +30,9 @@ gboolean gom_resource_has_dynamic_pkey         (GType         type);
 gboolean gom_resource_do_save                  (GomResource  *resource,
                                                 GomAdapter   *adapter,
                                                 GError      **error);
+gboolean gom_resource_do_delete                (GomResource  *resource,
+                                                GomAdapter   *adapter,
+                                                GError      **error);
 void     gom_resource_build_save_cmd           (GomResource  *resource,
                                                 GomAdapter   *adapter);
 void     gom_resource_set_post_save_properties (GomResource  *resource);
