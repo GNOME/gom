@@ -349,7 +349,7 @@ gom_repository_automatic_migrator (GomRepository  *repository,
   GList *l;
 
   for (l = object_types; l != NULL; l = l->next) {
-    GType type = GPOINTER_TO_INT (l->data);
+    GType type = (GType) l->data;
     GomResourceClass *klass;
     GomCommandBuilder *builder;
     GList *cmds, *c;
@@ -479,8 +479,7 @@ gom_repository_find_cb (GomAdapter *adapter,
    repository = GOM_REPOSITORY(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
    g_assert(GOM_IS_REPOSITORY(repository));
 
-   resource_type = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(simple),
-                                                     "resource-type"));
+   resource_type = (GType) g_object_get_data(G_OBJECT(simple), "resource-type");
    g_assert(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
 
    filter = g_object_get_data(G_OBJECT(simple), "filter");

@@ -612,7 +612,7 @@ gom_resource_build_save_cmd (GomResource *resource,
    for (iter = types; iter; iter = iter->next) {
       GomCommand *command;
 
-      resource_type = GPOINTER_TO_INT(iter->data);
+      resource_type = (GType) iter->data;
 
       g_object_set(builder,
                    "resource-type", resource_type,
@@ -844,8 +844,7 @@ gom_resource_fetch_m2m_cb (GomAdapter *adapter,
    g_return_if_fail(G_IS_SIMPLE_ASYNC_RESULT(simple));
 
    m2m_table = g_object_get_data(G_OBJECT(simple), "m2m-table");
-   resource_type = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(simple),
-                                                     "resource-type"));
+   resource_type = (GType) g_object_get_data(G_OBJECT(simple), "resource-type");
    filter = g_object_get_data(G_OBJECT(simple), "filter");
    resource = GOM_RESOURCE(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
    repository = gom_resource_get_repository(resource);
