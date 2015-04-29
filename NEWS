@@ -1,5 +1,14 @@
 Major changes in version
 
+0.3.1
+-----
+- Support g_autoptr() for all gom object types
+- Add IS NULL and IS NOT NULL filters
+- Add gom_resource_group_delete_[a]sync functions
+- Fix crash on 64-bit systems with some compiler/compiler flags
+- Fix saving a modified resource a second time
+- Fix setting ID after calling gom_resource_group_write_*
+
 0.3.0
 -----
 - Update COPYING to LGPL 2.1+ to match headers

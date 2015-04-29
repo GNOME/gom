@@ -3,7 +3,7 @@ dnl Versioning Macros
 dnl **************************************************************************
 m4_define([gom_major_version], [0])
 m4_define([gom_minor_version], [3])
-m4_define([gom_micro_version], [0])
+m4_define([gom_micro_version], [1])
 m4_define([gom_version],
           [gom_major_version.gom_minor_version.gom_micro_version])
 m4_define([gom_binary_age], [m4_eval(100 * gom_minor_version +
@@ -57,7 +57,7 @@ AC_SUBST(GOM_VERSION)
 # - If binary compatibility has been broken (eg removed or changed interfaces)
 #   change to C+1:0:0
 # - If the interface is the same as the previous version, change to C:R+1:A
-GOM_LT_VERSION=0:0:0
+GOM_LT_VERSION=1:0:1
 AC_SUBST(GOM_LT_VERSION)
 
 dnl **************************************************************************
