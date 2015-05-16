@@ -32,6 +32,8 @@ test-gom-stress
 test-gom-transform
 test-gom-migration
 test-gom-constraints
+test-gom-update
 *.typelib
 *.gmo
 *.pot
+.dirstamp
