@@ -468,6 +468,7 @@ gom_repository_find_cb (GomAdapter *adapter,
    GomCommand *command;
    GomCursor *cursor;
    GomFilter *filter;
+   GomSorting *sorting;
    GError *error = NULL;
    GType resource_type;
    GAsyncQueue *queue;
@@ -485,12 +486,16 @@ gom_repository_find_cb (GomAdapter *adapter,
    filter = g_object_get_data(G_OBJECT(simple), "filter");
    g_assert(!filter || GOM_IS_FILTER(filter));
 
+   sorting = g_object_get_data(G_OBJECT(simple), "sorting");
+   g_assert(!sorting || GOM_IS_SORTING(sorting));
+
    queue = g_object_get_data(G_OBJECT(simple), "queue");
 
    builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
                           "adapter", adapter,
                           "resource-type", resource_type,
                           "filter", filter,
+                          "sorting", sorting,
                           NULL);
 
    command = gom_command_builder_build_count(builder);
@@ -511,6 +516,7 @@ gom_repository_find_cb (GomAdapter *adapter,
    ret = g_object_new(GOM_TYPE_RESOURCE_GROUP,
                       "count", count,
                       "filter", filter,
+                      "sorting", sorting,
                       "repository", repository,
                       "resource-type", resource_type,
                       NULL);
@@ -546,6 +552,32 @@ gom_repository_find_sync (GomRepository  *repository,
                           GomFilter      *filter,
                           GError        **error)
 {
+   return gom_repository_find_sorted_sync(repository, resource_type, filter,
+                                          NULL, error);
+}
+
+/**
+ * gom_repository_find_sorted_sync:
+ * @repository: (in): A #GomRepository.
+ * @resource_type: (in): The #GType of the resources to query.
+ * @filter: (in) (allow-none): An optional filter for the query.
+ * @sorting: (in) (allow-none): An optional #GomSorting to order the query
+ *                              results.
+ * @error: (out): A location for a #GError, or %NULL.
+ *
+ * Synchronously queries the #GomRepository for objects matching the
+ * requested query. This must only be run from a callback provided to
+ * gom_adapter_queue_read().
+ *
+ * Returns: (transfer full): A #GomResourceGroup or %NULL.
+ */
+GomResourceGroup *
+gom_repository_find_sorted_sync (GomRepository  *repository,
+                                 GType           resource_type,
+                                 GomFilter      *filter,
+                                 GomSorting     *sorting,
+                                 GError        **error)
+{
    GomRepositoryPrivate *priv;
    GSimpleAsyncResult *simple;
    GomResourceGroup *ret;
@@ -555,6 +587,7 @@ gom_repository_find_sync (GomRepository  *repository,
    g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE), NULL);
    g_return_val_if_fail(resource_type != GOM_TYPE_RESOURCE, NULL);
    g_return_val_if_fail(!filter || GOM_IS_FILTER(filter), NULL);
+   g_return_val_if_fail(!sorting || GOM_IS_SORTING(sorting), NULL);
 
    priv = repository->priv;
 
@@ -567,6 +600,9 @@ gom_repository_find_sync (GomRepository  *repository,
    g_object_set_data_full(G_OBJECT(simple), "filter",
                           filter ? g_object_ref(filter) : NULL,
                           filter ? g_object_unref : NULL);
+   g_object_set_data_full(G_OBJECT(simple), "sorting",
+                          sorting ? g_object_ref(sorting) : NULL,
+                          sorting ? g_object_unref : NULL);
    g_object_set_data(G_OBJECT(simple), "queue", queue);
 
    gom_adapter_queue_read(priv->adapter, gom_repository_find_cb, simple);

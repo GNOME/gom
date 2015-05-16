@@ -27,6 +27,7 @@
 #include "gom-resource.h"
 #include "gom-resource-priv.h"
 #include "gom-resource-group.h"
+#include "gom-sorting.h"
 
 G_DEFINE_TYPE(GomResourceGroup, gom_resource_group, G_TYPE_OBJECT)
 
@@ -37,6 +38,7 @@ struct _GomResourceGroupPrivate
    /* Read group */
    guint count;
    GomFilter *filter;
+   GomSorting *sorting;
    GType resource_type;
    GHashTable *items;
    gchar *m2m_table;
@@ -52,6 +54,7 @@ enum
    PROP_0,
    PROP_COUNT,
    PROP_FILTER,
+   PROP_SORTING,
    PROP_M2M_TABLE,
    PROP_M2M_TYPE,
    PROP_RESOURCE_TYPE,
@@ -438,6 +441,26 @@ gom_resource_group_set_filter (GomResourceGroup *group,
    }
 }
 
+static GomSorting *
+gom_resource_group_get_sorting (GomResourceGroup *group)
+{
+   g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), NULL);
+   return group->priv->sorting;
+}
+
+static void
+gom_resource_group_set_sorting (GomResourceGroup *group,
+                                GomSorting       *sorting)
+{
+   g_return_if_fail(GOM_IS_RESOURCE_GROUP(group));
+   g_return_if_fail(!sorting || GOM_IS_SORTING(sorting));
+
+   if (sorting) {
+      group->priv->sorting = g_object_ref(sorting);
+      g_object_notify_by_pspec(G_OBJECT(group), gParamSpecs[PROP_SORTING]);
+   }
+}
+
 guint
 gom_resource_group_get_count (GomResourceGroup *group)
 {
@@ -640,6 +663,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    GomCommand *command = NULL;
    GomCursor *cursor = NULL;
    GomFilter *filter = NULL;
+   GomSorting *sorting = NULL;
    GError *error = NULL;
    GType resource_type;
    gchar *m2m_table = NULL;
@@ -655,6 +679,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    group = GOM_RESOURCE_GROUP(g_async_result_get_source_object(G_ASYNC_RESULT(simple)));
    g_object_get(group,
                 "filter", &filter,
+                "sorting", &sorting,
                 "m2m-table", &m2m_table,
                 "m2m-type", &m2m_type,
                 "repository", &repository,
@@ -662,6 +687,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
                 NULL);
    g_assert(GOM_IS_ADAPTER(adapter));
    g_assert(!filter || GOM_IS_FILTER(filter));
+   g_assert(!sorting || GOM_IS_SORTING(sorting));
    g_assert(GOM_IS_REPOSITORY(repository));
    g_assert(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
 
@@ -672,6 +698,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    builder = g_object_new(GOM_TYPE_COMMAND_BUILDER,
                           "adapter", gom_repository_get_adapter(repository),
                           "filter", filter,
+                          "sorting", sorting,
                           "limit", limit,
                           "m2m-table", m2m_table,
                           "m2m-type", m2m_type,
@@ -717,6 +744,7 @@ out:
    g_clear_object(&command);
    g_clear_object(&cursor);
    g_clear_object(&filter);
+   g_clear_object(&sorting);
    g_clear_object(&repository);
    if (!queue)
       g_simple_async_result_complete_in_idle(simple);
@@ -865,6 +893,7 @@ gom_resource_group_finalize (GObject *object)
 
    g_clear_object(&priv->repository);
    g_clear_object(&priv->filter);
+   g_clear_object(&priv->sorting);
    g_clear_pointer(&priv->items, g_hash_table_unref);
    g_clear_pointer(&priv->to_write, g_ptr_array_unref);
 
@@ -894,6 +923,9 @@ gom_resource_group_get_property (GObject    *object,
       break;
    case PROP_FILTER:
       g_value_set_object(value, gom_resource_group_get_filter(group));
+      break;
+   case PROP_SORTING:
+      g_value_set_object(value, gom_resource_group_get_sorting(group));
       break;
    case PROP_M2M_TABLE:
       g_value_set_string(value, gom_resource_group_get_m2m_table(group));
@@ -938,6 +970,9 @@ gom_resource_group_set_property (GObject      *object,
       break;
    case PROP_FILTER:
       gom_resource_group_set_filter(group, g_value_get_object(value));
+      break;
+   case PROP_SORTING:
+      gom_resource_group_set_sorting(group, g_value_get_object(value));
       break;
    case PROP_M2M_TABLE:
       gom_resource_group_set_m2m_table(group, g_value_get_string(value));
@@ -995,6 +1030,15 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_FILTER,
                                    gParamSpecs[PROP_FILTER]);
+
+   gParamSpecs[PROP_SORTING] =
+      g_param_spec_object("sorting",
+                          _("Sorting"),
+                          _("The query sorting."),
+                          GOM_TYPE_SORTING,
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+   g_object_class_install_property(object_class, PROP_SORTING,
+                                   gParamSpecs[PROP_SORTING]);
 
    gParamSpecs[PROP_M2M_TABLE] =
       g_param_spec_string("m2m-table",

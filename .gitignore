@@ -33,6 +33,7 @@ test-gom-transform
 test-gom-migration
 test-gom-constraints
 test-gom-update
+test-gom-sorting
 *.typelib
 *.gmo
 *.pot

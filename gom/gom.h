@@ -34,6 +34,7 @@ G_BEGIN_DECLS
 #include "gom-repository.h"
 #include "gom-resource-group.h"
 #include "gom-resource.h"
+#include "gom-sorting.h"
 
 #include "gom-autocleanups.h"
 
