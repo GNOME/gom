@@ -789,9 +789,7 @@ gom_command_builder_build_insert (GomCommandBuilder *builder,
    }
 
    g_type_class_unref(klass);
-   if (str) {
-      g_string_free(str, TRUE);
-   }
+   g_string_free(str, TRUE);
    g_free(pspecs);
 
    return command;
@@ -875,11 +873,7 @@ gom_command_builder_build_update (GomCommandBuilder *builder,
    }
 
    g_type_class_unref(klass);
-
-   if (str) {
-      g_string_free(str, TRUE);
-   }
-
+   g_string_free(str, TRUE);
    g_free(pspecs);
 
    return command;
