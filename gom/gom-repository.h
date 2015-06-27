@@ -117,6 +117,12 @@ void              gom_repository_find_async      (GomRepository          *reposi
                                                   GomFilter              *filter,
                                                   GAsyncReadyCallback     callback,
                                                   gpointer                user_data);
+void              gom_repository_find_sorted_async (GomRepository          *repository,
+                                                    GType                   resource_type,
+                                                    GomFilter              *filter,
+                                                    GomSorting             *sorting,
+                                                    GAsyncReadyCallback     callback,
+                                                    gpointer                user_data);
 GomResourceGroup *gom_repository_find_finish     (GomRepository          *repository,
                                                   GAsyncResult           *result,
                                                   GError                **error);

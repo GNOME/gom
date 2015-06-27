@@ -627,6 +627,18 @@ gom_repository_find_async (GomRepository       *repository,
                            GAsyncReadyCallback  callback,
                            gpointer             user_data)
 {
+   gom_repository_find_sorted_async(repository, resource_type, filter, NULL,
+                                    callback, user_data);
+}
+
+void
+gom_repository_find_sorted_async (GomRepository       *repository,
+                                  GType                resource_type,
+                                  GomFilter           *filter,
+                                  GomSorting          *sorting,
+                                  GAsyncReadyCallback  callback,
+                                  gpointer             user_data)
+{
    GomRepositoryPrivate *priv;
    GSimpleAsyncResult *simple;
 
@@ -634,18 +646,22 @@ gom_repository_find_async (GomRepository       *repository,
    g_return_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
    g_return_if_fail(resource_type != GOM_TYPE_RESOURCE);
    g_return_if_fail(!filter || GOM_IS_FILTER(filter));
+   g_return_if_fail(!sorting || GOM_IS_SORTING(sorting));
    g_return_if_fail(callback != NULL);
 
    priv = repository->priv;
 
    simple = g_simple_async_result_new(G_OBJECT(repository), callback, user_data,
-                                      gom_repository_find_async);
+                                      gom_repository_find_sorted_async);
    g_object_set_data(G_OBJECT(simple), "resource-type",
                      GINT_TO_POINTER(resource_type));
 
    g_object_set_data_full(G_OBJECT(simple), "filter",
                           filter ? g_object_ref(filter) : NULL,
                           filter ? g_object_unref : NULL);
+   g_object_set_data_full(G_OBJECT(simple), "sorting",
+                          sorting ? g_object_ref(sorting) : NULL,
+                          sorting ? g_object_unref : NULL);
    gom_adapter_queue_read(priv->adapter, gom_repository_find_cb, simple);
 }
 
