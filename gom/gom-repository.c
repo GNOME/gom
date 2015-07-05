@@ -710,7 +710,7 @@ gom_repository_find_one_cb (GObject      *object,
  * gom_repository_find_one_sync:
  * @repository: (in): A #GomRepository.
  * @resource_type: (in): A #GType of the resource to lookup.
- * @filter: (in): A #GomFilter to apply to your search.
+ * @filter: (in) (allow-none): A #GomFilter to apply to your search.
  * @error: (out): A location for a #GError, or %NULL.
  *
  * Synchronous version of gom_repository_find_async().
