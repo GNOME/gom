@@ -1,5 +1,6 @@
 include Makefile.tests
 include data/Makefile.include
+include examples/Makefile.include
 include gom/Makefile.include
 include tests/Makefile.include
 
