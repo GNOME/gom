@@ -64,6 +64,7 @@ gom_sorting_init (GomSorting *sorting)
 {
    sorting->priv = G_TYPE_INSTANCE_GET_PRIVATE(sorting, GOM_TYPE_SORTING,
                                                GomSortingPrivate);
+   sorting->priv->order_by_terms = g_queue_new();
 }
 
 GType
@@ -152,7 +153,6 @@ gom_sorting_new (GType           first_resource_type,
                         NULL);
 
    sorting = g_object_new(GOM_TYPE_SORTING, NULL);
-   sorting->priv->order_by_terms = g_queue_new();
 
    resource_type = first_resource_type;
    property_name = first_property_name;
