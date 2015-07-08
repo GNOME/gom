@@ -72,8 +72,8 @@ gom_sorting_mode_get_type (void)
    static GType g_type = 0;
    static gsize initialized = FALSE;
    static const GEnumValue values[] = {
-      { GOM_SORTING_ASCENDING,  "GOM_SORTING_ASCENDING",  "" },
-      { GOM_SORTING_DESCENDING, "GOM_SORTING_DESCENDING", "DESC" },
+      { GOM_SORTING_ASCENDING,  "GOM_SORTING_ASCENDING",  "ASCENDING" },
+      { GOM_SORTING_DESCENDING, "GOM_SORTING_DESCENDING", "DESCENDING" },
       { 0 }
    };
 
