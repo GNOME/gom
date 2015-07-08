@@ -62,6 +62,10 @@ GomSorting *gom_sorting_new           (GType           first_resource_type,
                                        const gchar    *first_property_name,
                                        GomSortingMode  first_sorting_mode,
                                        ...);
+void gom_sorting_add                  (GomSorting     *sorting,
+                                       GType           resource_type,
+                                       const gchar    *property_name,
+                                       GomSortingMode  sorting_mode);
 
 G_END_DECLS
 

@@ -441,6 +441,86 @@ find_order_by_complex (void)
 }
 
 static void
+find_order_by_complex_add (void)
+{
+   GomAdapter *adapter;
+   GomRepository *repository;
+   GomFilter *filter;
+   GomSorting *sorting;
+   GomResourceGroup *group;
+   GValue value = { 0, };
+   GError *error = NULL;
+   EpisodeResource *eres;
+   guint count;
+   gchar *id;
+   guint8 season, episode;
+
+   create_memory_db(&adapter, &repository);
+
+   /* Select only the episode for a single show */
+   g_value_init(&value, G_TYPE_STRING);
+   g_value_set_string(&value, "84947");
+   filter = gom_filter_new_eq(EPISODE_TYPE_RESOURCE, "series-id", &value);
+   g_value_unset(&value);
+
+   /* Order by season, then by episode */
+   sorting = g_object_new(GOM_TYPE_SORTING, NULL);
+   gom_sorting_add(sorting, EPISODE_TYPE_RESOURCE, "season-number",
+                   GOM_SORTING_DESCENDING);
+   gom_sorting_add(sorting, EPISODE_TYPE_RESOURCE, "episode-number",
+                   GOM_SORTING_ASCENDING);
+
+   group = gom_repository_find_sorted_sync(repository, EPISODE_TYPE_RESOURCE,
+                                           filter, sorting, &error);
+   g_assert_no_error(error);
+   g_object_unref(sorting);
+
+   count = gom_resource_group_get_count(group);
+   g_assert_cmpuint(count, ==, 4);
+
+   gom_resource_group_fetch_sync(group, 0, count, &error);
+   g_assert_no_error(error);
+
+   eres = EPISODE_RESOURCE(gom_resource_group_get_index(group, 0));
+   g_assert(eres);
+   g_object_get(eres, "series-id", &id, "season-number", &season,
+                "episode-number", &episode, NULL);
+   g_assert_cmpstr(id, ==, "84947");
+   g_assert_cmpuint(season, ==, 5);
+   g_assert_cmpuint(episode, ==, 1);
+   g_object_unref(eres);
+
+   eres = EPISODE_RESOURCE(gom_resource_group_get_index(group, 1));
+   g_assert(eres);
+   g_object_get(eres, "series-id", &id, "season-number", &season,
+                "episode-number", &episode, NULL);
+   g_assert_cmpstr(id, ==, "84947");
+   g_assert_cmpuint(season, ==, 5);
+   g_assert_cmpuint(episode, ==, 2);
+   g_object_unref(eres);
+
+   eres = EPISODE_RESOURCE(gom_resource_group_get_index(group, 2));
+   g_assert(eres);
+   g_object_get(eres, "series-id", &id, "season-number", &season,
+                "episode-number", &episode, NULL);
+   g_assert_cmpstr(id, ==, "84947");
+   g_assert_cmpuint(season, ==, 4);
+   g_assert_cmpuint(episode, ==, 1);
+   g_object_unref(eres);
+
+   eres = EPISODE_RESOURCE(gom_resource_group_get_index(group, 3));
+   g_assert(eres);
+   g_object_get(eres, "series-id", &id, "season-number", &season,
+                "episode-number", &episode, NULL);
+   g_assert_cmpstr(id, ==, "84947");
+   g_assert_cmpuint(season, ==, 4);
+   g_assert_cmpuint(episode, ==, 2);
+   g_object_unref(eres);
+
+   free_memory_db(adapter, repository);
+}
+
+static void
 find_cb (GObject      *object,
          GAsyncResult *result,
          gpointer      user_data)
@@ -547,6 +627,8 @@ main (gint argc, gchar *argv[])
    g_test_add_func("/GomRepository/find-order-by-desc", find_order_by_desc);
    g_test_add_func("/GomRepository/find-order-by-complex",
                    find_order_by_complex);
+   g_test_add_func("/GomRepository/find-order-by-complex-add",
+                   find_order_by_complex_add);
    g_test_add_func("/GomRepository/find-order-by-complex-async",
                    find_order_by_complex_async);
    gMainLoop = g_main_loop_new(NULL, FALSE);

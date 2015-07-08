@@ -170,17 +170,7 @@ gom_sorting_new (GType           first_resource_type,
    va_start(args, first_sorting_mode);
 
    while TRUE {
-      GomOrderByTerm *o = g_new(GomOrderByTerm, 1);
-
-      g_return_val_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE),
-                           NULL);
-      g_return_val_if_fail(property_name != NULL, NULL);
-      g_return_val_if_fail(sorting_mode, NULL);
-
-      o->resource_type = resource_type;
-      o->property_name = strdup(property_name);
-      o->mode = sorting_mode;
-      g_queue_push_tail(sorting->priv->order_by_terms, o);
+      gom_sorting_add(sorting, resource_type, property_name, sorting_mode);
 
       resource_type = va_arg(args, GType);
 
@@ -194,6 +184,50 @@ gom_sorting_new (GType           first_resource_type,
    va_end(args);
 
    return sorting;
+}
+
+/**
+ * gom_sorting_add:
+ * @sorting: A #GomSorting.
+ * @resource_type: A subclass of #GomResource.
+ * @property_name: A string.
+ * @sorting_mode: A #GomSortingMode.
+ *
+ * Add a new ORDER BY clause to the sorting object.
+ *
+ * This allows chaining ORDER BY clauses, adding them one at a time, rather
+ * than passing them all to the constructor.
+ *
+ * Example:
+ * |[<!-- language="C" -->
+ *     GomSorting *sorting = g_object_new (GOM_TYPE_SORTING, NULL);
+ *     gom_sorting_add (sorting, EPISODE_TYPE_RESOURCE, "season-number",
+ *                      GOM_SORTING_DESCENDING);
+ *     gom_sorting_add (sorting, EPISODE_TYPE_RESOURCE, "episode-number",
+ *                      GOM_SORTING_ASCENDING);
+ * ]|
+ *
+ * The above example maps to the following SQL statement:
+ * |[<!-- language="SQL" -->
+ *     ORDER BY 'episodes'.'season-number' DESC, 'episodes'.'episode-number'
+ * ]|
+ */
+void
+gom_sorting_add (GomSorting     *sorting,
+                 GType           resource_type,
+                 const gchar    *property_name,
+                 GomSortingMode  sorting_mode)
+{
+   GomOrderByTerm *o = g_new(GomOrderByTerm, 1);
+
+   g_return_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
+   g_return_if_fail(property_name != NULL);
+   g_return_if_fail(sorting_mode);
+
+   o->resource_type = resource_type;
+   o->property_name = g_strdup(property_name);
+   o->mode = sorting_mode;
+   g_queue_push_tail(sorting->priv->order_by_terms, o);
 }
 
 /**
