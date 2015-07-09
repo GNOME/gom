@@ -46,6 +46,7 @@
     <xi:include href="xml/gom-repository.xml"/>
     <xi:include href="xml/gom-resource.xml"/>
     <xi:include href="xml/gom-resource-group.xml"/>
+    <xi:include href="xml/gom-sorting.xml"/>
   </chapter>
 
   <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
