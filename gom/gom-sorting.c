@@ -112,8 +112,8 @@ get_table (GType       type,
 /**
  * gom_sorting_new: (constructor)
  * @first_resource_type: A subclass of #GomResource.
- * @first_property_name: A pointer to a const gchar.
- * @first_sorting_mode: A GomSortingMode.
+ * @first_property_name: A string.
+ * @first_sorting_mode: A #GomSortingMode.
  * @...: Additional triples of resource_type/property_name/sorting_mode,
  *       followed by %NULL.
  *
@@ -123,17 +123,19 @@ get_table (GType       type,
  * the proper "ORDER BY" SQL statements.
  *
  * Example:
- *
+ * |[<!-- language="C" -->
  *     GomSorting *sorting = gom_sorting_new(EPISODE_TYPE_RESOURCE,
  *                                           "season-number",
  *                                           GOM_SORTING_DESCENDING,
  *                                           EPISODE_TYPE_RESOURCE,
  *                                           "episode-number",
  *                                           GOM_SORTING_ASCENDING);
+ * ]|
  *
  * The above example maps to the following SQL statement:
- *
+ * |[<!-- language="SQL" -->
  *     ORDER BY 'episodes'.'season-number' DESC, 'episodes'.'episode-number'
+ * ]|
  *
  * Returns: (transfer full): A #GomSorting.
  */
