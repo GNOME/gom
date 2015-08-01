@@ -49,12 +49,11 @@ if __name__ == '__main__':
     sorting = Gom.Sorting()
     sorting.add(ItemResource, "name", Gom.SortingMode.DESCENDING)
     group = repository.find_sorted_sync(ItemResource, None, sorting)
-    count = group.get_count()
+    count = len(group)
     assert count == 2
 
     group.fetch_sync(0, count)
-    for i in range(count):
-        item = group.get_index(i)
+    for i, item in enumerate(group):
         assert item.name == names[i]
 
     # Fetch only one of them with a filter, asynchronously
@@ -63,7 +62,7 @@ if __name__ == '__main__':
     def fetch_cb(group, result, user_data):
         group.fetch_finish(result)
 
-        item = group.get_index(0)
+        item = group[0]
         assert item.name == "item2"
 
         # Close the database
@@ -74,7 +73,7 @@ if __name__ == '__main__':
     def find_cb(repository, result, user_data):
         group = repository.find_finish(result)
 
-        count = group.get_count()
+        count = len(group)
         assert count == 1
 
         group.fetch_async(0, count, fetch_cb, None)

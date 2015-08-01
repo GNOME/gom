@@ -17,6 +17,26 @@
 
 
 from ..module import get_introspection_module
+from ..overrides import override
 
 
 Gom = get_introspection_module('Gom')
+
+
+__all__ = [
+    'ResourceGroup',
+    ]
+
+
+class ResourceGroupOverride(Gom.ResourceGroup):
+    def __len__(self):
+        return self.get_count()
+
+    def __getitem__(self, index):
+        if index >= self.get_count():
+            raise IndexError()
+
+        return self.get_index(index)
+
+
+ResourceGroup = override(ResourceGroupOverride)
