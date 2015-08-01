@@ -149,6 +149,33 @@ dnl Miscellaneous
 dnl **************************************************************************
 GOBJECT_INTROSPECTION_CHECK([1.30.0])
 
+AC_ARG_ENABLE(python,
+    AS_HELP_STRING([--enable-python], [Enable introspection overrides for Python]),
+    [enable_python=$enableval],
+    [enable_python=auto])
+
+if test "x$enable_python" = "xno"; then
+    found_python="no"
+else
+    AM_PATH_PYTHON([3.4],, [:])
+    if test "x$PYTHON" = "x:"; then
+        found_python="no"
+    else
+        PKG_CHECK_MODULES(pygobject, [pygobject-3.0 >= 3.16.0], [
+            found_python="yes"
+            pyoverridesdir=`$PYTHON -c "import gi; print(gi._overridesdir)"`
+            AC_SUBST(pyoverridesdir)
+        ], [
+            found_python="no"
+        ])
+    fi
+fi
+
+if test "x$enable_python" = "xyes" -a "x$found_python" != "xyes"; then
+    AC_MSG_ERROR([You need to have Python 3 and PyGObject installed])
+fi
+
+AM_CONDITIONAL([ENABLE_PYTHON],[test "x$found_python" = "xyes"])
 
 dnl **************************************************************************
 dnl Output

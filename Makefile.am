@@ -1,4 +1,5 @@
 include Makefile.tests
+include bindings/python/Makefile.include
 include data/Makefile.include
 include examples/Makefile.include
 include gom/Makefile.include

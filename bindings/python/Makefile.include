@@ -1,0 +1,4 @@
+if ENABLE_PYTHON
+overridesdir = $(pyoverridesdir)
+overrides_PYTHON = bindings/python/gi/overrides/Gom.py
+endif

@@ -21,6 +21,7 @@ Makefile.in
 missing
 *.o
 *.pc
+py-compile
 stamp-h1
 *.swp
 test-gom-adapter
