@@ -46,8 +46,7 @@ if __name__ == '__main__':
 
     # Fetch them all with a None filter, ordered by name
     names = ['item2', 'item1']
-    sorting = Gom.Sorting()
-    sorting.add(ItemResource, "name", Gom.SortingMode.DESCENDING)
+    sorting = Gom.Sorting(ItemResource, "name", Gom.SortingMode.DESCENDING)
     group = repository.find_sorted_sync(ItemResource, None, sorting)
     count = len(group)
     assert count == 2

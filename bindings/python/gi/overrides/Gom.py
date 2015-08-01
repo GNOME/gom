@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from itertools import zip_longest
+
 from ..module import get_introspection_module
 from ..overrides import override
 
@@ -25,6 +27,7 @@ Gom = get_introspection_module('Gom')
 
 __all__ = [
     'ResourceGroup',
+    'Sorting',
     ]
 
 
@@ -39,4 +42,17 @@ class ResourceGroupOverride(Gom.ResourceGroup):
         return self.get_index(index)
 
 
+class SortingOverride(Gom.Sorting):
+    def __init__(self, *args):
+        super().__init__()
+
+        def grouper(n, iterable):
+            args = [iter(iterable)] * n
+            return zip_longest(fillvalue=None, *args)
+
+        for type_, prop_name, sorting_mode in grouper(3, args):
+            self.add(type_, prop_name, sorting_mode)
+
+
 ResourceGroup = override(ResourceGroupOverride)
+Sorting = override(SortingOverride)
