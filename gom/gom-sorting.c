@@ -32,15 +32,14 @@ struct _GomSortingPrivate
 
 typedef struct GomOrderByTerm
 {
-   GType resource_type;
-   gchar *property_name;
+   GParamSpec *pspec;
    GomSortingMode mode;
 } GomOrderByTerm;
 
 static void
 gom_order_by_term_free (GomOrderByTerm *term)
 {
-   g_free(term->property_name);
+   g_param_spec_unref(term->pspec);
    g_free(term);
 }
 
@@ -94,13 +93,15 @@ gom_sorting_mode_get_type (void)
 }
 
 static gchar *
-get_table (GType       type,
+get_table (GParamSpec *pspec,
            GHashTable *table_map)
 {
+   GType type;
    GomResourceClass *klass;
    gchar *table;
    gchar *key;
 
+   type = pspec->owner_type;
    g_return_val_if_fail(g_type_is_a(type, GOM_TYPE_RESOURCE), NULL);
 
    klass = g_type_class_ref(type);
@@ -218,14 +219,25 @@ gom_sorting_add (GomSorting     *sorting,
                  const gchar    *property_name,
                  GomSortingMode  sorting_mode)
 {
+   GObjectClass *klass;
+   GParamSpec *pspec;
    GomOrderByTerm *o = g_new(GomOrderByTerm, 1);
 
    g_return_if_fail(g_type_is_a(resource_type, GOM_TYPE_RESOURCE));
    g_return_if_fail(property_name != NULL);
    g_return_if_fail(sorting_mode);
 
-   o->resource_type = resource_type;
-   o->property_name = g_strdup(property_name);
+   klass = g_type_class_ref(resource_type);
+   pspec = g_object_class_find_property(klass, property_name);
+   g_type_class_unref(klass);
+
+   if (!pspec) {
+      g_warning("No such property %s::%s",
+                g_type_name(resource_type), property_name);
+      return NULL;
+   }
+
+   o->pspec = g_param_spec_ref(pspec);
    o->mode = sorting_mode;
    g_queue_push_tail(sorting->priv->order_by_terms, o);
 }
@@ -256,9 +268,9 @@ gom_sorting_get_sql (GomSorting *sorting,
 
    for (i = 0; i < len; i++) {
       GomOrderByTerm *o = g_queue_peek_nth(priv->order_by_terms, i);
-      table = get_table(o->resource_type, table_map);
+      table = get_table(o->pspec, table_map);
 
-      sqls[i] = g_strdup_printf("'%s'.'%s'%s", table, o->property_name, o->mode == GOM_SORTING_DESCENDING ? " DESC" : "");
+      sqls[i] = g_strdup_printf("'%s'.'%s'%s", table, o->pspec->name, o->mode == GOM_SORTING_DESCENDING ? " DESC" : "");
    }
    sqls[i] = NULL;
 
