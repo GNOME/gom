@@ -73,7 +73,7 @@ gchar       *gom_filter_get_sql         (GomFilter     *filter,
                                          GHashTable    *table_map);
 GArray      *gom_filter_get_values      (GomFilter     *filter);
 GomFilter   *gom_filter_new_sql         (const gchar   *sql,
-                                         GArray        *values);
+                                         const GArray  *values);
 GomFilter   *gom_filter_new_or          (GomFilter     *left,
                                          GomFilter     *right);
 GomFilter   *gom_filter_new_or_full     (GomFilter     *first,

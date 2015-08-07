@@ -75,14 +75,35 @@ static const gchar *gOperators[] = {
  * Returns: (transfer full): A new #GomFilter.
  */
 GomFilter *
-gom_filter_new_sql (const gchar *sql,
-                    GArray      *values)
+gom_filter_new_sql (const gchar  *sql,
+                    const GArray *values)
 {
-   GomFilter *filter = g_object_new(GOM_TYPE_FILTER,
-                                    "mode", GOM_FILTER_SQL,
-                                    "sql", sql,
-                                    NULL);
-   filter->priv->values = g_array_ref(values);
+   GomFilter *filter;
+
+   g_return_val_if_fail (sql != NULL, NULL);
+
+   filter = g_object_new (GOM_TYPE_FILTER,
+                          "mode", GOM_FILTER_SQL,
+                          "sql", sql,
+                          NULL);
+
+   if (values != NULL) {
+      guint i;
+
+      filter->priv->values = g_array_sized_new (FALSE, FALSE, sizeof(GValue), values->len);
+      g_array_set_clear_func (filter->priv->values, (GDestroyNotify)g_value_unset);
+
+      for (i = 0; i < values->len; i++) {
+         GValue copy = { 0 };
+         const GValue *src;
+
+         src = &g_array_index (values, GValue, i);
+         g_value_init (&copy, G_VALUE_TYPE (src));
+         g_value_copy (src, &copy);
+         g_array_append_val (filter->priv->values, copy);
+      }
+   }
+
    return filter;
 }
 
@@ -598,6 +619,8 @@ gom_filter_finalize (GObject *object)
    if (G_VALUE_TYPE(&priv->value)) {
       g_value_unset(&priv->value);
    }
+
+   g_clear_pointer (&priv->values, g_array_unref);
 
    if (priv->subfilters != NULL)
       g_queue_free_full(priv->subfilters, g_object_unref);
