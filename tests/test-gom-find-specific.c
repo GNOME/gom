@@ -753,6 +753,53 @@ find_not_null (void)
   free_memory_db (adapter, repository);
 }
 
+static void
+find_sql (void)
+{
+  GomAdapter *adapter;
+  GomRepository *repository;
+
+  GValue value = { 0, };
+  GArray *sql_values;
+  GomFilter *filter;
+  GError *error = NULL;
+
+  GomResource *resource;
+  EpisodeResource *eres;
+
+  char *s1, *s2;
+
+  create_memory_db(&adapter, &repository);
+
+  g_value_init(&value, G_TYPE_STRING);
+  g_value_set_string(&value, "New York Sour");
+  sql_values = g_array_new(FALSE, FALSE, sizeof(GValue));
+  g_array_append_val(sql_values, value);
+  filter = gom_filter_new_sql("'episodes'.'episode-name' == ?", sql_values);
+  g_value_unset(&value);
+  g_array_unref (sql_values);
+
+  resource = gom_repository_find_one_sync(repository, EPISODE_TYPE_RESOURCE,
+                                          filter, &error);
+  g_assert_no_error(error);
+  g_assert(resource);
+  g_object_unref(filter);
+  eres = EPISODE_RESOURCE(resource);
+
+  g_object_get(eres,
+               EPISODE_COLUMN_SERIES_ID, &s1,
+               EPISODE_COLUMN_EPISODE_NAME, &s2,
+               NULL);
+  g_object_unref(eres);
+
+  g_assert_cmpstr(s1, ==, values[0].series_id);
+  g_assert_cmpstr(s2, ==, values[0].episode_name);
+  g_free(s1);
+  g_free(s2);
+
+  free_memory_db(adapter, repository);
+}
+
 gint
 main (gint argc, gchar *argv[])
 {
@@ -765,6 +812,7 @@ main (gint argc, gchar *argv[])
    g_test_add_func ("/GomRepository/find-glob", find_glob);
    g_test_add_func ("/GomRepository/find-null", find_null);
    g_test_add_func ("/GomRepository/find-not-null", find_not_null);
+   g_test_add_func ("/GomRepository/find-sql", find_sql);
    gMainLoop = g_main_loop_new (NULL, FALSE);
    return g_test_run ();
 }
