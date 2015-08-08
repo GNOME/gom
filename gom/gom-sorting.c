@@ -234,7 +234,7 @@ gom_sorting_add (GomSorting     *sorting,
    if (!pspec) {
       g_warning("No such property %s::%s",
                 g_type_name(resource_type), property_name);
-      return NULL;
+      return;
    }
 
    o->pspec = g_param_spec_ref(pspec);
