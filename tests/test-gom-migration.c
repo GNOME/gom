@@ -4,6 +4,193 @@
 static GMainLoop *gMainLoop;
 static char *db_dir_path = NULL;
 
+/* SeriesResource object */
+
+#define SERIES_TYPE_RESOURCE            (series_resource_get_type())
+#define SERIES_TYPE_TYPE                (series_type_get_type())
+#define SERIES_RESOURCE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), SERIES_TYPE_RESOURCE, SeriesResource))
+#define SERIES_RESOURCE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  SERIES_TYPE_RESOURCE, SeriesResourceClass))
+#define SERIES_IS_RESOURCE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SERIES_TYPE_RESOURCE))
+#define SERIES_IS_RESOURCE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  SERIES_TYPE_RESOURCE))
+#define SERIES_RESOURCE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  SERIES_TYPE_RESOURCE, SeriesResourceClass))
+
+struct _SeriesResourcePrivate {
+  gint64      db_id;
+  gchar      *series_name;
+  gchar      *series_id;
+  gchar      *imdb_id;
+  /* FIXME: many other properties excluded */
+};
+
+#define SERIES_TABLE_NAME           "series"
+#define SERIES_COLUMN_ID            "id"
+#define SERIES_COLUMN_SERIES_NAME   "series-name"
+#define SERIES_COLUMN_SERIES_ID     "series-id"
+#define SERIES_COLUMN_IMDB_ID       "imdb-id"
+
+#define GOM_DB_PREVIOUS_VERSION     3
+#define GOM_DB_CURRENT_VERSION      4
+
+typedef struct _SeriesResource        SeriesResource;
+typedef struct _SeriesResourceClass   SeriesResourceClass;
+typedef struct _SeriesResourcePrivate SeriesResourcePrivate;
+
+struct _SeriesResource
+{
+   GomResource parent;
+   SeriesResourcePrivate *priv;
+};
+
+struct _SeriesResourceClass
+{
+   GomResourceClass parent_class;
+};
+
+GType series_resource_get_type (void);
+
+G_DEFINE_TYPE (SeriesResource, series_resource, GOM_TYPE_RESOURCE)
+
+enum {
+  PROP_SERIES_0,
+  PROP_SERIES_DB_ID,
+  PROP_SERIES_SERIES_NAME,
+  PROP_SERIES_SERIES_ID,
+  PROP_SERIES_IMDB_ID,
+  LAST_SERIES_PROP
+};
+
+static GParamSpec *series_specs[LAST_SERIES_PROP];
+
+static void
+series_resource_finalize (GObject *object)
+{
+  SeriesResourcePrivate *priv = SERIES_RESOURCE(object)->priv;
+
+  g_clear_pointer (&priv->series_name, g_free);
+  g_clear_pointer (&priv->series_id, g_free);
+  g_clear_pointer (&priv->imdb_id, g_free);
+
+  G_OBJECT_CLASS(series_resource_parent_class)->finalize(object);
+}
+
+static void
+series_resource_get_property (GObject    *object,
+                              guint       prop_id,
+                              GValue     *value,
+                              GParamSpec *pspec)
+{
+  SeriesResource *resource = SERIES_RESOURCE(object);
+
+  switch (prop_id) {
+  case PROP_SERIES_DB_ID:
+    g_value_set_int64 (value, resource->priv->db_id);
+    break;
+  case PROP_SERIES_SERIES_NAME:
+    g_value_set_string (value, resource->priv->series_name);
+    break;
+  case PROP_SERIES_SERIES_ID:
+    g_value_set_string (value, resource->priv->series_id);
+    break;
+  case PROP_SERIES_IMDB_ID:
+    g_value_set_string (value, resource->priv->imdb_id);
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+  }
+}
+
+static void
+series_resource_set_property (GObject      *object,
+                              guint         prop_id,
+                              const GValue *value,
+                              GParamSpec   *pspec)
+{
+  SeriesResource *resource = SERIES_RESOURCE(object);
+
+  switch (prop_id) {
+  case PROP_SERIES_DB_ID:
+    resource->priv->db_id = g_value_get_int64 (value);
+    break;
+  case PROP_SERIES_SERIES_NAME:
+    g_clear_pointer (&resource->priv->series_name, g_free);
+    resource->priv->series_name = g_value_dup_string (value);
+    break;
+  case PROP_SERIES_SERIES_ID:
+    g_clear_pointer (&resource->priv->series_id, g_free);
+    resource->priv->series_id = g_value_dup_string (value);
+    break;
+  case PROP_SERIES_IMDB_ID:
+    g_clear_pointer (&resource->priv->imdb_id, g_free);
+    resource->priv->imdb_id = g_value_dup_string (value);
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+  }
+}
+
+static void
+series_resource_class_init (SeriesResourceClass *klass)
+{
+  GObjectClass *object_class;
+  GomResourceClass *resource_class;
+
+  object_class = G_OBJECT_CLASS(klass);
+  object_class->finalize = series_resource_finalize;
+  object_class->get_property = series_resource_get_property;
+  object_class->set_property = series_resource_set_property;
+  g_type_class_add_private(object_class, sizeof(SeriesResourcePrivate));
+
+  resource_class = GOM_RESOURCE_CLASS(klass);
+  gom_resource_class_set_table(resource_class, SERIES_TABLE_NAME);
+
+  series_specs[PROP_SERIES_DB_ID] = g_param_spec_int64 (SERIES_COLUMN_ID,
+                                                        NULL, NULL,
+                                                        0, G_MAXINT64,
+                                                        0, G_PARAM_READWRITE);
+  g_object_class_install_property (object_class, PROP_SERIES_DB_ID,
+                                   series_specs[PROP_SERIES_DB_ID]);
+  gom_resource_class_set_primary_key (resource_class, SERIES_COLUMN_ID);
+  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class),
+                                                 SERIES_COLUMN_ID,
+                                                 4);
+
+  series_specs[PROP_SERIES_SERIES_NAME] = g_param_spec_string (SERIES_COLUMN_SERIES_NAME,
+                                                               NULL, NULL, NULL,
+                                                               G_PARAM_READWRITE);
+  g_object_class_install_property (object_class, PROP_SERIES_SERIES_NAME,
+                                   series_specs[PROP_SERIES_SERIES_NAME]);
+  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class),
+                                                 SERIES_COLUMN_SERIES_NAME,
+                                                 4);
+
+  series_specs[PROP_SERIES_SERIES_ID] = g_param_spec_string (SERIES_COLUMN_SERIES_ID,
+                                                             NULL, NULL, NULL,
+                                                             G_PARAM_READWRITE);
+  g_object_class_install_property (object_class, PROP_SERIES_SERIES_ID,
+                                   series_specs[PROP_SERIES_SERIES_ID]);
+  gom_resource_class_set_unique (resource_class, SERIES_COLUMN_SERIES_ID);
+  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class),
+                                                 SERIES_COLUMN_SERIES_ID,
+                                                 4);
+
+  series_specs[PROP_SERIES_IMDB_ID] = g_param_spec_string (SERIES_COLUMN_IMDB_ID,
+                                                           NULL, NULL, NULL,
+                                                           G_PARAM_READWRITE);
+  g_object_class_install_property (object_class, PROP_SERIES_IMDB_ID,
+                                   series_specs[PROP_SERIES_IMDB_ID]);
+  gom_resource_class_set_property_new_in_version(GOM_RESOURCE_CLASS(object_class),
+                                                 SERIES_COLUMN_IMDB_ID,
+                                                 4);
+}
+
+static void
+series_resource_init (SeriesResource *resource)
+{
+  resource->priv = G_TYPE_INSTANCE_GET_PRIVATE(resource,
+                                               SERIES_TYPE_RESOURCE,
+                                               SeriesResourcePrivate);
+}
+
 /* BookmarksResource object */
 
 #define BOOKMARKS_TYPE_RESOURCE            (bookmarks_resource_get_type())
@@ -324,12 +511,95 @@ migration_no_existing_db (void)
    g_assert(success);
 }
 
+static void
+do_migrate (const gchar *uri)
+{
+  GomAdapter *adapter;
+  GList *tables;
+  GomRepository *repository;
+  BookmarksResource *res;
+  GError *error = NULL;
+
+  adapter = gom_adapter_new();
+  gom_adapter_open_sync (adapter, uri, &error);
+  g_assert_no_error (error);
+
+  repository = gom_repository_new (adapter);
+  tables = g_list_prepend (NULL, GINT_TO_POINTER (BOOKMARKS_TYPE_RESOURCE));
+  tables = g_list_prepend (tables, GINT_TO_POINTER (SERIES_TYPE_RESOURCE));
+  gom_repository_automatic_migrate_sync (repository, GOM_DB_CURRENT_VERSION, tables, &error);
+  g_assert_no_error (error);
+
+  res = g_object_new (SERIES_TYPE_RESOURCE,
+                      "repository", repository,
+                      SERIES_COLUMN_SERIES_NAME, "Gom Adventures",
+                      NULL);
+  gom_resource_save_sync (GOM_RESOURCE (res), &error);
+  g_assert_no_error (error);
+
+  gom_adapter_close_sync (adapter, &error);
+  g_assert_no_error (error);
+
+  g_object_unref (res);
+  g_object_unref (repository);
+  g_object_unref (adapter);
+}
+
+
+static void
+create_old_db (const gchar *uri)
+{
+  GomAdapter *adapter;
+  GList *tables;
+  GomRepository *repository;
+  BookmarksResource *res;
+  GError *error = NULL;
+
+  adapter = gom_adapter_new();
+  gom_adapter_open_sync (adapter, uri, &error);
+  g_assert_no_error (error);
+
+  repository = gom_repository_new (adapter);
+  tables = g_list_prepend (NULL, GINT_TO_POINTER (BOOKMARKS_TYPE_RESOURCE));
+  gom_repository_automatic_migrate_sync (repository, GOM_DB_PREVIOUS_VERSION, tables, &error);
+  g_assert_no_error (error);
+
+  res = g_object_new (BOOKMARKS_TYPE_RESOURCE,
+                      "repository", repository,
+                      "title","test file",
+                      NULL);
+  gom_resource_save_sync (GOM_RESOURCE (res), &error);
+  g_assert_no_error (error);
+
+  gom_adapter_close_sync (adapter, &error);
+  g_assert_no_error (error);
+
+  g_object_unref (res);
+  g_object_unref (repository);
+  g_object_unref (adapter);
+}
+
+/* First we create an 'old' db only with BookmarksResource;
+ * Then we will try to migrate to 'current' db with new
+ * table: SeriesResource */
+static void
+migration_new_table (void)
+{
+  char *uri;
+
+  uri = setup_db();
+  create_old_db (uri);
+  do_migrate (uri);
+  g_free (uri);
+}
+
 gint
 main (gint   argc,
 	  gchar *argv[])
 {
    g_test_init(&argc, &argv, NULL);
    g_test_add_func("/GomRepository/migration", migration_no_existing_db);
+   g_test_add_func("/GomRepository/migration-new-table", migration_new_table);
    gMainLoop = g_main_loop_new(NULL, FALSE);
    return g_test_run();
 }
