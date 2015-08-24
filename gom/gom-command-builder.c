@@ -125,6 +125,17 @@ is_new_in_version (GParamSpec *pspec,
    return (GPOINTER_TO_INT(g_param_spec_get_qdata(pspec, GOM_RESOURCE_NEW_IN_VERSION)) + 1) == version;
 }
 
+static gboolean
+table_is_new_in_version (GomResourceClass *klass,
+                         guint             version)
+{
+   GParamSpec *primary_pspec;
+
+   primary_pspec = g_object_class_find_property(G_OBJECT_CLASS(klass),
+                                                klass->primary_key);
+   return is_new_in_version(primary_pspec, version);
+}
+
 static void
 add_fields (GString          *str,
             GomResourceClass *klass)
@@ -448,8 +459,8 @@ gom_command_builder_build_create (GomCommandBuilder *builder,
 
    pspecs = g_object_class_list_properties(G_OBJECT_CLASS(klass), &n_pspecs);
 
-   /* Create the table if it doesn't already exist*/
-   if (version == 1) {
+   /* Create the table if it doesn't already exist */
+   if (table_is_new_in_version(klass, version)) {
       str = g_string_new("CREATE TABLE IF NOT EXISTS ");
       add_table_name(str, klass);
       g_string_append(str, "(");
