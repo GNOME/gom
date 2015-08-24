@@ -49,7 +49,7 @@ gom_sorting_finalize (GObject *object)
    GomSortingPrivate *priv = GOM_SORTING(object)->priv;
 
    if (priv->order_by_terms != NULL)
-      g_queue_free_full(priv->order_by_terms, gom_order_by_term_free);
+      g_queue_free_full(priv->order_by_terms, (GDestroyNotify) gom_order_by_term_free);
 
    G_OBJECT_CLASS(gom_sorting_parent_class)->finalize(object);
 }
