@@ -43,7 +43,6 @@ enum
 };
 
 static GParamSpec *gParamSpecs[LAST_PROP];
-static GHashTable *gPropMaps;
 
 void
 gom_resource_class_set_primary_key (GomResourceClass *resource_class,
@@ -1050,9 +1049,6 @@ gom_resource_class_init (GomResourceClass *klass)
    object_class->get_property = gom_resource_get_property;
    object_class->set_property = gom_resource_set_property;
    g_type_class_add_private(object_class, sizeof(GomResourcePrivate));
-
-   gPropMaps = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
-                                     (GDestroyNotify)g_hash_table_destroy);
 
    gParamSpecs[PROP_REPOSITORY] =
       g_param_spec_object("repository",
