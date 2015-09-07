@@ -1,3 +1,5 @@
+if ENABLE_GLIB_TEST
+
 noinst_PROGRAMS =
 noinst_PROGRAMS += test-gom-adapter
 noinst_PROGRAMS += test-gom-repository
@@ -66,5 +68,7 @@ test_gom_update_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.l
 test_gom_sorting_SOURCES = tests/test-gom-sorting.c
 test_gom_sorting_CPPFLAGS = $(GIO_CFLAGS) $(GOBJECT_CFLAGS) $(WARN_CFLAGS)
 test_gom_sorting_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.la
+
+endif
 
 EXTRA_DIST += tests/grl-bookmarks.db tests/gnome.png
