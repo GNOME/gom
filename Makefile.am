@@ -8,7 +8,11 @@ include tests/Makefile.include
 SUBDIRS = . doc po
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection --enable-silent-rules
+DISTCHECK_CONFIGURE_FLAGS =			\
+	--enable-gtk-doc			\
+	--enable-introspection			\
+	--enable-silent-rules			\
+	--with-pythondir='$${libdir}/python-gom-distcheck/site-packages/gi/overrides'
 
 EXTRA_DIST += README COPYING NEWS
 

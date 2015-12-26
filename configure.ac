@@ -163,11 +163,23 @@ else
     else
         PKG_CHECK_MODULES(pygobject, [pygobject-3.0 >= 3.16.0], [
             found_python="yes"
-            pyoverridesdir=`$PYTHON -c "import gi; print(gi._overridesdir)"`
-            AC_SUBST(pyoverridesdir)
         ], [
             found_python="no"
         ])
+    fi
+fi
+
+AC_ARG_WITH(pythondir,
+	    AS_HELP_STRING([--with-pythondir=DIR],[Installation path for Python bindings @<:@auto@:>@]),
+	    [ac_with_pythondir=$withval],
+	    [ac_with_pythondir=""])
+
+if test "x$found_python" = "xyes"; then
+    if test "x$ac_with_pythondir" = "x"; then
+        pyoverridesdir=`$PYTHON -c "import gi; print(gi._overridesdir)"`
+        AC_SUBST(pyoverridesdir)
+    else
+        pyoverridesdir="$ac_with_pythondir"
     fi
 fi
 
