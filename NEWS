@@ -1,5 +1,17 @@
 Major changes in version
 
+0.3.2
+-----
+
+- Add missing annotation for repository object
+- Support ordering queries
+- Add support for creating new tables in a version
+- Fix memory leak in GomResource
+- Bindings:
+  - Add missing annotation for repository object
+  - Add a working Python example
+  - Make ResourceGroup a sequence in Python bindings
+
 0.3.1
 -----
 - Support g_autoptr() for all gom object types
