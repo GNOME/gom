@@ -1,14 +1,14 @@
 # Serbian translation for gom.
 # Copyright (C) 2014 gom's COPYRIGHT HOLDER
 # This file is distributed under the same license as the gom package.
-# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2014.
+# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2014—2015.
 msgid ""
 msgstr ""
 "Project-Id-Version: gom master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gom&key"
 "words=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-11-28 21:14+0000\n"
-"PO-Revision-Date: 2014-11-29 10:33+0200\n"
+"POT-Creation-Date: 2015-07-08 13:32+0000\n"
+"PO-Revision-Date: 2015-12-30 10:37+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <gnom@prevod.org>\n"
 "Language: sr\n"
@@ -19,93 +19,102 @@ msgstr ""
 "n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Project-Style: gnome\n"
 
-#: ../gom/gom-command-builder.c:992 ../gom/gom-repository.c:898
-#: ../gom/gom-command.c:508
+#: ../gom/gom-command-builder.c:1031 ../gom/gom-repository.c:948
+#: ../gom/gom-command.c:553
 msgid "Adapter"
 msgstr "Прилагођивач"
 
-#: ../gom/gom-command-builder.c:993
+#: ../gom/gom-command-builder.c:1032
 msgid "The GomAdapter."
 msgstr "Гом прилагођивач."
 
-#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:830
+#: ../gom/gom-command-builder.c:1040 ../gom/gom-resource-group.c:1027
 msgid "Filter"
 msgstr "Пропусник"
 
-#: ../gom/gom-command-builder.c:1002
+#: ../gom/gom-command-builder.c:1041
 msgid "The filter for the command."
 msgstr "Пропусник за наредбу."
 
-#: ../gom/gom-command-builder.c:1010
+#: ../gom/gom-command-builder.c:1049 ../gom/gom-resource-group.c:1036
+msgid "Sorting"
+msgstr "Ређање"
+
+#: ../gom/gom-command-builder.c:1050
+#| msgid "The SQL for the command."
+msgid "The sorting for the command."
+msgstr "Ређање за наредбу."
+
+#: ../gom/gom-command-builder.c:1058
 msgid "Limit"
 msgstr "Ограничење"
 
-#: ../gom/gom-command-builder.c:1011
+#: ../gom/gom-command-builder.c:1059
 msgid "The maximum number of results."
 msgstr "Највећи број резултата."
 
-#: ../gom/gom-command-builder.c:1021
+#: ../gom/gom-command-builder.c:1069
 msgid "Many-to-many table"
 msgstr "Табела много-за-много"
 
-#: ../gom/gom-command-builder.c:1022
+#: ../gom/gom-command-builder.c:1070
 msgid "The table to use for many-to-many queries."
 msgstr "Табела која ће се користити за упите много-за-много."
 
-#: ../gom/gom-command-builder.c:1030
+#: ../gom/gom-command-builder.c:1078
 msgid "Many-to-many type"
 msgstr "Врста много-за-много"
 
-#: ../gom/gom-command-builder.c:1031
+#: ../gom/gom-command-builder.c:1079
 msgid "The type for the join within m2m-table."
 msgstr "Врста придруживања са табелом много-за-много."
 
-#: ../gom/gom-command-builder.c:1039
+#: ../gom/gom-command-builder.c:1087
 msgid "Offset"
 msgstr "Померај"
 
-#: ../gom/gom-command-builder.c:1040
+#: ../gom/gom-command-builder.c:1088
 msgid "The number of results to skip."
 msgstr "Број резултата који ће бити прескочени."
 
-#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:866
+#: ../gom/gom-command-builder.c:1098 ../gom/gom-resource-group.c:1072
 msgid "Resource Type"
 msgstr "Врста изворишта"
 
-#: ../gom/gom-command-builder.c:1051
+#: ../gom/gom-command-builder.c:1099
 msgid "The resource type to query for."
 msgstr "Врста изворишта која ће бити пропитана."
 
-#: ../gom/gom-resource.c:744
+#: ../gom/gom-resource.c:746
 #, c-format
 msgid "Cannot save resource, no repository set"
 msgstr "Не могу да сачувам извориште, ризнице нису подешене"
 
-#: ../gom/gom-resource.c:875
+#: ../gom/gom-resource.c:876
 msgid "No result was returned from the cursor."
 msgstr "Нема резултата са курзора."
 
-#: ../gom/gom-resource.c:1058 ../gom/gom-resource-group.c:857
+#: ../gom/gom-resource.c:1059 ../gom/gom-resource-group.c:1063
 msgid "Repository"
 msgstr "Ризница"
 
-#: ../gom/gom-resource.c:1059
+#: ../gom/gom-resource.c:1060
 msgid "The resources repository."
 msgstr "Ризница изворишта."
 
-#: ../gom/gom-filter.c:507
+#: ../gom/gom-filter.c:682
 msgid "Mode"
 msgstr "Режим"
 
-#: ../gom/gom-filter.c:508
+#: ../gom/gom-filter.c:683
 msgid "The mode of the filter."
 msgstr "Режим пропусника."
 
-#: ../gom/gom-filter.c:517 ../gom/gom-command.c:517
+#: ../gom/gom-filter.c:692 ../gom/gom-command.c:562
 msgid "SQL"
 msgstr "СКуЛ"
 
-#: ../gom/gom-filter.c:518
+#: ../gom/gom-filter.c:693
 msgid "The SQL for the filter."
 msgstr "СКуЛ за пропусника."
 
@@ -117,56 +126,61 @@ msgstr "Стање"
 msgid "A pointer to a sqlite3_stmt."
 msgstr "Показивач ка скулајт3_стању."
 
-#: ../gom/gom-resource-group.c:819
+#: ../gom/gom-resource-group.c:1016
 msgid "Count"
 msgstr "Укупност"
 
-#: ../gom/gom-resource-group.c:820
+#: ../gom/gom-resource-group.c:1017
 msgid "The size of the resource group."
 msgstr "Величина групе изворишта."
 
-#: ../gom/gom-resource-group.c:831
+#: ../gom/gom-resource-group.c:1028
 msgid "The query filter."
 msgstr "Пропусник упита."
 
-#: ../gom/gom-resource-group.c:839
+#: ../gom/gom-resource-group.c:1037
+#| msgid "The query filter."
+msgid "The query sorting."
+msgstr "Ређање упита."
+
+#: ../gom/gom-resource-group.c:1045
 msgid "Many-to-Many Table"
 msgstr "Табела много-за-много"
 
-#: ../gom/gom-resource-group.c:840
+#: ../gom/gom-resource-group.c:1046
 msgid "The table used to join a Many to Many query."
 msgstr "Табела за придруживање са упитом много за много."
 
-#: ../gom/gom-resource-group.c:848
+#: ../gom/gom-resource-group.c:1054
 msgid "Many-to-Many type"
 msgstr "Врста много-за-много"
 
-#: ../gom/gom-resource-group.c:849
+#: ../gom/gom-resource-group.c:1055
 msgid "The type used in the m2m-table join."
 msgstr "Врста која се користи у придруживању табеле много за много."
 
-#: ../gom/gom-resource-group.c:858
+#: ../gom/gom-resource-group.c:1064
 msgid "The repository for object storage."
 msgstr "Ризница за смештај предмета."
 
-#: ../gom/gom-resource-group.c:867
+#: ../gom/gom-resource-group.c:1073
 msgid "The type of resources contained."
 msgstr "Врста садржаних изворишта."
 
-#: ../gom/gom-resource-group.c:875
+#: ../gom/gom-resource-group.c:1081
 msgid "Is Writable"
 msgstr "Уписиво је"
 
-#: ../gom/gom-resource-group.c:876
+#: ../gom/gom-resource-group.c:1082
 msgid "Whether the group contains resources to be written."
 msgstr "Да ли група садржи изворишта за уписивање."
 
-#: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
+#: ../gom/gom-repository.c:748 ../gom/gom-repository.c:794
 #, c-format
 msgid "No resources were found."
 msgstr "Нисам пронашао изворишта."
 
-#: ../gom/gom-repository.c:899
+#: ../gom/gom-repository.c:949
 msgid "The adapter for the repository."
 msgstr "Прилагођивач за ризницу."
 
@@ -190,10 +204,10 @@ msgstr "скулајт3_припреми_и2 није успело: %s: %s"
 msgid "Failed to access SQLite handle."
 msgstr "Нисам успео да приступим ручку СКуЛајта."
 
-#: ../gom/gom-command.c:509
+#: ../gom/gom-command.c:554
 msgid "The GomAdapter for the command."
 msgstr "Гом прилагођивач за наредбу."
 
-#: ../gom/gom-command.c:518
+#: ../gom/gom-command.c:563
 msgid "The SQL for the command."
 msgstr "СКуЛ за наредбу."
