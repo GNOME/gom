@@ -8,104 +8,112 @@ msgstr ""
 "Project-Id-Version: gom master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=gom&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-11-04 18:56+0000\n"
-"PO-Revision-Date: 2015-01-26 13:56-0300\n"
-"Last-Translator: Enrico Nicoletto <liverig@gmail.com>\n"
+"POT-Creation-Date: 2015-07-08 13:32+0000\n"
+"PO-Revision-Date: 2016-02-29 22:47-0300\n"
+"Last-Translator: Rafael Fontenelle <rffontenelle@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 1.7.3\n"
+"X-Generator: Poedit 1.8.7\n"
 
-#: ../gom/gom-command-builder.c:992 ../gom/gom-repository.c:898
-#: ../gom/gom-command.c:508
+#: ../gom/gom-command-builder.c:1031 ../gom/gom-repository.c:948
+#: ../gom/gom-command.c:553
 msgid "Adapter"
 msgstr "Adaptador"
 
-#: ../gom/gom-command-builder.c:993
+#: ../gom/gom-command-builder.c:1032
 msgid "The GomAdapter."
 msgstr "O adaptador Gom."
 
-#: ../gom/gom-command-builder.c:1001 ../gom/gom-resource-group.c:770
+#: ../gom/gom-command-builder.c:1040 ../gom/gom-resource-group.c:1027
 msgid "Filter"
 msgstr "Filtro"
 
-#: ../gom/gom-command-builder.c:1002
+#: ../gom/gom-command-builder.c:1041
 msgid "The filter for the command."
 msgstr "O filtro para o comando."
 
-#: ../gom/gom-command-builder.c:1010
+#: ../gom/gom-command-builder.c:1049 ../gom/gom-resource-group.c:1036
+msgid "Sorting"
+msgstr "Ordem"
+
+#: ../gom/gom-command-builder.c:1050
+msgid "The sorting for the command."
+msgstr "A ordem para o comando."
+
+#: ../gom/gom-command-builder.c:1058
 msgid "Limit"
 msgstr "Limite"
 
-#: ../gom/gom-command-builder.c:1011
+#: ../gom/gom-command-builder.c:1059
 msgid "The maximum number of results."
 msgstr "O número máximo de resultados."
 
-#: ../gom/gom-command-builder.c:1021
+#: ../gom/gom-command-builder.c:1069
 msgid "Many-to-many table"
 msgstr "Tabela muitos-para-muitos"
 
-#: ../gom/gom-command-builder.c:1022
+#: ../gom/gom-command-builder.c:1070
 msgid "The table to use for many-to-many queries."
 msgstr "A tabela a ser usada para consultas muitas-para-muitas."
 
-#: ../gom/gom-command-builder.c:1030
+#: ../gom/gom-command-builder.c:1078
 msgid "Many-to-many type"
 msgstr "Tipo muitos-para-muitos"
 
-#: ../gom/gom-command-builder.c:1031
+#: ../gom/gom-command-builder.c:1079
 msgid "The type for the join within m2m-table."
 msgstr "O tipo a ser usado na união (join) dentro da tabela m-m."
 
-#: ../gom/gom-command-builder.c:1039
+#: ../gom/gom-command-builder.c:1087
 msgid "Offset"
 msgstr "Deslocamento"
 
-#: ../gom/gom-command-builder.c:1040
+#: ../gom/gom-command-builder.c:1088
 msgid "The number of results to skip."
 msgstr "O número de resultados para ignorar."
 
-#: ../gom/gom-command-builder.c:1050 ../gom/gom-resource-group.c:806
+#: ../gom/gom-command-builder.c:1098 ../gom/gom-resource-group.c:1072
 msgid "Resource Type"
 msgstr "Tipo do recurso"
 
-#: ../gom/gom-command-builder.c:1051
+#: ../gom/gom-command-builder.c:1099
 msgid "The resource type to query for."
 msgstr "O tipo do recurso a se consultar."
 
-#: ../gom/gom-resource.c:744
+#: ../gom/gom-resource.c:746
 #, c-format
 msgid "Cannot save resource, no repository set"
 msgstr "Não foi possível salvar o recurso, nenhum repositório definido"
 
-#: ../gom/gom-resource.c:875
+#: ../gom/gom-resource.c:876
 msgid "No result was returned from the cursor."
 msgstr "Nenhum resultado foi retornado pelo cursor."
 
-#: ../gom/gom-resource.c:1058 ../gom/gom-resource-group.c:797
+#: ../gom/gom-resource.c:1059 ../gom/gom-resource-group.c:1063
 msgid "Repository"
 msgstr "Repositório"
 
-#: ../gom/gom-resource.c:1059
+#: ../gom/gom-resource.c:1060
 msgid "The resources repository."
 msgstr "O repositório de recursos."
 
-#: ../gom/gom-filter.c:496
+#: ../gom/gom-filter.c:682
 msgid "Mode"
 msgstr "Modo"
 
-#: ../gom/gom-filter.c:497
+#: ../gom/gom-filter.c:683
 msgid "The mode of the filter."
 msgstr "O modo do filtro."
 
-#: ../gom/gom-filter.c:506 ../gom/gom-command.c:517
+#: ../gom/gom-filter.c:692 ../gom/gom-command.c:562
 msgid "SQL"
 msgstr "SQL"
 
-#: ../gom/gom-filter.c:507
+#: ../gom/gom-filter.c:693
 msgid "The SQL for the filter."
 msgstr "O SQL para o filtro."
 
@@ -117,56 +125,60 @@ msgstr "Instrução"
 msgid "A pointer to a sqlite3_stmt."
 msgstr "Um ponteiro para uma sqlite3_stmt."
 
-#: ../gom/gom-resource-group.c:759
+#: ../gom/gom-resource-group.c:1016
 msgid "Count"
 msgstr "Contagem"
 
-#: ../gom/gom-resource-group.c:760
+#: ../gom/gom-resource-group.c:1017
 msgid "The size of the resource group."
 msgstr "O tamanho do grupo do recurso."
 
-#: ../gom/gom-resource-group.c:771
+#: ../gom/gom-resource-group.c:1028
 msgid "The query filter."
 msgstr "O filtro da consulta."
 
-#: ../gom/gom-resource-group.c:779
+#: ../gom/gom-resource-group.c:1037
+msgid "The query sorting."
+msgstr "A ordem da consulta."
+
+#: ../gom/gom-resource-group.c:1045
 msgid "Many-to-Many Table"
 msgstr "Tabela muitos-para-muitos"
 
-#: ../gom/gom-resource-group.c:780
+#: ../gom/gom-resource-group.c:1046
 msgid "The table used to join a Many to Many query."
 msgstr "A tabela usada para unir uma consulta muitas-para-muitas."
 
-#: ../gom/gom-resource-group.c:788
+#: ../gom/gom-resource-group.c:1054
 msgid "Many-to-Many type"
 msgstr "Tipo muitos-para-muitos"
 
-#: ../gom/gom-resource-group.c:789
+#: ../gom/gom-resource-group.c:1055
 msgid "The type used in the m2m-table join."
 msgstr "O tipo usado na união (join) da tabela m-m."
 
-#: ../gom/gom-resource-group.c:798
+#: ../gom/gom-resource-group.c:1064
 msgid "The repository for object storage."
 msgstr "O repositório para armazenamento de objeto."
 
-#: ../gom/gom-resource-group.c:807
+#: ../gom/gom-resource-group.c:1073
 msgid "The type of resources contained."
 msgstr "O tipo de recursos contidos."
 
-#: ../gom/gom-resource-group.c:815
+#: ../gom/gom-resource-group.c:1081
 msgid "Is Writable"
 msgstr "É gravável"
 
-#: ../gom/gom-resource-group.c:816
+#: ../gom/gom-resource-group.c:1082
 msgid "Whether the group contains resources to be written."
 msgstr "Se o grupo contém recursos a serem gravados."
 
-#: ../gom/gom-repository.c:698 ../gom/gom-repository.c:744
+#: ../gom/gom-repository.c:748 ../gom/gom-repository.c:794
 #, c-format
 msgid "No resources were found."
 msgstr "Nenhum recurso foi localizado."
 
-#: ../gom/gom-repository.c:899
+#: ../gom/gom-repository.c:949
 msgid "The adapter for the repository."
 msgstr "O adaptador para o repositório."
 
@@ -190,11 +202,11 @@ msgstr "sqlite3_prepare_v2 falhou: %s: %s"
 msgid "Failed to access SQLite handle."
 msgstr "Ocorreu falha ao acessar manipulador do SQLite."
 
-#: ../gom/gom-command.c:509
+#: ../gom/gom-command.c:554
 msgid "The GomAdapter for the command."
 msgstr "O adaptador Gom para o comando."
 
-#: ../gom/gom-command.c:518
+#: ../gom/gom-command.c:563
 msgid "The SQL for the command."
 msgstr "O SQL para o comando."
 
