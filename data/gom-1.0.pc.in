@@ -1,11 +1,11 @@
 prefix=@prefix@
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${exec_prefix}/include
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
 
 Name: Gom
 Description: GObject Data Mapper
 Version: @VERSION@
-Libs: -L${libdir} -lgom-1.0
-Cflags: -I${includedir}/gom-1.0
+Libs: -L${libdir} -lgom-@GOM_API_VERSION@
+Cflags: -I${includedir}/gom-@GOM_API_VERSION@
 Requires: gobject-2.0
