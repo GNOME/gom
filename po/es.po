@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # Daniel Mustieles <daniel.mustieles@gmail.com>, 2014, 2015.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: gom.master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=gom&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2015-07-08 13:32+0000\n"
+"POT-Creation-Date: 2015-07-14 07:55+0000\n"
 "PO-Revision-Date: 2015-07-14 \n"
 "Last-Translator: Daniel Mustieles <daniel.mustieles@gmail.com>\n"
 "Language-Team: Spanish <gnome-es-list@gnome.org>\n"
@@ -42,7 +42,6 @@ msgid "Sorting"
 msgstr "Ordenación"
 
 #: ../gom/gom-command-builder.c:1050
-#| msgid "The SQL for the command."
 msgid "The sorting for the command."
 msgstr "La ordenación dell comando."
 
@@ -140,7 +139,6 @@ msgid "The query filter."
 msgstr "El filtro de la consulta."
 
 #: ../gom/gom-resource-group.c:1037
-#| msgid "The query filter."
 msgid "The query sorting."
 msgstr "La ordenación de la consulta."
 
