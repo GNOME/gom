@@ -5,7 +5,7 @@ include examples/Makefile.include
 include gom/Makefile.include
 include tests/Makefile.include
 
-SUBDIRS = . doc po
+SUBDIRS = . doc
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 DISTCHECK_CONFIGURE_FLAGS =			\

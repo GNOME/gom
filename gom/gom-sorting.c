@@ -18,8 +18,6 @@
 
 #include <stdarg.h>
 
-#include <glib/gi18n.h>
-
 #include "gom-sorting.h"
 #include "gom-resource.h"
 

@@ -9,7 +9,6 @@ cd $srcdir
 
 AUTORECONF=$(which autoreconf 2>/dev/null)
 GTKDOCIZE=$(which gtkdocize 2>/dev/null)
-INTLTOOLIZE=$(which intltoolize 2>/dev/null)
 
 set -x
 
@@ -18,13 +17,6 @@ if test -z $GTKDOCIZE; then
 	exit 1
 else
         ${GTKDOCIZE} || exit $?
-fi
-
-if test -z $INTLTOOLIZE; then
-        echo "*** No intltoolize found, please install intltool ***"
-        exit 1
-else
-        ${INTLTOOLIZE} --force --copy --automake || exit $?
 fi
 
 if test -z $AUTORECONF; then

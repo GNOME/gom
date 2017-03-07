@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gi18n.h>
 #include <sqlite3.h>
+#include <string.h>
 
 #include "gom-command.h"
 #include "gom-command-builder.h"
@@ -742,7 +742,7 @@ gom_resource_save_sync (GomResource  *resource,
 
    if (!priv->repository) {
       g_set_error(error, GOM_ERROR, GOM_ERROR_COMMAND_NO_REPOSITORY,
-                  _("Cannot save resource, no repository set"));
+                  "Cannot save resource, no repository set");
       return FALSE;
    }
 
@@ -872,7 +872,7 @@ gom_resource_fetch_m2m_cb (GomAdapter *adapter,
    if (!gom_cursor_next(cursor)) {
       g_simple_async_result_set_error(simple, GOM_ERROR,
                                       GOM_ERROR_RESOURCE_CURSOR,
-                                      _("No result was returned from the cursor."));
+                                      "No result was returned from the cursor.");
       goto out;
    }
 
@@ -1052,8 +1052,8 @@ gom_resource_class_init (GomResourceClass *klass)
 
    gParamSpecs[PROP_REPOSITORY] =
       g_param_spec_object("repository",
-                          _("Repository"),
-                          _("The resources repository."),
+                          "Repository",
+                          "The resources repository.",
                           GOM_TYPE_REPOSITORY,
                           G_PARAM_READWRITE);
    g_object_class_install_property(object_class, PROP_REPOSITORY,

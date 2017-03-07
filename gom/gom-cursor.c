@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gi18n.h>
 #include <sqlite3.h>
+#include <string.h>
 
 #include "gom-cursor.h"
 
@@ -296,8 +296,8 @@ gom_cursor_class_init (GomCursorClass *klass)
 
    gParamSpecs[PROP_STATEMENT] =
       g_param_spec_pointer("statement",
-                          _("Statement"),
-                          _("A pointer to a sqlite3_stmt."),
+                          "Statement",
+                          "A pointer to a sqlite3_stmt.",
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_STATEMENT,
                                    gParamSpecs[PROP_STATEMENT]);

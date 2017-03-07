@@ -112,23 +112,6 @@ AS_CASE([$enable_debug],
 	[AC_MSG_ERROR([Unknown argument to --enable-debug])]
 )
 
-dnl -------------------------------------------------------------------
-dnl Use intltools.
-dnl -------------------------------------------------------------------
-IT_PROG_INTLTOOL([0.40.0])
-
-AC_SUBST([GETTEXT_PACKAGE], [gom])
-AC_DEFINE([GETTEXT_PACKAGE], [PACKAGE_TARNAME], [Define to the gettext package name.])
-
-
-dnl gettext library
-AC_CHECK_LIB([gettextpo], [po_message_is_format],
-             [GETTEXT_LIBS=-lgettextpo], [
-              AC_MSG_ERROR(Missing gettext library)])
-
-AC_SUBST([GETTEXT_LIBS])
-
-
 dnl **************************************************************************
 dnl Unit Tests
 dnl **************************************************************************

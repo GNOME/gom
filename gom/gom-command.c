@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gi18n.h>
 #include <sqlite3.h>
 #include <string.h>
 
@@ -284,14 +283,14 @@ gom_command_prepare (GomCommand  *command,
 
    if (!priv->sql) {
       g_set_error(error, GOM_ERROR, GOM_ERROR_COMMAND_NO_SQL,
-                  _("The command does not contain any SQL"));
+                  "The command does not contain any SQL");
       return FALSE;
    }
 
    if (!(ret = (SQLITE_OK == sqlite3_prepare_v2(db, priv->sql, -1,
                                                 &priv->stmt, NULL)))) {
       g_set_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE,
-                  _("sqlite3_prepare_v2 failed: %s: %s"),
+                  "sqlite3_prepare_v2 failed: %s: %s",
                   sqlite3_errmsg(db), priv->sql);
    }
 
@@ -318,7 +317,7 @@ gom_command_execute (GomCommand  *command,
 
    if (!priv->adapter || !(db = gom_adapter_get_handle(priv->adapter))) {
       g_set_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE,
-                  _("Failed to access SQLite handle."));
+                  "Failed to access SQLite handle.");
       return FALSE;
    }
 
@@ -550,8 +549,8 @@ gom_command_class_init (GomCommandClass *klass)
 
    gParamSpecs[PROP_ADAPTER] =
       g_param_spec_object("adapter",
-                          _("Adapter"),
-                          _("The GomAdapter for the command."),
+                          "Adapter",
+                          "The GomAdapter for the command.",
                           GOM_TYPE_ADAPTER,
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_ADAPTER,
@@ -559,8 +558,8 @@ gom_command_class_init (GomCommandClass *klass)
 
    gParamSpecs[PROP_SQL] =
       g_param_spec_string("sql",
-                          _("SQL"),
-                          _("The SQL for the command."),
+                          "SQL",
+                          "The SQL for the command.",
                           NULL,
                           G_PARAM_WRITABLE);
    g_object_class_install_property(object_class, PROP_SQL,

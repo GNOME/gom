@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gi18n.h>
 #include <sqlite3.h>
 
 #include "gom-adapter.h"
@@ -195,7 +194,7 @@ open_callback (GomAdapter *adapter,
    if (ret != SQLITE_OK) {
       g_simple_async_result_set_error(simple, GOM_ERROR,
                                       GOM_ERROR_ADAPTER_OPEN,
-                                      _("Failed to open database at %s"), uri);
+                                      "Failed to open database at %s", uri);
    }
    g_simple_async_result_set_op_res_gboolean(simple, ret == SQLITE_OK);
    if (!queue)

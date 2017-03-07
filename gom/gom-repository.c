@@ -16,8 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gi18n.h>
-
 #include "gom-command.h"
 #include "gom-command-builder.h"
 #include "gom-cursor.h"
@@ -745,7 +743,7 @@ gom_repository_find_one_cb (GObject      *object,
    if (!gom_resource_group_get_count(group)) {
       g_simple_async_result_set_error(simple, GOM_ERROR,
                                       GOM_ERROR_REPOSITORY_EMPTY_RESULT,
-                                      _("No resources were found."));
+                                      "No resources were found.");
       g_simple_async_result_complete_in_idle(simple);
       g_object_unref(simple);
       g_object_unref(group);
@@ -791,7 +789,7 @@ gom_repository_find_one_sync (GomRepository  *repository,
    if (!gom_resource_group_get_count(group)) {
       g_set_error(error, GOM_ERROR,
                   GOM_ERROR_REPOSITORY_EMPTY_RESULT,
-                  _("No resources were found."));
+                  "No resources were found.");
       g_object_unref(group);
       return NULL;
    }
@@ -945,8 +943,8 @@ gom_repository_class_init (GomRepositoryClass *klass)
 
    gParamSpecs[PROP_ADAPTER] =
       g_param_spec_object("adapter",
-                          _("Adapter"),
-                          _("The adapter for the repository."),
+                          "Adapter",
+                          "The adapter for the repository.",
                           GOM_TYPE_ADAPTER,
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_ADAPTER,

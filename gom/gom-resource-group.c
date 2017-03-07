@@ -16,8 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gi18n.h>
-
 #include "gom-adapter.h"
 #include "gom-command.h"
 #include "gom-command-builder.h"
@@ -1013,8 +1011,8 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
 
    gParamSpecs[PROP_COUNT] =
       g_param_spec_uint("count",
-                        _("Count"),
-                        _("The size of the resource group."),
+                        "Count",
+                        "The size of the resource group.",
                         0,
                         G_MAXUINT,
                         0,
@@ -1024,8 +1022,8 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
 
    gParamSpecs[PROP_FILTER] =
       g_param_spec_object("filter",
-                          _("Filter"),
-                          _("The query filter."),
+                          "Filter",
+                          "The query filter.",
                           GOM_TYPE_FILTER,
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_FILTER,
@@ -1033,8 +1031,8 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
 
    gParamSpecs[PROP_SORTING] =
       g_param_spec_object("sorting",
-                          _("Sorting"),
-                          _("The query sorting."),
+                          "Sorting",
+                          "The query sorting.",
                           GOM_TYPE_SORTING,
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_SORTING,
@@ -1042,8 +1040,8 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
 
    gParamSpecs[PROP_M2M_TABLE] =
       g_param_spec_string("m2m-table",
-                          _("Many-to-Many Table"),
-                          _("The table used to join a Many to Many query."),
+                          "Many-to-Many Table",
+                          "The table used to join a Many to Many query.",
                           NULL,
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_M2M_TABLE,
@@ -1051,8 +1049,8 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
 
    gParamSpecs[PROP_M2M_TYPE] =
       g_param_spec_gtype("m2m-type",
-                          _("Many-to-Many type"),
-                          _("The type used in the m2m-table join."),
+                          "Many-to-Many type",
+                          "The type used in the m2m-table join.",
                           GOM_TYPE_RESOURCE,
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_M2M_TYPE,
@@ -1060,8 +1058,8 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
 
    gParamSpecs[PROP_REPOSITORY] =
       g_param_spec_object("repository",
-                          _("Repository"),
-                          _("The repository for object storage."),
+                          "Repository",
+                          "The repository for object storage.",
                           GOM_TYPE_REPOSITORY,
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_REPOSITORY,
@@ -1069,8 +1067,8 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
 
    gParamSpecs[PROP_RESOURCE_TYPE] =
       g_param_spec_gtype("resource-type",
-                         _("Resource Type"),
-                         _("The type of resources contained."),
+                         "Resource Type",
+                         "The type of resources contained.",
                          GOM_TYPE_RESOURCE,
                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_RESOURCE_TYPE,
@@ -1078,8 +1076,8 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
 
    gParamSpecs[PROP_IS_WRITABLE] =
       g_param_spec_boolean("is-writable",
-                           _("Is Writable"),
-                           _("Whether the group contains resources to be written."),
+                           "Is Writable",
+                           "Whether the group contains resources to be written.",
                            FALSE,
                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_IS_WRITABLE,

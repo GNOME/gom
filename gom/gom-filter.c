@@ -18,8 +18,6 @@
 
 #include <stdarg.h>
 
-#include <glib/gi18n.h>
-
 #include "gom-filter.h"
 #include "gom-resource.h"
 
@@ -702,8 +700,8 @@ gom_filter_class_init (GomFilterClass *klass)
 
    gParamSpecs[PROP_MODE] =
       g_param_spec_enum("mode",
-                        _("Mode"),
-                        _("The mode of the filter."),
+                        "Mode",
+                        "The mode of the filter.",
                         GOM_TYPE_FILTER_MODE,
                         GOM_FILTER_SQL,
                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
@@ -712,8 +710,8 @@ gom_filter_class_init (GomFilterClass *klass)
 
    gParamSpecs[PROP_SQL] =
       g_param_spec_string("sql",
-                          _("SQL"),
-                          _("The SQL for the filter."),
+                          "SQL",
+                          "The SQL for the filter.",
                           NULL,
                           G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_SQL,

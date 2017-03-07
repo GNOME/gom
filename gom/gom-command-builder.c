@@ -16,8 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib/gi18n.h>
-
 #include "gom-adapter.h"
 #include "gom-command.h"
 #include "gom-command-builder.h"
@@ -1033,8 +1031,8 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 
    gParamSpecs[PROP_ADAPTER] =
       g_param_spec_object("adapter",
-                          _("Adapter"),
-                          _("The GomAdapter."),
+                          "Adapter",
+                          "The GomAdapter.",
                           GOM_TYPE_ADAPTER,
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_ADAPTER,
@@ -1042,8 +1040,8 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 
    gParamSpecs[PROP_FILTER] =
       g_param_spec_object("filter",
-                          _("Filter"),
-                          _("The filter for the command."),
+                          "Filter",
+                          "The filter for the command.",
                           GOM_TYPE_FILTER,
                           G_PARAM_READWRITE);
    g_object_class_install_property(object_class, PROP_FILTER,
@@ -1051,8 +1049,8 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 
    gParamSpecs[PROP_SORTING] =
       g_param_spec_object("sorting",
-                          _("Sorting"),
-                          _("The sorting for the command."),
+                          "Sorting",
+                          "The sorting for the command.",
                           GOM_TYPE_SORTING,
                           G_PARAM_READWRITE);
    g_object_class_install_property(object_class, PROP_SORTING,
@@ -1060,8 +1058,8 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 
    gParamSpecs[PROP_LIMIT] =
       g_param_spec_uint("limit",
-                        _("Limit"),
-                        _("The maximum number of results."),
+                        "Limit",
+                        "The maximum number of results.",
                         0,
                         G_MAXUINT,
                         0,
@@ -1071,8 +1069,8 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 
    gParamSpecs[PROP_M2M_TABLE] =
       g_param_spec_string("m2m-table",
-                          _("Many-to-many table"),
-                          _("The table to use for many-to-many queries."),
+                          "Many-to-many table",
+                          "The table to use for many-to-many queries.",
                           NULL,
                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_M2M_TABLE,
@@ -1080,8 +1078,8 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 
    gParamSpecs[PROP_M2M_TYPE] =
       g_param_spec_gtype("m2m-type",
-                         _("Many-to-many type"),
-                         _("The type for the join within m2m-table."),
+                         "Many-to-many type",
+                         "The type for the join within m2m-table.",
                          GOM_TYPE_RESOURCE,
                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
    g_object_class_install_property(object_class, PROP_M2M_TYPE,
@@ -1089,8 +1087,8 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 
    gParamSpecs[PROP_OFFSET] =
       g_param_spec_uint("offset",
-                        _("Offset"),
-                        _("The number of results to skip."),
+                        "Offset",
+                        "The number of results to skip.",
                         0,
                         G_MAXUINT,
                         0,
@@ -1100,8 +1098,8 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 
    gParamSpecs[PROP_RESOURCE_TYPE] =
       g_param_spec_gtype("resource-type",
-                         _("Resource Type"),
-                         _("The resource type to query for."),
+                         "Resource Type",
+                         "The resource type to query for.",
                          GOM_TYPE_RESOURCE,
                          G_PARAM_READWRITE);
    g_object_class_install_property(object_class, PROP_RESOURCE_TYPE,
