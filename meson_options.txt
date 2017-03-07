@@ -1,0 +1,2 @@
+option('enable-gtk-doc', type: 'boolean', value: false, description: 'Enable generating the API reference')
+option('enable-introspection', type: 'boolean', value: true, description: 'Enable GObject Introspection')
