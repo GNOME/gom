@@ -180,7 +180,6 @@ AC_CONFIG_FILES([
 	data/gom-1.0.pc
 	doc/version.xml
 	doc/Makefile
-	po/Makefile.in
 ])
 AC_OUTPUT
 
