@@ -23,16 +23,13 @@ const ItemClass = new Lang.Class({
 					''),
     },
 
-    _init: function(params) {
-        this.parent(params);
-
-        Gom.Resource.set_table.call(this, 'items');
-        Gom.Resource.set_primary_key.call(this, 'id');
-    },
-
     _instance_init: function() {
     },
 });
+
+Gom.Resource.set_table.call(ItemClass, 'items');
+Gom.Resource.set_primary_key.call(ItemClass, 'id');
+
 
 // Open
 let adapter = new Gom.Adapter;
