@@ -72,3 +72,5 @@ test_gom_sorting_LDADD = $(GIO_LIBS) $(GOBJECT_LIBS) $(top_builddir)/libgom-1.0.
 endif
 
 EXTRA_DIST += tests/grl-bookmarks.db tests/gnome.png
+
+EXTRA_DIST += tests/meson.build

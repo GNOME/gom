@@ -29,3 +29,5 @@ dist-hook:
 
 uninstall-local:
 	-rm -r $(gomdocdir)
+
+EXTRA_DIST += bindings/meson.build bindings/python/meson.build gom/meson.build meson.build meson_options.txt
