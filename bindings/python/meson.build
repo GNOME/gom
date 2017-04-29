@@ -1,4 +1,4 @@
-python3 = find_program('python3')
+python3 = import('python3').find_python()
 
 get_overridedir = '''
 import os
