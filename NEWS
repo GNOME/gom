@@ -1,5 +1,12 @@
 Major changes in version
 
+0.3.3
+-----
+- Replace hardcoded values in pkg-config file
+- Add a JavaScript example
+- Remove i18n support, as there are no user-visible strings
+- Replace autotools build system with meson
+
 0.3.2
 -----
 
