@@ -28,6 +28,7 @@ gom_headers = [
 
 gom_private_headers = [
   'gom-resource-priv.h',
+  'reserved-keywords.h',
 ]
 
 install_headers(gom_headers,
