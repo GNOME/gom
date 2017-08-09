@@ -6,6 +6,7 @@ tests = [
   'test-gom-migration',
   'test-gom-repository',
   'test-gom-sorting',
+  'test-gom-table-name',
   'test-gom-update',
 ]
 
