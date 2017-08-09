@@ -26,6 +26,7 @@
 #include "gom-repository.h"
 #include "gom-resource.h"
 #include "gom-resource-priv.h"
+#include "reserved-keywords.h"
 
 G_DEFINE_ABSTRACT_TYPE(GomResource, gom_resource, G_TYPE_OBJECT)
 
@@ -200,6 +201,19 @@ gom_resource_class_set_reference (GomResourceClass     *resource_class,
                                g_strdup(ref_property_name), g_free);
 }
 
+static gboolean
+is_valid_table_name (const gchar *table)
+{
+   guint i;
+
+   for (i = 0; i < G_N_ELEMENTS (reserved_keywords); i++) {
+      if (g_ascii_strcasecmp (reserved_keywords[i], table) == 0)
+         return FALSE;
+   }
+
+   return TRUE;
+}
+
 void
 gom_resource_class_set_table (GomResourceClass *resource_class,
                               const gchar      *table)
@@ -207,6 +221,7 @@ gom_resource_class_set_table (GomResourceClass *resource_class,
    g_return_if_fail(GOM_IS_RESOURCE_CLASS(resource_class));
    g_return_if_fail(table != NULL);
    g_return_if_fail(strlen(table) <= sizeof(resource_class->table));
+   g_return_if_fail(is_valid_table_name(table));
 
    g_snprintf(resource_class->table,
               sizeof(resource_class->table),
