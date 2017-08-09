@@ -156,6 +156,14 @@ table_name (void)
    char *s1, *s2;
    ItemResource *it;
 
+   if (!g_test_subprocess ()) {
+      /* Rerun this same test in a subprocess */
+      g_test_trap_subprocess (NULL, 0, 0);
+      g_test_trap_assert_failed ();
+      g_test_trap_assert_stderr ("*CRITICAL*is_valid_table_name*failed*");
+      return;
+   }
+
    adapter = gom_adapter_new();
    //ret = gom_adapter_open_sync(adapter, "file:test.db", &error);
    ret = gom_adapter_open_sync(adapter, ":memory:", &error);
