@@ -4,7 +4,7 @@ get_overridedir = '''
 import os
 import sysconfig
 
-libdir = sysconfig.get_config_var('LIBDIR')
+libdir = sysconfig.get_config_var('SCRIPTDIR')
 
 if not libdir:
   libdir = '/usr/lib'
