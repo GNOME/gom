@@ -1,0 +1,15 @@
+stages:
+- test
+
+build-fedora:
+  image: fedora:latest
+  stage: test
+  before_script:
+    - dnf install -y gcc redhat-rpm-config meson gtk-doc glib2-devel gobject-introspection-devel gdk-pixbuf2-devel sqlite-devel pygobject3-devel python3-devel
+    # scriptlets bug?
+    - gdk-pixbuf-query-loaders > /usr/lib64/gdk-pixbuf-2.0/2.10.0/loaders.cache
+  script:
+    - meson _build
+    - G_MESSAGES_DEBUG=all ninja -C _build test
+    - ninja -C _build install
+
