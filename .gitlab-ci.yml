@@ -1,0 +1,13 @@
+stages:
+- test
+
+build-fedora:
+  image: fedora:latest
+  stage: test
+  before_script:
+    - dnf install -y gcc redhat-rpm-config meson gtk-doc glib2-devel sqlite-devel
+  script:
+    - meson _build
+    - G_MESSAGES_DEBUG=all ninja -C _build test
+    - ninja -C _build install
+
