@@ -5,6 +5,7 @@
          xmlns="http://usefulinc.com/ns/doap#">
 
   <name xml:lang="en">Gom</name>
+  <description xml:lang="en">A GObject to SQLite object mapper.</description>
   <shortdesc xml:lang="en">A GObject to SQLite object mapper.</shortdesc>
   <homepage rdf:resource="https://wiki.gnome.org/Projects/Gom" />
   <download-page rdf:resource="http://download.gnome.org/sources/gom/" />
