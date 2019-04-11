@@ -1,33 +1,38 @@
-python3 = import('python3').find_python()
+pygobject_override_dir = get_option('pygobject-override-dir')
 
-get_overridedir = '''
-import os
-import sysconfig
+if pygobject_override_dir == ''
+    python3 = import('python3').find_python()
 
-libdir = sysconfig.get_config_var('SCRIPTDIR')
+    get_overridedir = '''
+    import os
+    import sysconfig
 
-if not libdir:
-  libdir = '/usr/lib'
+    libdir = sysconfig.get_config_var('SCRIPTDIR')
 
-try:
-  import gi
-  overridedir = gi._overridesdir
-except ImportError:
-  purelibdir = sysconfig.get_path('purelib')
-  overridedir = os.path.join(purelibdir, 'gi', 'overrides')
+    if not libdir:
+      libdir = '/usr/lib'
 
-if overridedir.startswith(libdir): # Should always be True..
-  overridedir = overridedir[len(libdir) + 1:]
+    try:
+      import gi
+      overridedir = gi._overridesdir
+    except ImportError:
+      purelibdir = sysconfig.get_path('purelib')
+      overridedir = os.path.join(purelibdir, 'gi', 'overrides')
 
-print(overridedir)
-'''
+    if overridedir.startswith(libdir): # Should always be True..
+      overridedir = overridedir[len(libdir) + 1:]
 
-ret = run_command([python3, '-c', get_overridedir])
+    print(overridedir)
+    '''
 
-if ret.returncode() != 0
-  error('Failed to determine pygobject overridedir')
-else
-  pygobject_override_dir = join_paths(get_option('libdir'), ret.stdout().strip())
+    ret = run_command([python3, '-c', get_overridedir])
+
+    if ret.returncode() != 0
+        error('Failed getting the GObject Introspection override directory: ' + ret.stderr())
+    endif
+
+    pygobject_override_dir = join_paths(get_option('libdir'), ret.stdout().strip())
+
 endif
 
 install_data('gi/overrides/Gom.py', install_dir: pygobject_override_dir)

@@ -1,2 +1,3 @@
 option('enable-gtk-doc', type: 'boolean', value: false, description: 'Enable generating the API reference')
 option('enable-introspection', type: 'boolean', value: true, description: 'Enable GObject Introspection')
+option('pygobject-override-dir', type : 'string', value : '', description: 'Path to pygobject overrides directory')
