@@ -1,4 +1,4 @@
-python3 = import('python3').find_python()
+pygobject_override_dir = get_option('pygobject-override-dir')
 
 get_overridedir = '''
 import os
@@ -22,12 +22,17 @@ if overridedir.startswith(libdir): # Should always be True..
 print(overridedir)
 '''
 
-ret = run_command([python3, '-c', get_overridedir])
+if pygobject_override_dir == ''
+    python3 = import('python3').find_python()
 
-if ret.returncode() != 0
-  error('Failed to determine pygobject overridedir')
-else
-  pygobject_override_dir = join_paths(get_option('libdir'), ret.stdout().strip())
+    ret = run_command([python3, '-c', get_overridedir])
+
+    if ret.returncode() != 0
+        error('Failed to determine pygobject override directory')
+    else
+        pygobject_override_dir = join_paths(get_option('libdir'), ret.stdout().strip())
+    endif
+
 endif
 
 install_data('gi/overrides/Gom.py', install_dir: pygobject_override_dir)
