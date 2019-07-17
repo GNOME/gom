@@ -106,13 +106,13 @@ gom_command_bind_param (GomCommand   *command,
       break;
    default:
       if (G_VALUE_TYPE(value) == G_TYPE_DATE_TIME) {
-         GTimeVal tv = { 0 };
          GDateTime *dt = g_value_get_boxed(value);
-         gchar *iso8601;
+         gchar *iso8601 = NULL;
          if (dt) {
+            GTimeVal tv = { 0 };
             g_date_time_to_timeval(dt, &tv);
+            iso8601 = g_time_val_to_iso8601(&tv);
          }
-         iso8601 = g_time_val_to_iso8601(&tv);
          sqlite3_bind_text(priv->stmt, param, iso8601, -1, g_free);
          break;
       } else if (G_VALUE_TYPE(value) == G_TYPE_STRV) {
