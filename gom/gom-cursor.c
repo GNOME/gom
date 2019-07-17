@@ -86,13 +86,13 @@ gom_cursor_get_column (GomCursor *cursor,
       break;
    default:
       if (G_VALUE_TYPE(value) == G_TYPE_DATE_TIME) {
-         GTimeVal tv = { 0 };
-         GDateTime *dt;
          const gchar *iso8601 = (gchar *)sqlite3_column_text(priv->stmt, column);
+         GDateTime *dt = NULL;
          if (iso8601) {
+            GTimeVal tv = { 0 };
             g_time_val_from_iso8601(iso8601, &tv);
+            dt = g_date_time_new_from_timeval_utc(&tv);
          }
-         dt = g_date_time_new_from_timeval_utc(&tv);
          g_value_take_boxed(value, dt);
          break;
       }
