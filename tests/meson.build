@@ -8,6 +8,7 @@ tests = [
   'test-gom-sorting',
   'test-gom-table-name',
   'test-gom-update',
+  'test-gom-datetime',
 ]
 
 foreach test_name: tests
