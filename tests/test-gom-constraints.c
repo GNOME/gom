@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <string.h>
 #include <gom/gom.h>
 #include <glib/gstdio.h>
@@ -229,8 +230,8 @@ test_unique (void)
                        NULL);
   gom_resource_save_sync(GOM_RESOURCE(item), &error);
   g_assert_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE);
-  g_assert (strstr (error->message, "UNIQUE") != NULL);
-  g_assert (strstr (error->message, "items.email") != NULL);
+  g_assert (strcasestr (error->message, "UNIQUE") != NULL);
+  g_assert (strstr (error->message, "email") != NULL);
   g_object_unref(item);
   g_clear_error(&error);
 
@@ -266,8 +267,8 @@ test_notnull (void)
                        NULL);
   gom_resource_save_sync(GOM_RESOURCE(item), &error);
   g_assert_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE);
-  g_assert (strstr (error->message, "NOT NULL") != NULL);
-  g_assert (strstr (error->message, "items.name") != NULL);
+  g_assert (strstr (error->message, "NULL") != NULL);
+  g_assert (strstr (error->message, "name") != NULL);
   g_clear_error(&error);
   g_object_unref(item);
 
@@ -277,8 +278,8 @@ test_notnull (void)
                        NULL);
   gom_resource_save_sync(GOM_RESOURCE(item), &error);
   g_assert_error(error, GOM_ERROR, GOM_ERROR_COMMAND_SQLITE);
-  g_assert (strstr (error->message, "NOT NULL") != NULL);
-  g_assert (strstr (error->message, "items.email") != NULL);
+  g_assert (strstr (error->message, "NULL") != NULL);
+  g_assert (strstr (error->message, "email") != NULL);
   g_clear_error(&error);
   g_object_unref(item);
 
