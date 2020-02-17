@@ -1,5 +1,5 @@
 project('gom', 'c',
-  version: '0.3.3',
+  version: '0.4',
   license: 'LGPL-2.1+',
   meson_version: '>= 0.48')
 

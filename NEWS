@@ -1,5 +1,14 @@
 Major changes in version
 
+0.4
+---
+- Fix primary-keys never being monitored, which triggered crashes
+  with GLib 2.63
+- Test for invalid table names
+- Install Python overrides in correct location
+- Fix storage of NULL GDateTime values
+- Fix constraints test under older versions of SQLite
+
 0.3.3
 -----
 - Replace hardcoded values in pkg-config file
