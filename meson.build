@@ -17,9 +17,11 @@ pkgconfig = import('pkgconfig')
 enable_gir = get_option('enable-introspection')
 enable_gtkdoc = get_option('enable-gtk-doc')
 
-gio_dep = dependency('gio-2.0', version: '>= 2.36')
-glib_dep = dependency('glib-2.0', version: '>= 2.36')
-gobject_dep = dependency('gobject-2.0', version: '>= 2.36')
+glib2_required = '>= 2.38'
+
+gio_dep = dependency('gio-2.0', version: glib2_required)
+glib_dep = dependency('glib-2.0', version: glib2_required)
+gobject_dep = dependency('gobject-2.0', version: glib2_required)
 sqlite3_dep = dependency('sqlite3', version: '>= 3.7')
 gdkpixbuf_dep = dependency('gdk-pixbuf-2.0')
 
