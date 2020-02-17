@@ -1048,6 +1048,36 @@ gom_resource_set_property (GObject      *object,
    }
 }
 
+static void
+pkey_changed_cb (GObject    *gobject,
+                 GParamSpec *pspec,
+                 gpointer    user_data)
+{
+  GomResource *resource = (GomResource *) gobject;
+
+  /* Did the developer reset the primary key? */
+  if (!has_primary_key(GOM_RESOURCE(resource))) {
+     resource->priv->is_from_table = FALSE;
+  }
+}
+
+static void
+gom_resource_constructed (GObject *object)
+{
+  char *pkey_signal;
+  GomResourceClass *klass;
+
+  /* Monitor the primary key */
+  klass = GOM_RESOURCE_CLASS (G_OBJECT_GET_CLASS(object));
+  g_assert (klass->primary_key[0] != '\0');
+  pkey_signal = g_strdup_printf("notify::%s", klass->primary_key);
+  g_signal_connect (G_OBJECT (object), pkey_signal,
+                    G_CALLBACK (pkey_changed_cb), NULL);
+  g_free(pkey_signal);
+
+  G_OBJECT_CLASS (gom_resource_parent_class)->constructed (object);
+}
+
 /**
  * gom_resource_class_init:
  * @klass: (in): A #GomResourceClass.
@@ -1063,6 +1093,7 @@ gom_resource_class_init (GomResourceClass *klass)
    object_class->finalize = gom_resource_finalize;
    object_class->get_property = gom_resource_get_property;
    object_class->set_property = gom_resource_set_property;
+   object_class->constructed = gom_resource_constructed;
    g_type_class_add_private(object_class, sizeof(GomResourcePrivate));
 
    gParamSpecs[PROP_REPOSITORY] =
@@ -1075,19 +1106,6 @@ gom_resource_class_init (GomResourceClass *klass)
                                    gParamSpecs[PROP_REPOSITORY]);
 }
 
-static void
-pkey_changed_cb (GObject    *gobject,
-                 GParamSpec *pspec,
-                 gpointer    user_data)
-{
-  GomResource *resource = (GomResource *) gobject;
-
-  /* Did the developer reset the primary key? */
-  if (!has_primary_key(GOM_RESOURCE(resource))) {
-     resource->priv->is_from_table = FALSE;
-  }
-}
-
 /**
  * gom_resource_init:
  * @resource: (in): A #GomResource.
@@ -1097,20 +1115,10 @@ pkey_changed_cb (GObject    *gobject,
 static void
 gom_resource_init (GomResource *resource)
 {
-   char *pkey_signal;
-   GomResourceClass *klass;
-
    resource->priv =
       G_TYPE_INSTANCE_GET_PRIVATE(resource,
                                   GOM_TYPE_RESOURCE,
                                   GomResourcePrivate);
-
-   /* Monitor the primary key */
-   klass = GOM_RESOURCE_CLASS (G_OBJECT_GET_CLASS(resource));
-   pkey_signal = g_strdup_printf("notify::%s", klass->primary_key);
-   g_signal_connect (G_OBJECT (resource), pkey_signal,
-                     G_CALLBACK (pkey_changed_cb), NULL);
-   g_free(pkey_signal);
 }
 
 gboolean
