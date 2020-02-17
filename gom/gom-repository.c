@@ -22,12 +22,12 @@
 #include "gom-error.h"
 #include "gom-repository.h"
 
-G_DEFINE_TYPE(GomRepository, gom_repository, G_TYPE_OBJECT)
-
 struct _GomRepositoryPrivate
 {
    GomAdapter *adapter;
 };
+
+G_DEFINE_TYPE_WITH_PRIVATE(GomRepository, gom_repository, G_TYPE_OBJECT)
 
 enum
 {
@@ -939,7 +939,6 @@ gom_repository_class_init (GomRepositoryClass *klass)
    object_class->finalize = gom_repository_finalize;
    object_class->get_property = gom_repository_get_property;
    object_class->set_property = gom_repository_set_property;
-   g_type_class_add_private(object_class, sizeof(GomRepositoryPrivate));
 
    gParamSpecs[PROP_ADAPTER] =
       g_param_spec_object("adapter",
@@ -960,8 +959,5 @@ gom_repository_class_init (GomRepositoryClass *klass)
 static void
 gom_repository_init (GomRepository *repository)
 {
-   repository->priv =
-      G_TYPE_INSTANCE_GET_PRIVATE(repository,
-                                  GOM_TYPE_REPOSITORY,
-                                  GomRepositoryPrivate);
+   repository->priv = gom_repository_get_instance_private(repository);
 }
