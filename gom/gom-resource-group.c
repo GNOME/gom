@@ -27,8 +27,6 @@
 #include "gom-resource-group.h"
 #include "gom-sorting.h"
 
-G_DEFINE_TYPE(GomResourceGroup, gom_resource_group, G_TYPE_OBJECT)
-
 struct _GomResourceGroupPrivate
 {
    GomRepository *repository;
@@ -46,6 +44,8 @@ struct _GomResourceGroupPrivate
    gboolean is_writable;
    GPtrArray *to_write;
 };
+
+G_DEFINE_TYPE_WITH_PRIVATE(GomResourceGroup, gom_resource_group, G_TYPE_OBJECT)
 
 enum
 {
@@ -1007,7 +1007,6 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
    object_class->finalize = gom_resource_group_finalize;
    object_class->get_property = gom_resource_group_get_property;
    object_class->set_property = gom_resource_group_set_property;
-   g_type_class_add_private(object_class, sizeof(GomResourceGroupPrivate));
 
    gParamSpecs[PROP_COUNT] =
       g_param_spec_uint("count",
@@ -1093,8 +1092,5 @@ gom_resource_group_class_init (GomResourceGroupClass *klass)
 static void
 gom_resource_group_init (GomResourceGroup *group)
 {
-   group->priv =
-      G_TYPE_INSTANCE_GET_PRIVATE(group,
-                                  GOM_TYPE_RESOURCE_GROUP,
-                                  GomResourceGroupPrivate);
+   group->priv = gom_resource_group_get_instance_private(group);
 }
