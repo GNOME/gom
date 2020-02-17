@@ -42,7 +42,7 @@ typedef struct
 
 GType episode_resource_get_type(void);
 
-G_DEFINE_TYPE(EpisodeResource, episode_resource, GOM_TYPE_RESOURCE)
+G_DEFINE_TYPE_WITH_PRIVATE(EpisodeResource, episode_resource, GOM_TYPE_RESOURCE)
 
 enum {
   PROP_0,
@@ -159,7 +159,6 @@ episode_resource_class_init (EpisodeResourceClass *klass)
   object_class->finalize = episode_resource_finalize;
   object_class->get_property = episode_resource_get_property;
   object_class->set_property = episode_resource_set_property;
-  g_type_class_add_private(object_class, sizeof(EpisodeResourcePrivate));
 
   resource_class = GOM_RESOURCE_CLASS(klass);
   gom_resource_class_set_table(resource_class, "episodes");
@@ -209,9 +208,7 @@ episode_resource_class_init (EpisodeResourceClass *klass)
 static void
 episode_resource_init (EpisodeResource *resource)
 {
-  resource->priv = G_TYPE_INSTANCE_GET_PRIVATE(resource,
-                                               EPISODE_TYPE_RESOURCE,
-                                               EpisodeResourcePrivate);
+  resource->priv = episode_resource_get_instance_private(resource);
 }
 
 static void

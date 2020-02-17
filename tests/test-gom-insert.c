@@ -37,7 +37,7 @@ typedef struct {
 
 GType item_resource_get_type(void);
 
-G_DEFINE_TYPE(ItemResource, item_resource, GOM_TYPE_RESOURCE)
+G_DEFINE_TYPE_WITH_PRIVATE(ItemResource, item_resource, GOM_TYPE_RESOURCE)
 
 static GParamSpec *item_specs[LAST_PROP];
 
@@ -109,7 +109,6 @@ item_resource_class_init (ItemResourceClass *klass)
   object_class->finalize = item_resource_finalize;
   object_class->get_property = item_resource_get_property;
   object_class->set_property = item_resource_set_property;
-  g_type_class_add_private(object_class, sizeof(ItemResourcePrivate));
 
   resource_class = GOM_RESOURCE_CLASS(klass);
   gom_resource_class_set_table(resource_class, "items");
@@ -143,9 +142,7 @@ item_resource_class_init (ItemResourceClass *klass)
 static void
 item_resource_init (ItemResource *resource)
 {
-  resource->priv = G_TYPE_INSTANCE_GET_PRIVATE(resource,
-                                               ITEM_TYPE_RESOURCE,
-                                               ItemResourcePrivate);
+  resource->priv = item_resource_get_instance_private(resource);
 }
 
 /* Item2Resource object */
@@ -174,7 +171,7 @@ typedef struct {
 
 GType item2_resource_get_type(void);
 
-G_DEFINE_TYPE(Item2Resource, item2_resource, GOM_TYPE_RESOURCE)
+G_DEFINE_TYPE_WITH_PRIVATE(Item2Resource, item2_resource, GOM_TYPE_RESOURCE)
 
 static GParamSpec *item2_specs[LAST_PROP];
 
@@ -244,7 +241,6 @@ item2_resource_class_init (Item2ResourceClass *klass)
   object_class->finalize = item2_resource_finalize;
   object_class->get_property = item2_resource_get_property;
   object_class->set_property = item2_resource_set_property;
-  g_type_class_add_private(object_class, sizeof(Item2ResourcePrivate));
 
   resource_class = GOM_RESOURCE_CLASS(klass);
   gom_resource_class_set_table(resource_class, "items");
@@ -278,9 +274,7 @@ item2_resource_class_init (Item2ResourceClass *klass)
 static void
 item2_resource_init (Item2Resource *resource)
 {
-  resource->priv = G_TYPE_INSTANCE_GET_PRIVATE(resource,
-                                               ITEM2_TYPE_RESOURCE,
-                                               Item2ResourcePrivate);
+  resource->priv = item2_resource_get_instance_private(resource);
 }
 
 static void

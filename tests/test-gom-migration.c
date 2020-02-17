@@ -48,7 +48,7 @@ struct _SeriesResourceClass
 
 GType series_resource_get_type (void);
 
-G_DEFINE_TYPE (SeriesResource, series_resource, GOM_TYPE_RESOURCE)
+G_DEFINE_TYPE_WITH_PRIVATE (SeriesResource, series_resource, GOM_TYPE_RESOURCE)
 
 enum {
   PROP_SERIES_0,
@@ -138,7 +138,6 @@ series_resource_class_init (SeriesResourceClass *klass)
   object_class->finalize = series_resource_finalize;
   object_class->get_property = series_resource_get_property;
   object_class->set_property = series_resource_set_property;
-  g_type_class_add_private(object_class, sizeof(SeriesResourcePrivate));
 
   resource_class = GOM_RESOURCE_CLASS(klass);
   gom_resource_class_set_table(resource_class, SERIES_TABLE_NAME);
@@ -186,9 +185,7 @@ series_resource_class_init (SeriesResourceClass *klass)
 static void
 series_resource_init (SeriesResource *resource)
 {
-  resource->priv = G_TYPE_INSTANCE_GET_PRIVATE(resource,
-                                               SERIES_TYPE_RESOURCE,
-                                               SeriesResourcePrivate);
+  resource->priv = series_resource_get_instance_private(resource);
 }
 
 /* BookmarksResource object */
@@ -219,7 +216,7 @@ typedef struct {
 
 GType bookmarks_resource_get_type(void);
 
-G_DEFINE_TYPE(BookmarksResource, bookmarks_resource, GOM_TYPE_RESOURCE)
+G_DEFINE_TYPE_WITH_PRIVATE(BookmarksResource, bookmarks_resource, GOM_TYPE_RESOURCE)
 
 enum {
   PROP_0,
@@ -307,7 +304,6 @@ bookmarks_resource_class_init (BookmarksResourceClass *klass)
   object_class->finalize = bookmarks_resource_finalize;
   object_class->get_property = bookmarks_resource_get_property;
   object_class->set_property = bookmarks_resource_set_property;
-  g_type_class_add_private(object_class, sizeof(BookmarksResourcePrivate));
 
   resource_class = GOM_RESOURCE_CLASS(klass);
   gom_resource_class_set_table(resource_class, "bookmarks");
@@ -351,9 +347,7 @@ bookmarks_resource_class_init (BookmarksResourceClass *klass)
 static void
 bookmarks_resource_init (BookmarksResource *resource)
 {
-  resource->priv = G_TYPE_INSTANCE_GET_PRIVATE(resource,
-                                               BOOKMARKS_TYPE_RESOURCE,
-                                               BookmarksResourcePrivate);
+  resource->priv = bookmarks_resource_get_instance_private(resource);
 }
 
 #if 0

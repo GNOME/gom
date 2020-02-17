@@ -39,7 +39,7 @@ typedef struct {
 
 GType item_resource_get_type(void);
 
-G_DEFINE_TYPE(ItemResource, item_resource, GOM_TYPE_RESOURCE)
+G_DEFINE_TYPE_WITH_PRIVATE(ItemResource, item_resource, GOM_TYPE_RESOURCE)
 
 static GParamSpec *item_specs[LAST_PROP];
 
@@ -117,7 +117,6 @@ item_resource_class_init (ItemResourceClass *klass)
   object_class->finalize = item_resource_finalize;
   object_class->get_property = item_resource_get_property;
   object_class->set_property = item_resource_set_property;
-  g_type_class_add_private(object_class, sizeof(ItemResourcePrivate));
 
   resource_class = GOM_RESOURCE_CLASS(klass);
   gom_resource_class_set_table(resource_class, "items");
@@ -151,9 +150,7 @@ item_resource_class_init (ItemResourceClass *klass)
 static void
 item_resource_init (ItemResource *resource)
 {
-  resource->priv = G_TYPE_INSTANCE_GET_PRIVATE(resource,
-                                               ITEM_TYPE_RESOURCE,
-                                               ItemResourcePrivate);
+  resource->priv = item_resource_get_instance_private(resource);
 }
 
 static void
