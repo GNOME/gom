@@ -37,7 +37,7 @@ enum {
   LAST_PROP
 };
 
-#define NUM_RECORDS 100000
+#define NUM_RECORDS 15000
 #define ITEM_TO_GET (NUM_RECORDS/2)
 
 static GParamSpec *specs[LAST_PROP];
