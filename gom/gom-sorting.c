@@ -21,12 +21,12 @@
 #include "gom-sorting.h"
 #include "gom-resource.h"
 
-G_DEFINE_TYPE(GomSorting, gom_sorting, G_TYPE_INITIALLY_UNOWNED)
-
 struct _GomSortingPrivate
 {
    GQueue *order_by_terms;
 };
+
+G_DEFINE_TYPE_WITH_PRIVATE(GomSorting, gom_sorting, G_TYPE_INITIALLY_UNOWNED)
 
 typedef struct GomOrderByTerm
 {
@@ -59,15 +59,12 @@ gom_sorting_class_init (GomSortingClass *klass)
 
    object_class = G_OBJECT_CLASS(klass);
    object_class->finalize = gom_sorting_finalize;
-
-   g_type_class_add_private(object_class, sizeof(GomSortingPrivate));
 }
 
 static void
 gom_sorting_init (GomSorting *sorting)
 {
-   sorting->priv = G_TYPE_INSTANCE_GET_PRIVATE(sorting, GOM_TYPE_SORTING,
-                                               GomSortingPrivate);
+   sorting->priv = gom_sorting_get_instance_private(sorting);
    sorting->priv->order_by_terms = g_queue_new();
 }
 
