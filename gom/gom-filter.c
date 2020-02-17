@@ -21,8 +21,6 @@
 #include "gom-filter.h"
 #include "gom-resource.h"
 
-G_DEFINE_TYPE(GomFilter, gom_filter, G_TYPE_INITIALLY_UNOWNED)
-
 struct _GomFilterPrivate
 {
    GomFilterMode mode;
@@ -36,6 +34,8 @@ struct _GomFilterPrivate
 
    GQueue *subfilters;
 };
+
+G_DEFINE_TYPE_WITH_PRIVATE(GomFilter, gom_filter, G_TYPE_INITIALLY_UNOWNED)
 
 enum
 {
@@ -696,7 +696,6 @@ gom_filter_class_init (GomFilterClass *klass)
    object_class->finalize = gom_filter_finalize;
    object_class->get_property = gom_filter_get_property;
    object_class->set_property = gom_filter_set_property;
-   g_type_class_add_private(object_class, sizeof(GomFilterPrivate));
 
    gParamSpecs[PROP_MODE] =
       g_param_spec_enum("mode",
@@ -727,10 +726,7 @@ gom_filter_class_init (GomFilterClass *klass)
 static void
 gom_filter_init (GomFilter *filter)
 {
-   filter->priv =
-      G_TYPE_INSTANCE_GET_PRIVATE(filter,
-                                  GOM_TYPE_FILTER,
-                                  GomFilterPrivate);
+   filter->priv = gom_filter_get_instance_private(filter);
    filter->priv->mode = GOM_FILTER_SQL;
 }
 
