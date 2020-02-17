@@ -1,7 +1,7 @@
 project('gom', 'c',
   version: '0.3.3',
   license: 'LGPL-2.1+',
-  meson_version: '>= 0.38.1')
+  meson_version: '>= 0.48')
 
 version = meson.project_version().split('.')
 soversion = 0
