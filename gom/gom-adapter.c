@@ -22,14 +22,14 @@
 #include "gom-command.h"
 #include "gom-error.h"
 
-G_DEFINE_TYPE(GomAdapter, gom_adapter, G_TYPE_OBJECT)
-
 struct _GomAdapterPrivate
 {
    sqlite3 *db;
    GThread *thread;
    GAsyncQueue *queue;
 };
+
+G_DEFINE_TYPE_WITH_PRIVATE(GomAdapter, gom_adapter, G_TYPE_OBJECT)
 
 typedef enum {
    ASYNC_CMD_TYPE_OPEN,
@@ -506,7 +506,6 @@ gom_adapter_class_init (GomAdapterClass *klass)
 
    object_class = G_OBJECT_CLASS(klass);
    object_class->finalize = gom_adapter_finalize;
-   g_type_class_add_private(object_class, sizeof(GomAdapterPrivate));
 }
 
 /**
@@ -518,8 +517,5 @@ gom_adapter_class_init (GomAdapterClass *klass)
 static void
 gom_adapter_init (GomAdapter *adapter)
 {
-   adapter->priv =
-      G_TYPE_INSTANCE_GET_PRIVATE(adapter,
-                                  GOM_TYPE_ADAPTER,
-                                  GomAdapterPrivate);
+   adapter->priv = gom_adapter_get_instance_private(adapter);
 }
