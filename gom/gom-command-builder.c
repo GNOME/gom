@@ -24,8 +24,6 @@
 #include "gom-resource-priv.h"
 #include "gom-sorting.h"
 
-G_DEFINE_TYPE(GomCommandBuilder, gom_command_builder, G_TYPE_OBJECT)
-
 struct _GomCommandBuilderPrivate
 {
    GomAdapter *adapter;
@@ -37,6 +35,8 @@ struct _GomCommandBuilderPrivate
    gchar *m2m_table;
    GType m2m_type;
 };
+
+G_DEFINE_TYPE_WITH_PRIVATE(GomCommandBuilder, gom_command_builder, G_TYPE_OBJECT)
 
 enum
 {
@@ -1027,7 +1027,6 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
    object_class->finalize = gom_command_builder_finalize;
    object_class->get_property = gom_command_builder_get_property;
    object_class->set_property = gom_command_builder_set_property;
-   g_type_class_add_private(object_class, sizeof(GomCommandBuilderPrivate));
 
    gParamSpecs[PROP_ADAPTER] =
       g_param_spec_object("adapter",
@@ -1115,8 +1114,5 @@ gom_command_builder_class_init (GomCommandBuilderClass *klass)
 static void
 gom_command_builder_init (GomCommandBuilder *builder)
 {
-   builder->priv =
-      G_TYPE_INSTANCE_GET_PRIVATE(builder,
-                                  GOM_TYPE_COMMAND_BUILDER,
-                                  GomCommandBuilderPrivate);
+   builder->priv = gom_command_builder_get_instance_private(builder);
 }
