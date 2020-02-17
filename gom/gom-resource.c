@@ -28,13 +28,13 @@
 #include "gom-resource-priv.h"
 #include "reserved-keywords.h"
 
-G_DEFINE_ABSTRACT_TYPE(GomResource, gom_resource, G_TYPE_OBJECT)
-
 struct _GomResourcePrivate
 {
    GomRepository *repository;
    gboolean       is_from_table;
 };
+
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(GomResource, gom_resource, G_TYPE_OBJECT)
 
 enum
 {
@@ -1094,7 +1094,6 @@ gom_resource_class_init (GomResourceClass *klass)
    object_class->get_property = gom_resource_get_property;
    object_class->set_property = gom_resource_set_property;
    object_class->constructed = gom_resource_constructed;
-   g_type_class_add_private(object_class, sizeof(GomResourcePrivate));
 
    gParamSpecs[PROP_REPOSITORY] =
       g_param_spec_object("repository",
@@ -1115,10 +1114,7 @@ gom_resource_class_init (GomResourceClass *klass)
 static void
 gom_resource_init (GomResource *resource)
 {
-   resource->priv =
-      G_TYPE_INSTANCE_GET_PRIVATE(resource,
-                                  GOM_TYPE_RESOURCE,
-                                  GomResourcePrivate);
+   resource->priv = gom_resource_get_instance_private(resource);
 }
 
 gboolean
