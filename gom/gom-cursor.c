@@ -21,13 +21,13 @@
 
 #include "gom-cursor.h"
 
-G_DEFINE_TYPE(GomCursor, gom_cursor, G_TYPE_OBJECT)
-
 struct _GomCursorPrivate
 {
    sqlite3_stmt *stmt;
    guint n_columns;
 };
+
+G_DEFINE_TYPE_WITH_PRIVATE(GomCursor, gom_cursor, G_TYPE_OBJECT)
 
 enum
 {
@@ -292,7 +292,6 @@ gom_cursor_class_init (GomCursorClass *klass)
    object_class->finalize = gom_cursor_finalize;
    object_class->get_property = gom_cursor_get_property;
    object_class->set_property = gom_cursor_set_property;
-   g_type_class_add_private(object_class, sizeof(GomCursorPrivate));
 
    gParamSpecs[PROP_STATEMENT] =
       g_param_spec_pointer("statement",
@@ -312,8 +311,5 @@ gom_cursor_class_init (GomCursorClass *klass)
 static void
 gom_cursor_init (GomCursor *cursor)
 {
-   cursor->priv =
-      G_TYPE_INSTANCE_GET_PRIVATE(cursor,
-                                  GOM_TYPE_CURSOR,
-                                  GomCursorPrivate);
+   cursor->priv = gom_cursor_get_instance_private(cursor);
 }
