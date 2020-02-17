@@ -23,8 +23,6 @@
 #include "gom-command.h"
 #include "gom-error.h"
 
-G_DEFINE_TYPE(GomCommand, gom_command, G_TYPE_OBJECT)
-
 struct _GomCommandPrivate
 {
    GomAdapter   *adapter;
@@ -34,6 +32,8 @@ struct _GomCommandPrivate
 
    GPtrArray    *blobs;
 };
+
+G_DEFINE_TYPE_WITH_PRIVATE(GomCommand, gom_command, G_TYPE_OBJECT)
 
 enum
 {
@@ -545,7 +545,6 @@ gom_command_class_init (GomCommandClass *klass)
    object_class->finalize = gom_command_finalize;
    object_class->get_property = gom_command_get_property;
    object_class->set_property = gom_command_set_property;
-   g_type_class_add_private(object_class, sizeof(GomCommandPrivate));
 
    gParamSpecs[PROP_ADAPTER] =
       g_param_spec_object("adapter",
@@ -575,9 +574,6 @@ gom_command_class_init (GomCommandClass *klass)
 static void
 gom_command_init (GomCommand *command)
 {
-   command->priv =
-      G_TYPE_INSTANCE_GET_PRIVATE(command,
-                                  GOM_TYPE_COMMAND,
-                                  GomCommandPrivate);
+   command->priv = gom_command_get_instance_private(command);
    command->priv->blobs = g_ptr_array_new_with_free_func ((GDestroyNotify) g_bytes_unref);
 }
