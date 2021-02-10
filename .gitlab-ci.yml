@@ -1,11 +1,24 @@
 stages:
 - test
 
+variables:
+  DEPENDENCIES:
+    gcc
+    redhat-rpm-config
+    meson
+    gtk-doc
+    glib2-devel
+    gobject-introspection-devel
+    gdk-pixbuf2-devel
+    sqlite-devel
+    pygobject3-devel
+    python3-devel
+
 build-fedora:
   image: fedora:latest
   stage: test
   before_script:
-    - dnf install -y gcc redhat-rpm-config meson gtk-doc glib2-devel gobject-introspection-devel gdk-pixbuf2-devel sqlite-devel pygobject3-devel python3-devel
+    - dnf install -y $DEPENDENCIES
     # scriptlets bug?
     - gdk-pixbuf-query-loaders-64 > /usr/lib64/gdk-pixbuf-2.0/2.10.0/loaders.cache
   script:
