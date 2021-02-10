@@ -13,6 +13,10 @@ variables:
     sqlite-devel
     pygobject3-devel
     python3-devel
+  DEPENDENCIES_ABI_CHECK:
+    libabigail
+    git
+  LAST_ABI_BREAK: "25ec1926c677eaccca064d6c9e5d84c753360d25"
 
 build-fedora:
   image: fedora:latest
@@ -25,4 +29,6 @@ build-fedora:
     - meson _build
     - G_MESSAGES_DEBUG=all ninja -C _build test
     - ninja -C _build install
+    - dnf install -y $DEPENDENCIES_ABI_CHECK
+    - ./.ci/check-abi ${LAST_ABI_BREAK} $(git rev-parse HEAD)
 
