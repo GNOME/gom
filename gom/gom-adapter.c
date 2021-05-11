@@ -127,7 +127,7 @@ gom_adapter_worker (gpointer data)
  * @callback: (in) (scope async): A callback to execute write queries on SQLite.
  * @user_data: (in): User data for @callback.
  *
- * Queues a callback to be executed within the SQLite thwrite. The callback can
+ * Queues a callback to be executed within the SQLite thread. The callback can
  * perform reads and writes.
  */
 void
