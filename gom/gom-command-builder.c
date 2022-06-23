@@ -459,6 +459,8 @@ gom_command_builder_build_create (GomCommandBuilder *builder,
 
    /* Create the table if it doesn't already exist */
    if (table_is_new_in_version(klass, version)) {
+      g_debug ("Creating table '%s' new in version %d (if it does not exist)", klass->table, version);
+
       str = g_string_new("CREATE TABLE IF NOT EXISTS ");
       add_table_name(str, klass);
       g_string_append(str, "(");
@@ -493,6 +495,9 @@ gom_command_builder_build_create (GomCommandBuilder *builder,
      if (pspecs[i] != primary_pspec &&
          is_mapped(pspecs[i]) &&
          is_new_in_version(pspecs[i], version)) {
+       g_debug ("Adding column '%s' to table '%s' new in version %d",
+                pspecs[i]->name, klass->table, version);
+
        str = g_string_new("ALTER TABLE ");
        add_table_name(str, klass);
        g_string_append(str, " ADD COLUMN ");
