@@ -30,5 +30,6 @@ build-fedora:
     - G_MESSAGES_DEBUG=all ninja -C _build test
     - ninja -C _build install
     - dnf install -y $DEPENDENCIES_ABI_CHECK
-    - ./.ci/check-abi ${LAST_ABI_BREAK} $(git rev-parse HEAD)
+    - curl https://gitlab.freedesktop.org/hadess/check-abi/-/raw/main/contrib/check-abi-fedora.sh | bash
+    - check-abi --parameters="-Denable-gtk-doc=false -Denable-introspection=false"  ${LAST_ABI_BREAK} $(git rev-parse HEAD)
 
