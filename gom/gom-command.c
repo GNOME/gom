@@ -58,7 +58,7 @@ gom_command_bind_param (GomCommand   *command,
 
    priv = command->priv;
 
-   g_debug("Binding gtype %s (%d).", g_type_name(G_VALUE_TYPE(value)), (int) G_VALUE_TYPE(value));
+   /* g_debug("Binding gtype %s (%d).", g_type_name(G_VALUE_TYPE(value)), (int) G_VALUE_TYPE(value)); */
 
    switch (G_VALUE_TYPE(value)) {
    case G_TYPE_BOOLEAN:
