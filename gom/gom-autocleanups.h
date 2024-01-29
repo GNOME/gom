@@ -34,6 +34,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(GomFilter, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GomRepository, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GomResource, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GomResourceGroup, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(GomSorting, g_object_unref)
 
 #endif
 
