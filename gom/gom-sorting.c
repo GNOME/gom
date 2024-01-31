@@ -132,7 +132,8 @@ get_table (GParamSpec *pspec,
  *                                           GOM_SORTING_DESCENDING,
  *                                           EPISODE_TYPE_RESOURCE,
  *                                           "episode-number",
- *                                           GOM_SORTING_ASCENDING);
+ *                                           GOM_SORTING_ASCENDING,
+ *                                           G_TYPE_INVALID);
  * ]|
  *
  * The above example maps to the following SQL statement:
