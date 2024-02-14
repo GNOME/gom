@@ -870,12 +870,14 @@ gom_resource_group_get_index (GomResourceGroup *group,
       ItemData *itemdata;
 
       itemdata = g_hash_table_lookup(priv->items, &index_);
-      if (itemdata == NULL)
-        g_critical ("Index %u is not found in GomResourceGroup %p of size %u. "
-                    "This is an error in your program. "
-                    "Make sure you've called gom_resource_group_fetch_async() or "
-                    "gom_resource_group_fetch_sync() first.",
-                    index_, group, group->priv->count);
+      if (itemdata == NULL) {
+         g_critical ("Index %u is not found in GomResourceGroup %p of size %u. "
+                     "This is an error in your program. "
+                     "Make sure you've called gom_resource_group_fetch_async() or "
+                     "gom_resource_group_fetch_sync() first.",
+                     index_, group, group->priv->count);
+         return NULL;
+      }
       item_data_ensure_resource(itemdata, priv->resource_type, priv->repository);
       return itemdata->resource;
    }
