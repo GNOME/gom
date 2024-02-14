@@ -32,6 +32,7 @@ struct _GomResourceGroupPrivate
    GomRepository *repository;
 
    /* Read group */
+   GMutex items_mutex;
    guint count;
    GomFilter *filter;
    GomSorting *sorting;
@@ -650,11 +651,21 @@ set_props (GType         resource_type,
    return itemdata;
 }
 
+static gboolean
+copy_into (gpointer key,
+           gpointer value,
+           gpointer user_data)
+{
+  g_hash_table_insert (user_data, key, value);
+  return FALSE;
+}
+
 static void
 gom_resource_group_fetch_cb (GomAdapter *adapter,
                              gpointer    user_data)
 {
    GSimpleAsyncResult *simple = user_data;
+   GHashTable *ht = NULL;
    GomCommandBuilder *builder = NULL;
    GomResourceGroup *group;
    GomRepository *repository = NULL;
@@ -717,22 +728,24 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
       goto out;
    }
 
+   g_mutex_lock (&group->priv->items_mutex);
    if (!group->priv->items) {
-      group->priv->items = g_hash_table_new_full(g_int_hash, g_int_equal,
-                                                 g_free, item_data_free);
+      group->priv->items = g_hash_table_new_full(NULL, NULL, NULL, item_data_free);
    }
+   g_mutex_unlock (&group->priv->items_mutex);
 
    idx = offset;
+   ht = g_hash_table_new(NULL, NULL);
 
    while (gom_cursor_next(cursor)) {
-      ItemData *itemdata;
-      guint *key;
-
-      key = g_new0(guint, 1);
-      *key = idx++;
-      itemdata = set_props(resource_type, cursor);
-      g_hash_table_insert(group->priv->items, key, itemdata);
+      ItemData *itemdata = set_props(resource_type, cursor);
+      g_hash_table_insert(ht, GUINT_TO_POINTER(idx), itemdata);
+      idx++;
    }
+
+   g_mutex_lock (&group->priv->items_mutex);
+   g_hash_table_foreach (ht, copy_into, group->priv->items);
+   g_mutex_unlock (&group->priv->items_mutex);
 
    g_simple_async_result_set_op_res_gboolean(simple, TRUE);
 
@@ -744,6 +757,7 @@ out:
    g_clear_object(&filter);
    g_clear_object(&sorting);
    g_clear_object(&repository);
+   g_clear_pointer(&ht, g_hash_table_unref);
    if (!queue)
       g_simple_async_result_complete_in_idle(simple);
    else
@@ -860,29 +874,35 @@ gom_resource_group_get_index (GomResourceGroup *group,
                               guint             index_)
 {
    GomResourceGroupPrivate *priv;
+   GomResource *ret = NULL;
 
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), NULL);
    g_return_val_if_fail(!group->priv->is_writable, NULL);
 
    priv = group->priv;
 
+   g_mutex_lock (&priv->items_mutex);
+
    if (priv->items) {
       ItemData *itemdata;
 
-      itemdata = g_hash_table_lookup(priv->items, &index_);
+      itemdata = g_hash_table_lookup(priv->items, GUINT_TO_POINTER (index_));
       if (itemdata == NULL) {
          g_critical ("Index %u is not found in GomResourceGroup %p of size %u. "
                      "This is an error in your program. "
                      "Make sure you've called gom_resource_group_fetch_async() or "
                      "gom_resource_group_fetch_sync() first.",
                      index_, group, group->priv->count);
-         return NULL;
+         goto unlock;
       }
       item_data_ensure_resource(itemdata, priv->resource_type, priv->repository);
-      return itemdata->resource;
+      ret = itemdata->resource;
    }
 
-   return NULL;
+unlock:
+   g_mutex_unlock (&priv->items_mutex);
+
+   return ret;
 }
 
 /**
@@ -902,6 +922,7 @@ gom_resource_group_finalize (GObject *object)
    g_clear_object(&priv->sorting);
    g_clear_pointer(&priv->items, g_hash_table_unref);
    g_clear_pointer(&priv->to_write, g_ptr_array_unref);
+   g_mutex_clear (&priv->items_mutex);
 
    G_OBJECT_CLASS(gom_resource_group_parent_class)->finalize(object);
 }
@@ -1101,4 +1122,5 @@ static void
 gom_resource_group_init (GomResourceGroup *group)
 {
    group->priv = gom_resource_group_get_instance_private(group);
+   g_mutex_init (&group->priv->items_mutex);
 }
