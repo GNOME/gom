@@ -267,6 +267,8 @@ gom_sorting_get_sql (GomSorting *sorting,
       table = get_table(o->pspec, table_map);
 
       sqls[i] = g_strdup_printf("'%s'.'%s'%s", table, o->pspec->name, o->mode == GOM_SORTING_DESCENDING ? " DESC" : "");
+
+      g_free(table);
    }
    sqls[i] = NULL;
 
