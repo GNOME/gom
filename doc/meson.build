@@ -1,18 +1,40 @@
-vdata = configuration_data()
-vdata.set('VERSION', meson.project_version())
-version_xml = configure_file(
-  input: 'version.xml.in',
-  output: 'version.xml',
-  configuration : vdata)
+toml_conf = configuration_data()
+toml_conf.set('version', meson.project_version())
 
+gidocgen = find_program('gi-docgen')
 
-gnome.gtkdoc('gom',
-  main_sgml: 'gom-docs.sgml',
-  src_dir: [
-    join_paths(meson.source_root(), 'gom'),
-    join_paths(meson.build_root(), 'gom'),
+gidocgen_common_args = [
+  '--quiet',
+  '--no-namespace-dir',
+]
+
+if get_option('werror')
+  gidocgen_common_args += ['--fatal-warnings']
+endif
+
+docs_dir = join_paths(get_option('datadir'), 'doc')
+
+source_toml = configure_file(
+  input: 'Gom.toml.in',
+  output: 'Gom.toml',
+  configuration: toml_conf,
+  install: true,
+  install_dir: join_paths(docs_dir, 'gom-@0@'.format(lib_version)),
+)
+
+custom_target('gom-doc',
+  input: [ source_toml, gom_gir[0] ],
+  output: 'gom-@0@'.format(lib_version),
+  command: [
+    gidocgen,
+    'generate',
+    gidocgen_common_args,
+    '--config=@INPUT0@',
+    '--output-dir=@OUTPUT@',
+    '--content-dir=@0@'.format(meson.current_source_dir()),
+    '@INPUT1@',
   ],
-  dependencies: libgom_dep,
-  gobject_typesfile: 'gom.types',
-  scan_args: ['--rebuild-types'],
-  install: true)
+  build_by_default: true,
+  install: true,
+  install_dir: docs_dir,
+)
