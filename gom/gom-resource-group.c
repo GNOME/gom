@@ -651,13 +651,12 @@ set_props (GType         resource_type,
    return itemdata;
 }
 
-static gboolean
+static void
 copy_into (gpointer key,
            gpointer value,
            gpointer user_data)
 {
   g_hash_table_insert (user_data, key, value);
-  return FALSE;
 }
 
 static void
