@@ -552,17 +552,6 @@ gom_resource_group_set_resource_type (GomResourceGroup *group,
 }
 
 static void
-value_free (gpointer data)
-{
-   GValue *value = data;
-
-   if (value == NULL)
-      return;
-   g_value_unset(value);
-   g_free(value);
-}
-
-static void
 item_data_free (gpointer data)
 {
    ItemData *itemdata = data;
@@ -574,27 +563,56 @@ item_data_free (gpointer data)
 }
 
 static void
-foreach_prop (gpointer key,
-              gpointer value,
-              gpointer user_data)
-{
-   g_object_set_property(user_data, key, value);
-}
-
-static void
 item_data_ensure_resource (ItemData      *itemdata,
                            GType          resource_type,
                            GomRepository *repository)
 {
+   G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+
+   GHashTableIter iter;
+   GParameter *param;
+   GParameter stack_params[32];
+   GParameter *params = stack_params;
+   guint n_params;
+   guint pos = 0;
+
    if (itemdata->resource)
       return;
 
-   itemdata->resource = g_object_new(resource_type,
-                                     "repository", repository,
-                                     NULL);
-   g_hash_table_foreach(itemdata->ht, foreach_prop, itemdata->resource);
+   n_params = 1 + g_hash_table_size (itemdata->ht);
+
+   if (n_params > G_N_ELEMENTS (stack_params))
+      params = g_new (GParameter, n_params);
+
+   memset (&params[0], 0, sizeof (GParameter));
+
+   params[0].name = "repository";
+   g_value_init (&params[0].value, GOM_TYPE_REPOSITORY);
+   g_value_set_object (&params[0].value, repository);
+
+   g_hash_table_iter_init (&iter, itemdata->ht);
+   while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&param)) {
+      params[++pos] = *param;
+   }
+
+   itemdata->resource = g_object_newv(resource_type, n_params, params);
    gom_resource_set_is_from_table(itemdata->resource, TRUE);
    g_clear_pointer(&itemdata->ht, g_hash_table_destroy);
+
+   if (params != stack_params)
+      g_free (params);
+
+   G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+static void
+parameter_free (gpointer data)
+{
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+  GParameter *p = data;
+  g_value_unset (&p->value);
+  g_free (p);
+G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 static ItemData *
@@ -614,32 +632,33 @@ set_props (GType         resource_type,
    klass = g_type_class_ref(resource_type);
    n_cols = gom_cursor_get_n_columns(cursor);
    ht = g_hash_table_new_full (g_str_hash, g_str_equal,
-                               g_free, value_free);
+                               NULL, parameter_free);
 
    for (i = 0; i < n_cols; i++) {
       name = gom_cursor_get_column_name(cursor, i);
       if ((pspec = g_object_class_find_property(klass, name))) {
          GomResourceFromBytesFunc from_bytes;
 
+         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+         GParameter *p = g_new0 (GParameter, 1);
+         G_GNUC_END_IGNORE_DEPRECATIONS
+
+         p->name = pspec->name;
+
          from_bytes = g_param_spec_get_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC);
          if (from_bytes) {
-            GValue *converted;
-            GValue value = { 0, };
+            GValue value = G_VALUE_INIT;
 
-            converted = g_new0 (GValue, 1);
             g_value_init(&value, G_TYPE_BYTES);
             gom_cursor_get_column(cursor, i, &value);
-            (*from_bytes) (g_value_get_boxed(&value), converted);
+            (*from_bytes) (g_value_get_boxed(&value), &p->value);
             g_value_unset(&value);
-            g_hash_table_insert(ht, g_strdup(name), converted);
          } else {
-            GValue *value;
-
-            value = g_new0 (GValue, 1);
-            g_value_init(value, pspec->value_type);
-            gom_cursor_get_column(cursor, i, value);
-            g_hash_table_insert(ht, g_strdup(name), value);
+            g_value_init(&p->value, pspec->value_type);
+            gom_cursor_get_column(cursor, i, &p->value);
          }
+
+         g_hash_table_insert(ht, p->name, p);
       }
    }
 
