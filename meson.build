@@ -17,7 +17,10 @@ pkgconfig = import('pkgconfig')
 enable_gir = get_option('enable-introspection')
 enable_gtkdoc = get_option('enable-gtk-doc')
 
-glib2_required = '>= 2.38'
+glib2_req_version = '2.38'
+glib2_major_version = glib2_req_version.split('.')[0]
+glib2_minor_version = glib2_req_version.split('.')[1]
+glib2_required = '>= @0@'.format(glib2_req_version)
 
 gio_dep = dependency('gio-2.0', version: glib2_required)
 glib_dep = dependency('glib-2.0', version: glib2_required)

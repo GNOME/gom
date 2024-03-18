@@ -34,9 +34,15 @@ gom_private_headers = [
 install_headers(gom_headers,
   subdir: '@0@/@1@'.format(lib_name, meson.project_name()))
 
+libgom_c_args = [
+  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_@0@_@1@'.format(glib2_major_version, glib2_minor_version),
+  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_@0@_@1@'.format(glib2_major_version, glib2_minor_version),
+]
+
 libgom = shared_library(lib_name,
   sources: gom_sources + gom_private_headers,
   install: true,
+  c_args: libgom_c_args,
   soversion: soversion,
   version: lt_version,
   dependencies: [gio_dep, glib_dep, gobject_dep, sqlite3_dep])
