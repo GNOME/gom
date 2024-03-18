@@ -1064,16 +1064,16 @@ pkey_changed_cb (GObject    *gobject,
 static void
 gom_resource_constructed (GObject *object)
 {
-  char *pkey_signal;
   GomResourceClass *klass;
+  char signal_key[128];
 
   /* Monitor the primary key */
   klass = GOM_RESOURCE_CLASS (G_OBJECT_GET_CLASS(object));
   g_assert (klass->primary_key[0] != '\0');
-  pkey_signal = g_strdup_printf("notify::%s", klass->primary_key);
-  g_signal_connect (G_OBJECT (object), pkey_signal,
+  memcpy (signal_key, "notify::", 8);
+  g_strlcat (&signal_key[8], klass->primary_key, sizeof signal_key - 8);
+  g_signal_connect (G_OBJECT (object), signal_key,
                     G_CALLBACK (pkey_changed_cb), NULL);
-  g_free(pkey_signal);
 
   G_OBJECT_CLASS (gom_resource_parent_class)->constructed (object);
 }
