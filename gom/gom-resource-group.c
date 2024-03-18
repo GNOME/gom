@@ -63,9 +63,26 @@ enum
 };
 
 typedef struct {
-   GomResource *resource;
-   GHashTable  *ht;
+   union {
+      /* When inflated == TRUE, this is the resource */
+      GomResource *resource;
+
+      /* When inflated == FALSE, this is the array of
+       * parameters to be inflated. It is always allocated
+       * with an extra parameter at the end that can be
+       * used for inflation of repository property.
+       */
+      GParameter *params;
+   };
+   guint inflated : 1;
+   guint n_params : 31;
 } ItemData;
+
+typedef struct {
+   GParamSpec *pspec;
+   GomResourceFromBytesFunc from_bytes_func;
+   guint column;
+} CursorMapping;
 
 static GParamSpec *gParamSpecs[LAST_PROP];
 
@@ -83,7 +100,7 @@ gom_resource_group_new (GomRepository *repository)
 
 gboolean
 gom_resource_group_append (GomResourceGroup *group,
-			   GomResource      *resource)
+                           GomResource      *resource)
 {
    g_return_val_if_fail(GOM_IS_RESOURCE_GROUP(group), FALSE);
    g_return_val_if_fail(GOM_IS_RESOURCE(resource), FALSE);
@@ -555,11 +572,19 @@ static void
 item_data_free (gpointer data)
 {
    ItemData *itemdata = data;
-   if (itemdata == NULL)
-      return;
-   g_clear_object(&itemdata->resource);
-   g_clear_pointer(&itemdata->ht, g_hash_table_destroy);
-   g_free (itemdata);
+
+   if (itemdata != NULL) {
+      if (itemdata->inflated) {
+         g_clear_object(&itemdata->resource);
+      } else {
+         for (guint i = 0; i < itemdata->n_params; i++) {
+            g_value_unset (&itemdata->params[i].value);
+         }
+         g_free (itemdata->params);
+      }
+
+      g_free (itemdata);
+   }
 }
 
 static void
@@ -567,105 +592,96 @@ item_data_ensure_resource (ItemData      *itemdata,
                            GType          resource_type,
                            GomRepository *repository)
 {
-   G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+   GomResource *resource;
 
-   GHashTableIter iter;
-   GParameter *param;
-   GParameter stack_params[32];
-   GParameter *params = stack_params;
-   guint n_params;
-   guint pos = 0;
+   g_assert (itemdata != NULL);
+   g_assert (!itemdata->inflated || GOM_IS_RESOURCE (itemdata->resource));
 
-   if (itemdata->resource)
+   if (itemdata->inflated)
       return;
 
-   n_params = 1 + g_hash_table_size (itemdata->ht);
+   itemdata->params[itemdata->n_params].name = "repository";
+   g_value_init (&itemdata->params[itemdata->n_params].value, GOM_TYPE_REPOSITORY);
+   g_value_set_object (&itemdata->params[itemdata->n_params].value, repository);
 
-   if (n_params > G_N_ELEMENTS (stack_params))
-      params = g_new (GParameter, n_params);
-
-   memset (&params[0], 0, sizeof (GParameter));
-
-   params[0].name = "repository";
-   g_value_init (&params[0].value, GOM_TYPE_REPOSITORY);
-   g_value_set_object (&params[0].value, repository);
-
-   g_hash_table_iter_init (&iter, itemdata->ht);
-   while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&param)) {
-      params[++pos] = *param;
-   }
-
-   itemdata->resource = g_object_newv(resource_type, n_params, params);
-   gom_resource_set_is_from_table(itemdata->resource, TRUE);
-   g_clear_pointer(&itemdata->ht, g_hash_table_destroy);
-
-   if (params != stack_params)
-      g_free (params);
-
+   G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+   resource = g_object_newv (resource_type,
+                             itemdata->n_params + 1,
+                             itemdata->params);
    G_GNUC_END_IGNORE_DEPRECATIONS
+   gom_resource_set_is_from_table(resource, TRUE);
+
+   for (guint i = 0; i < itemdata->n_params + 1; i++) {
+      g_value_unset (&itemdata->params[i].value);
+   }
+   g_free (itemdata->params);
+
+   itemdata->resource = resource;
+   itemdata->inflated = TRUE;
 }
 
 static void
-parameter_free (gpointer data)
+discover_cursor_mapping (GType          resource_type,
+                         GomCursor     *cursor,
+                         CursorMapping *mappings,
+                         guint         *n_mappings)
 {
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-  GParameter *p = data;
-  g_value_unset (&p->value);
-  g_free (p);
-G_GNUC_END_IGNORE_DEPRECATIONS
+   GObjectClass *klass = g_type_class_ref(resource_type);
+   guint n_cols = gom_cursor_get_n_columns (cursor);
+   guint j = 0;
+
+   for (guint i = 0; i < n_cols; i++) {
+      const char *name = gom_cursor_get_column_name(cursor, i);
+      GParamSpec *pspec;
+
+      if ((pspec = g_object_class_find_property(klass, name))) {
+         mappings[j].pspec = pspec;
+         mappings[j].column = i;
+         mappings[j].from_bytes_func = g_param_spec_get_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC);
+         j++;
+      }
+   }
+
+   *n_mappings = j;
+
+   g_clear_pointer (&klass, g_type_class_unref);
 }
 
 static ItemData *
-set_props (GType         resource_type,
-           GomCursor    *cursor)
+set_props (GType          resource_type,
+           GomCursor     *cursor,
+           CursorMapping *mappings,
+           guint          n_mappings)
 {
-   GObjectClass *klass;
-   const gchar *name;
-   GParamSpec *pspec;
-   guint n_cols;
-   guint i;
-   GHashTable *ht;
    ItemData *itemdata;
 
    g_assert(GOM_IS_CURSOR(cursor));
 
-   klass = g_type_class_ref(resource_type);
-   n_cols = gom_cursor_get_n_columns(cursor);
-   ht = g_hash_table_new_full (g_str_hash, g_str_equal,
-                               NULL, parameter_free);
+   itemdata = g_new (ItemData, 1);
+   itemdata->inflated = FALSE;
+   /* Always include an extra GParameter so that we may
+    * add the GomRepository at the end.
+    */
+   itemdata->params = g_new0 (GParameter, n_mappings + 1);
+   itemdata->n_params = n_mappings;
 
-   for (i = 0; i < n_cols; i++) {
-      name = gom_cursor_get_column_name(cursor, i);
-      if ((pspec = g_object_class_find_property(klass, name))) {
-         GomResourceFromBytesFunc from_bytes;
+   for (guint i = 0; i < n_mappings; i++) {
+      const CursorMapping *map = &mappings[i];
 
-         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-         GParameter *p = g_new0 (GParameter, 1);
-         G_GNUC_END_IGNORE_DEPRECATIONS
+      itemdata->params[i].name = map->pspec->name;
 
-         p->name = pspec->name;
+      if G_UNLIKELY (map->from_bytes_func != NULL) {
+         GValue value = G_VALUE_INIT;
 
-         from_bytes = g_param_spec_get_qdata(pspec, GOM_RESOURCE_FROM_BYTES_FUNC);
-         if (from_bytes) {
-            GValue value = G_VALUE_INIT;
-
-            g_value_init(&value, G_TYPE_BYTES);
-            gom_cursor_get_column(cursor, i, &value);
-            (*from_bytes) (g_value_get_boxed(&value), &p->value);
-            g_value_unset(&value);
-         } else {
-            g_value_init(&p->value, pspec->value_type);
-            gom_cursor_get_column(cursor, i, &p->value);
-         }
-
-         g_hash_table_insert(ht, p->name, p);
+         g_value_init(&value, G_TYPE_BYTES);
+         gom_cursor_get_column(cursor, i, &value);
+         (*map->from_bytes_func) (g_value_get_boxed(&value), &itemdata->params[i].value);
+         g_value_unset(&value);
+      } else {
+         g_value_init(&itemdata->params[i].value, map->pspec->value_type);
+         gom_cursor_get_column(cursor, i, &itemdata->params[i].value);
       }
    }
-
-   g_type_class_unref (klass);
-
-   itemdata = g_new0(ItemData, 1);
-   itemdata->ht = ht;
 
    return itemdata;
 }
@@ -691,6 +707,8 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    GomCursor *cursor = NULL;
    GomFilter *filter = NULL;
    GomSorting *sorting = NULL;
+   CursorMapping mappings_stack[32];
+   CursorMapping *mappings = mappings_stack;
    GError *error = NULL;
    GType resource_type;
    gchar *m2m_table = NULL;
@@ -698,6 +716,7 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    guint limit;
    guint offset;
    guint idx;
+   guint n_mappings = 0;
    GAsyncQueue *queue;
 
    g_return_if_fail(GOM_IS_ADAPTER(adapter));
@@ -755,8 +774,14 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    idx = offset;
    ht = g_hash_table_new(NULL, NULL);
 
+   if (gom_cursor_get_n_columns (cursor) > G_N_ELEMENTS (mappings_stack)) {
+      mappings = g_new (CursorMapping, gom_cursor_get_n_columns (cursor));
+   }
+
+   discover_cursor_mapping (resource_type, cursor, mappings, &n_mappings);
+
    while (gom_cursor_next(cursor)) {
-      ItemData *itemdata = set_props(resource_type, cursor);
+      ItemData *itemdata = set_props(resource_type, cursor, mappings, n_mappings);
       g_hash_table_insert(ht, GUINT_TO_POINTER(idx), itemdata);
       idx++;
    }
@@ -768,6 +793,9 @@ gom_resource_group_fetch_cb (GomAdapter *adapter,
    g_simple_async_result_set_op_res_gboolean(simple, TRUE);
 
 out:
+   if (mappings != mappings_stack)
+      g_free (mappings);
+
    g_object_unref(group);
    g_clear_object(&builder);
    g_clear_object(&command);
@@ -914,6 +942,7 @@ gom_resource_group_get_index (GomResourceGroup *group,
          goto unlock;
       }
       item_data_ensure_resource(itemdata, priv->resource_type, priv->repository);
+      g_assert (itemdata->inflated);
       ret = itemdata->resource;
    }
 
