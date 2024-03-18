@@ -20,11 +20,15 @@
 #include "gom-command-builder.h"
 #include "gom-cursor.h"
 #include "gom-error.h"
-#include "gom-repository.h"
+#include "gom-repository-private.h"
+#include "gom-resource-private.h"
 
 struct _GomRepositoryPrivate
 {
    GomAdapter *adapter;
+
+   GMutex mutex;
+   GQueue observed;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(GomRepository, gom_repository, G_TYPE_OBJECT)
@@ -866,8 +870,16 @@ static void
 gom_repository_finalize (GObject *object)
 {
    GomRepositoryPrivate *priv = GOM_REPOSITORY(object)->priv;
+   GList *link;
 
    g_clear_object(&priv->adapter);
+
+   while ((link = priv->observed.head)) {
+      g_queue_unlink (&priv->observed, link);
+      _gom_resource_weak_notify (link->data);
+   }
+
+   g_mutex_clear (&priv->mutex);
 
    G_OBJECT_CLASS(gom_repository_parent_class)->finalize(object);
 }
@@ -960,4 +972,30 @@ static void
 gom_repository_init (GomRepository *repository)
 {
    repository->priv = gom_repository_get_instance_private(repository);
+
+   g_mutex_clear (&repository->priv->mutex);
+}
+
+void
+_gom_repository_observe (GomRepository *repository,
+                         GList         *link)
+{
+  g_assert (GOM_IS_REPOSITORY (repository));
+  g_assert (link != NULL);
+
+  g_mutex_lock (&repository->priv->mutex);
+  g_queue_push_tail_link (&repository->priv->observed, link);
+  g_mutex_unlock (&repository->priv->mutex);
+}
+
+void
+_gom_repository_unobserve (GomRepository *repository,
+                           GList         *link)
+{
+  g_assert (GOM_IS_REPOSITORY (repository));
+  g_assert (link != NULL);
+
+  g_mutex_lock (&repository->priv->mutex);
+  g_queue_unlink (&repository->priv->observed, link);
+  g_mutex_unlock (&repository->priv->mutex);
 }

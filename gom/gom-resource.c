@@ -24,6 +24,7 @@
 #include "gom-error.h"
 #include "gom-filter.h"
 #include "gom-repository.h"
+#include "gom-repository-private.h"
 #include "gom-resource.h"
 #include "gom-resource-priv.h"
 #include "reserved-keywords.h"
@@ -31,6 +32,7 @@
 struct _GomResourcePrivate
 {
    GomRepository *repository;
+   GList          link;
    gboolean       is_from_table;
 };
 
@@ -287,20 +289,19 @@ gom_resource_set_repository (GomResource   *resource,
 
    priv = resource->priv;
 
-   old = priv->repository;
-   if (old) {
-      g_object_remove_weak_pointer(G_OBJECT(priv->repository),
-                                   (gpointer *)&priv->repository);
-      priv->repository = NULL;
-   }
+   if (priv->repository == repository)
+      return;
 
-   if (repository) {
-      priv->repository = repository;
-      g_object_add_weak_pointer(G_OBJECT(priv->repository),
-                                (gpointer *)&priv->repository);
-      g_object_notify_by_pspec(G_OBJECT(resource),
-                               gParamSpecs[PROP_REPOSITORY]);
-   }
+   old = priv->repository;
+   priv->repository = repository;
+
+   if (old)
+      _gom_repository_unobserve (old, &priv->link);
+
+   if (repository)
+      _gom_repository_observe (repository, &priv->link);
+
+   g_object_notify_by_pspec (G_OBJECT (resource), gParamSpecs[PROP_REPOSITORY]);
 }
 
 gboolean
@@ -981,19 +982,18 @@ gom_resource_fetch_m2m_finish (GomResource   *resource,
    return group ? g_object_ref(group) : NULL;
 }
 
-/**
- * gom_resource_finalize:
- * @object: (in): A #GomResource.
- *
- * Finalizer for a #GomResource instance.  Frees any resources held by
- * the instance.
- */
 static void
-gom_resource_finalize (GObject *object)
+gom_resource_dispose (GObject *object)
 {
    GomResource *resource = (GomResource *) object;
-   gom_resource_set_repository(resource, NULL);
-   G_OBJECT_CLASS(gom_resource_parent_class)->finalize(object);
+
+   if (resource->priv->repository) {
+      _gom_repository_unobserve (resource->priv->repository,
+                                 &resource->priv->link);
+      resource->priv->repository = NULL;
+   }
+
+   G_OBJECT_CLASS(gom_resource_parent_class)->dispose (object);
 }
 
 /**
@@ -1090,7 +1090,7 @@ gom_resource_class_init (GomResourceClass *klass)
    GObjectClass *object_class;
 
    object_class = G_OBJECT_CLASS(klass);
-   object_class->finalize = gom_resource_finalize;
+   object_class->dispose = gom_resource_dispose;
    object_class->get_property = gom_resource_get_property;
    object_class->set_property = gom_resource_set_property;
    object_class->constructed = gom_resource_constructed;
@@ -1115,6 +1115,7 @@ static void
 gom_resource_init (GomResource *resource)
 {
    resource->priv = gom_resource_get_instance_private(resource);
+   resource->priv->link.data = resource;
 }
 
 gboolean
@@ -1176,4 +1177,11 @@ GQuark
 gom_resource_notnull (void)
 {
    return g_quark_from_static_string("gom_resource_notnull");
+}
+
+void
+_gom_resource_weak_notify (GomResource *resource)
+{
+  GomResourcePrivate *priv = resource->priv;
+  priv->repository = NULL;
 }
