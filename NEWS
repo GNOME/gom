@@ -1,5 +1,12 @@
 Major changes in version
 
+0.5.1
+---
+- Reduce object inflation overhead in GType system usage
+- Avoid some allocations in hot paths
+- Avoid hashtables for resourcegroup items
+- Avoid use of weak pointers when unnecessary
+
 0.5
 ---
 - Add missing cleanup attribute for GomSorting
