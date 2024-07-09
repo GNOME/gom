@@ -11,7 +11,7 @@ variables:
     gobject-introspection-devel
     gdk-pixbuf2-devel
     sqlite-devel
-    pygobject3-devel
+    python3-gobject-devel
     python3-devel
   DEPENDENCIES_ABI_CHECK:
     libabigail
