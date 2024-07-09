@@ -973,7 +973,7 @@ gom_repository_init (GomRepository *repository)
 {
    repository->priv = gom_repository_get_instance_private(repository);
 
-   g_mutex_clear (&repository->priv->mutex);
+   g_mutex_init (&repository->priv->mutex);
 }
 
 void
