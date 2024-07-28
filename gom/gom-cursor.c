@@ -149,6 +149,9 @@ gom_cursor_get_column (GomCursor *cursor,
          g_value_take_boxed(value, g_bytes_new_take(data_copy, size));
          }
          break;
+      case SQLITE_NULL:
+         g_value_init(value, G_TYPE_BYTES);
+         break;
       default:
          g_assert_not_reached();
       }

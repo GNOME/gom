@@ -249,6 +249,18 @@ SET_PARAM_HELPER(guint, uint, UINT)
 SET_PARAM_HELPER(guint64, uint64, UINT64)
 SET_PARAM_HELPER(const gchar *, string, STRING)
 
+void
+gom_command_set_param_bytes (GomCommand *command,
+                             guint       param,
+                             GBytes     *bytes)
+{
+  GValue gvalue = G_VALUE_INIT;
+  g_value_init (&gvalue, G_TYPE_BYTES);
+  g_value_set_boxed (&gvalue, bytes);
+  gom_command_set_param (command, param, &gvalue);
+  g_value_unset (&gvalue);
+}
+
 gint
 gom_command_get_param_index (GomCommand  *command,
                              const gchar *param_name)

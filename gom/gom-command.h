@@ -83,6 +83,9 @@ void         gom_command_set_param_uint64 (GomCommand    *command,
 void         gom_command_set_param_string (GomCommand    *command,
                                            guint          param,
                                            const gchar   *value);
+void         gom_command_set_param_bytes  (GomCommand    *command,
+                                           guint          param,
+                                           GBytes        *bytes);
 
 G_END_DECLS
 
