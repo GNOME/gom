@@ -101,6 +101,10 @@ is_mapped (GParamSpec *pspec)
    if (!ret)
      return FALSE;
 
+   /* Ignore read-only properties as we can never write them back */
+   if ((pspec->flags & G_PARAM_WRITABLE) == 0)
+     return FALSE;
+
    ret = (sql_type_for_column(pspec) != NULL);
    if (!ret) {
      g_debug("Property %s not mapped because type is unsupported (%s)",
