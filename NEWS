@@ -1,5 +1,10 @@
 Major changes in version
 
+0.5.3
+-----
+- Automatically ignore read-only properties
+- Add support for GParamSpec which are GBytes
+
 0.5.2
 -----
 - Fix a mismatched g_mutex_init()/g_mutex_clear() which caused
