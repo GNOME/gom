@@ -23,7 +23,7 @@ print(overridedir)
 '''
 
 if pygobject_override_dir == ''
-    python3 = import('python3').find_python()
+    python3 = import('python').find_installation('python3')
 
     ret = run_command([python3, '-c', get_overridedir])
 
