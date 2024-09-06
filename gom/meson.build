@@ -54,10 +54,14 @@ libgom_dep = declare_dependency(
 
 if enable_gir
   gom_gir = gnome.generate_gir(libgom,
-    sources: gom_headers + gom_sources,
-    namespace: 'Gom', nsversion: lib_version,
-    identifier_prefix: 'Gom', symbol_prefix: 'gom',
-    dependencies: [gio_dep, gobject_dep],
-    includes: ['Gio-2.0', 'GObject-2.0'],
-    install: true)
+              sources: gom_headers + gom_sources,
+            namespace: 'Gom',
+            nsversion: lib_version,
+      export_packages: '@0@-@1@'.format(meson.project_name(), lib_version),
+        symbol_prefix: 'gom',
+    identifier_prefix: 'Gom',
+         dependencies: [gio_dep, gobject_dep],
+             includes: ['Gio-2.0'],
+              install: true,
+               header: 'gom.h')
 endif
