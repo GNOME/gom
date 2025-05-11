@@ -368,33 +368,11 @@ stress2 (void)
    g_object_unref(adapter);
 }
 
-static void
-stress_time(void)
-{
-   GTimer *timer;
-   gdouble test1, test2;
-
-   timer = g_timer_new();
-   stress();
-   g_timer_stop(timer);
-   test1 = g_timer_elapsed(timer, NULL);
-
-   g_timer_start(timer);
-   stress2();
-   g_timer_stop(timer);
-   test2 = g_timer_elapsed(timer, NULL);
-
-   g_timer_destroy(timer);
-
-   g_assert_cmpfloat(test1, >, test2);
-}
-
 gint
 main (int argc, char **argv)
 {
    g_test_init(&argc, &argv, NULL);
    g_test_add_func("/GomRepository/stress", stress);
    g_test_add_func("/GomRepository/stress2", stress2);
-   //g_test_add_func("/GomRepository/stress_time", stress_time);
    return g_test_run();
 }
