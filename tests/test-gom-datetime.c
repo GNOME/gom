@@ -153,6 +153,8 @@ item_resource_init (ItemResource *resource)
   resource->priv = item_resource_get_instance_private(resource);
 }
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+
 static void
 update (void)
 {
@@ -201,7 +203,7 @@ update (void)
 
   g_object_unref(it);
   g_date_time_unref(start);
-  
+
 
   g_value_init(&value, G_TYPE_STRING);
   g_value_set_string(&value, "My identifier");
@@ -230,7 +232,7 @@ update (void)
   g_free (iso8601);
 
   g_assert(end == NULL);
-  
+
 
   ret = gom_adapter_close_sync(adapter, &error);
   g_assert_no_error(error);
@@ -239,6 +241,8 @@ update (void)
   g_object_unref(repository);
   g_object_unref(adapter);
 }
+
+G_GNUC_END_IGNORE_DEPRECATIONS
 
 gint
 main (int argc, char **argv)
