@@ -1,5 +1,9 @@
 Major changes in version
 
+0.5.4
+-----
+- Build system improvements
+
 0.5.3
 -----
 - Automatically ignore read-only properties
