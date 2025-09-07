@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 
 
+import gi
 from gi.types import GObjectMeta
 from gi.repository import GLib
 from gi.repository import GObject
-from gi.repository import Gom
+gi.require_version('Gom', '1.0')
+from gi.repository import Gom   # noqa
 
 
 # Need a metaclass until we get something like _gclass_init_
