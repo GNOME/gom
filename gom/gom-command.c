@@ -309,6 +309,13 @@ gom_command_prepare (GomCommand  *command,
    return ret;
 }
 
+/**
+ * gom_command_execute:
+ * @command: a [class@Gom.Command]
+ * @cursor: (out) (nullable): a location for the cursor
+ *
+ * Returns: %TRUE if successful; otherwise %FALSE and @error is set.
+ */
 gboolean
 gom_command_execute (GomCommand  *command,
                      GomCursor  **cursor,
