@@ -13,6 +13,11 @@ tests = [
 
 foreach test_name: tests
   exe = executable(test_name, '@0@.c'.format(test_name),
+    c_args: [
+      '-DG_ENABLE_DEBUG',
+      '-UG_DISABLE_ASSERT',
+      '-UG_DISABLE_CAST_CHECKS',
+    ],
     dependencies: [libgom_dep])
   test(test_name, exe)
 endforeach
