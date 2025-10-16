@@ -46,7 +46,7 @@ test_GomAdapter_open_async (void)
    g_main_loop_run(gMainLoop);
    g_assert_true(success);
 
-   g_assert_finalize_object (g_steal_pointer (&adapter));
+   g_clear_object (&adapter);
 }
 
 gint

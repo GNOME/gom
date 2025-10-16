@@ -201,7 +201,7 @@ update (void)
   g_assert(ret);
   g_assert_no_error(error);
 
-  g_assert_finalize_object (g_steal_pointer (&it));
+  g_clear_object (&it);
   g_date_time_unref(start);
 
 
@@ -222,7 +222,7 @@ update (void)
 	       "start", &start,
 	       "end", &end,
 	       NULL);
-  g_assert_finalize_object (g_steal_pointer (&it));
+  g_clear_object (&it);
 
   g_date_time_to_timeval(start, &tv);
   g_clear_pointer (&start, g_date_time_unref);
@@ -238,8 +238,8 @@ update (void)
   g_assert_no_error(error);
   g_assert(ret);
 
-  g_assert_finalize_object (repository);
-  g_assert_finalize_object (adapter);
+  g_clear_object (&repository);
+  g_clear_object (&adapter);
 }
 
 G_GNUC_END_IGNORE_DEPRECATIONS
