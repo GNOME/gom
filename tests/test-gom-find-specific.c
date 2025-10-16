@@ -1,8 +1,6 @@
 #include <gom/gom.h>
 #include <glib/gstdio.h>
 
-static GMainLoop *gMainLoop;
-
 /* EpisodeResource object */
 
 #define EPISODE_TYPE_RESOURCE              (episode_resource_get_type())
@@ -259,7 +257,7 @@ free_memory_db (GomAdapter *adapter,
 
   ret = gom_adapter_close_sync (adapter, &error);
   g_assert_no_error (error);
-  g_assert (ret);
+  g_assert_true (ret);
 
   g_object_unref (repository);
   g_object_unref (adapter);
@@ -436,7 +434,7 @@ find_specific_and_full (void)
                                           filter4,
                                           &error);
   g_assert_no_error(error);
-  g_assert(resource);
+  g_assert_nonnull(resource);
   g_object_unref(filter4);
   eres = EPISODE_RESOURCE(resource);
 
@@ -507,7 +505,7 @@ find_specific_and_fullv (void)
                                           filter,
                                           &error);
   g_assert_no_error(error);
-  g_assert(resource);
+  g_assert_nonnull(resource);
   g_object_unref(filter);
   eres = EPISODE_RESOURCE(resource);
 
@@ -591,6 +589,7 @@ find_specific_ensure_priorities (void)
    g_object_unref(filter3);
    g_object_unref(filter4);
    g_object_unref(filter5);
+   g_object_unref(group);
 
    free_memory_db(adapter, repository);
 }
@@ -779,7 +778,7 @@ find_sql (void)
   resource = gom_repository_find_one_sync(repository, EPISODE_TYPE_RESOURCE,
                                           filter, &error);
   g_assert_no_error(error);
-  g_assert(resource);
+  g_assert_nonnull(resource);
   g_object_unref(filter);
   eres = EPISODE_RESOURCE(resource);
 
@@ -810,6 +809,5 @@ main (gint argc, gchar *argv[])
    g_test_add_func ("/GomRepository/find-null", find_null);
    g_test_add_func ("/GomRepository/find-not-null", find_not_null);
    g_test_add_func ("/GomRepository/find-sql", find_sql);
-   gMainLoop = g_main_loop_new (NULL, FALSE);
    return g_test_run ();
 }

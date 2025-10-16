@@ -201,7 +201,7 @@ update (void)
   g_assert(ret);
   g_assert_no_error(error);
 
-  g_object_unref(it);
+  g_assert_finalize_object (g_steal_pointer (&it));
   g_date_time_unref(start);
 
 
@@ -222,24 +222,24 @@ update (void)
 	       "start", &start,
 	       "end", &end,
 	       NULL);
-  g_object_unref(it);
+  g_assert_finalize_object (g_steal_pointer (&it));
 
   g_date_time_to_timeval(start, &tv);
-  g_date_time_unref (start);
+  g_clear_pointer (&start, g_date_time_unref);
 
   iso8601 = g_time_val_to_iso8601(&tv);
   g_assert_cmpstr(iso8601, ==, "1970-01-01T00:00:00Z");
   g_free (iso8601);
 
-  g_assert(end == NULL);
+  g_assert_null(end);
 
 
   ret = gom_adapter_close_sync(adapter, &error);
   g_assert_no_error(error);
   g_assert(ret);
 
-  g_object_unref(repository);
-  g_object_unref(adapter);
+  g_assert_finalize_object (repository);
+  g_assert_finalize_object (adapter);
 }
 
 G_GNUC_END_IGNORE_DEPRECATIONS
