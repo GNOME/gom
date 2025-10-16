@@ -10,7 +10,6 @@ description = "A GNOME library for GObject Data Mapping"
 dependencies = ["Gio-2.0"]
 devhelp = true
 search_index = true
-logo_url = "gom.svg"
 
   [dependencies."GObject-2.0"]
   name = "GObject"
