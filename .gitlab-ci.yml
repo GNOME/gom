@@ -5,10 +5,12 @@ include:
     inputs:
       lsan: "disabled"
       job-stage: "test"
+      meson-options: "-Denable-gtk-doc=true"
   - component: gitlab.gnome.org/GNOME/citemplates/release-service@master
     inputs:
       dist-job-name: "build-gnomeos"
       tarball-artifact-path: "_builddir/meson-dist/$CI_PROJECT_NAME-$CI_COMMIT_TAG.tar.xz"
+  - component: "gitlab.gnome.org/GNOME/citemplates/basic-deploy-docs@master"
 
 stages:
 - test
