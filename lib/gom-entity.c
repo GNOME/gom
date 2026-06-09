@@ -366,7 +366,6 @@ gom_entity_build_identity_key (GomEntity *self)
 {
   g_autoptr(GString) key = NULL;
   GomEntityClass *entity_class;
-  const GomEntitySpec *entity_spec;
   const GomPropertySpec *property_spec;
   GType value_type;
   const char * const *identity_fields;
@@ -378,7 +377,7 @@ gom_entity_build_identity_key (GomEntity *self)
   if (identity_fields == NULL || identity_fields[0] == NULL)
     return NULL;
 
-  if (!(entity_spec = gom_entity_get_entity_spec (self)))
+  if (gom_entity_get_entity_spec (self) == NULL)
     return NULL;
 
   key = g_string_new (G_OBJECT_TYPE_NAME (self));
@@ -3109,11 +3108,10 @@ gom_entity_backfill_identity_from_record (GomEntity *self,
   for (n_identity_fields = 0; identity_fields[n_identity_fields] != NULL; n_identity_fields++)
     {
       const char *identity_field = identity_fields[n_identity_fields];
-      const GomPropertySpec *property_spec;
       g_auto(GValue) value = G_VALUE_INIT;
       gboolean have_value = FALSE;
 
-      if ((property_spec = gom_entity_get_property_spec (self, identity_field)) == NULL)
+      if (gom_entity_get_property_spec (self, identity_field) == NULL)
         continue;
 
       have_writable_identity = TRUE;
@@ -3350,7 +3348,6 @@ gom_entity_update (GomEntity *self)
     for (guint i = 0; i < gom_delta_get_n_changes (delta); i++)
       {
         const char *property_name = gom_delta_get_property_name (delta, i);
-        const GomPropertySpec *property_spec;
         GomEntityPropertyInfo *prop_info;
         const char *field_name;
         g_auto(GValue) value = G_VALUE_INIT;
@@ -3361,7 +3358,7 @@ gom_entity_update (GomEntity *self)
         if (!gom_entity_property_visible_at_version (entity_class, property_name, version))
           continue;
 
-        if ((property_spec = gom_entity_get_property_spec (self, property_name)) == NULL)
+        if (gom_entity_get_property_spec (self, property_name) == NULL)
           continue;
 
         prop_info = _gom_entity_class_get_property (entity_class, property_name, FALSE);
