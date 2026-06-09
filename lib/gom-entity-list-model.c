@@ -616,7 +616,7 @@ gom_entity_list_model_session_changed_cb (GomEntityListModel *self,
   g_assert (GOM_IS_ENTITY_LIST_MODEL (self));
   g_assert (GOM_IS_SESSION (session));
 
-  gom_entity_list_model_request_reload (self, TRUE);
+  dex_future_disown (gom_entity_list_model_request_reload (self, TRUE));
 }
 
 static GType

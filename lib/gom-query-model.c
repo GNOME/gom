@@ -448,7 +448,7 @@ gom_query_model_session_changed_cb (GomSession    *session,
   g_assert (GOM_IS_SESSION (session));
   g_assert (GOM_IS_QUERY_MODEL (self));
 
-  gom_query_model_request_reload (self);
+  dex_future_disown (gom_query_model_request_reload (self));
 }
 
 /**
