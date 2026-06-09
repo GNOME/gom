@@ -1,4 +1,4 @@
-project('libgom', 'c',
+project('gom', 'c',
           version: '2.0.alpha',
     meson_version: '>= 1.1.0',
   default_options: ['warning_level=2', 'werror=false'],
