@@ -1,0 +1,52 @@
+# gom-2.0.alpha
+
+This is a new implementation from scratch of libgom as the 2.0 API/ABI.
+
+It provides a much more complete surface area for an object mapper than
+I was able to achieve for the GOM 1.0 series. Backed by years of having
+worked on actual databases and concurrency toolkits lead me down a much
+different direction this time around.
+
+- Public API surface is naturally asynchronous built on top of DexFuture
+  from libdex (my concurrency toolkit).
+- Support for Python through GObject Introspection, particularly with
+  the help of Gom.py and Dex.py GI overrides installed with their
+  respective projects.
+- Supports both SQLite and PostgreSQL, though much more biased towards
+  SQLite in terms of feature set. Capabilities are dynamic as well as
+  compiled, where necessary. It may be possible to add more database
+  drivers in the future.
+- GomRepository, like the 1.0 ABI, is the primary entry point for
+  application develers. GomAdapter hsa been renamed to GomDriver and
+  expanded greatly in terms of surface area.
+- Transaction scoped APIs are provided in the form of GomSession which
+  was completely lacking in the 1.0.
+- Native GomExpression tree representation for more semantic
+  query generation.
+- Asynchronous cursor iteration via GomCursor. We try to hide how
+  annoying that can become by providing handy list-models.
+- You can materialize to a generic GomRecord if you do not have an
+  entity type to materialize. Helpful when reflecting upon an existing
+  database which is not mapped into libgom-2 native constructs
+  such as a SQLite explorer application.
+- Schema-aware query builders for SELECT
+- Mutation builders for INSERT, UPDATE, and DELETE which can work on
+  GomEntity or raw relations/projections.
+- Entity property mapping provides many more features, especially around
+  lifecycle and change tracking.
+- CRUD helpres for insert/update/delete workflows
+- Relationship metadata is now modeled which allows for proper
+  one-to-one, one-to-many, many-to-many, inverse, and self-referential
+relationships.
+- Automatic schema migration for entities, manual schema migration
+  integration when you need it.
+- Schema introspection with relation listing and relation description
+- GTK-facing GListModel adapters: GomQueryModel, GomRelatedModel,
+  GomEntityListModel, and GomRecordListModel.
+- SQLite driver supports encryption, full-text search (FTS5), and vector
+  search via vec1.
+- Abstractions for synchronization with external system in the form of
+  GomSyncCoordinator and GomSyncTransport. The long-term goal here is to
+  provide the necessary mechanics for continual sync to a personal data-
+  store that is not necessarliy on-device but could be local-network,
+  or even a hosted service.
