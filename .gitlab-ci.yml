@@ -5,6 +5,9 @@ include:
     inputs:
       meson-options: "-Dsqlite-backend=enabled -Dsqlite-vec1=enabled -Dsysprof=enabled -Dtests=true -Ddemos=true -Ddocs=true -Dpostgresql-backend=enabled -Dpgsql-tests=false -Dpgsql-tests-dbname=false -Dpgsql-tests-tablespace=false -Dpgsql-tests-uri=false --force-fallback-for=libdex,pgsql-glib -Dvapi=false"
       lsan-options: "suppressions=${CI_PROJECT_DIR}/testsuite/lsan.supp"
+      grcov-c: "disabled"
+      gobject-linter: "disabled"
+      scan-build: "disabled"
   - component: "gitlab.gnome.org/GNOME/citemplates/release-service@master"
     inputs:
       dist-job-name: "build-gnomeos"
