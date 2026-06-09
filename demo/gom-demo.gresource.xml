@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/">
+    <file alias="ui/gom-demo.ui">ui/gom-demo.ui</file>
+    <file alias="ui/gom-demo-view-cell.ui">ui/gom-demo-view-cell.ui</file>
+  </gresource>
+</gresources>

@@ -1,0 +1,3 @@
+*.swp
+*~
+/subprojects/sqlite3mc/

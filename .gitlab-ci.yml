@@ -1,0 +1,40 @@
+include:
+  - project: "GNOME/citemplates"
+    file: "templates/default-rules.yml"
+  - component: "gitlab.gnome.org/GNOME/citemplates/gnomeos-basic-ci@master"
+    inputs:
+      meson-options: "-Dsqlite-backend=enabled -Dsqlite-vec1=enabled -Dsysprof=enabled -Dtests=true -Ddemos=true -Ddocs=true -Dpostgresql-backend=enabled -Dpgsql-tests=false -Dpgsql-tests-dbname=false -Dpgsql-tests-tablespace=false -Dpgsql-tests-uri=false --force-fallback-for=libdex,pgsql-glib"
+      lsan-options: "suppressions=${CI_PROJECT_DIR}/testsuite/lsan.supp"
+  - component: "gitlab.gnome.org/GNOME/citemplates/release-service@master"
+    inputs:
+      dist-job-name: "build-gnomeos"
+  - component: "gitlab.gnome.org/GNOME/citemplates/basic-deploy-docs@master"
+
+variables:
+  POSTGRESQL_VERSION: "14.23"
+  POSTGRESQL_PREFIX: "${CI_PROJECT_DIR}/_postgresql-prefix"
+
+.libpq-before-script:
+  before_script: &libpq-before-script
+    - . build-aux/ci/build-libpq.sh
+
+build-gnomeos:
+  before_script: *libpq-before-script
+
+build-gnomeos-asan:
+  before_script: *libpq-before-script
+
+build-gnomeos-clang:
+  before_script: *libpq-before-script
+
+build-gnomeos-grcov-c:
+  before_script: *libpq-before-script
+
+build-gnomeos-lsan:
+  before_script: *libpq-before-script
+
+build-gnomeos-scan-build:
+  before_script: *libpq-before-script
+
+build-gnomeos-ubsan:
+  before_script: *libpq-before-script

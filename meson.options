@@ -1,0 +1,51 @@
+option('docs',
+       type: 'boolean', value: false,
+       description: 'Build reference manual (requires gi-doc and gobject-introspection)')
+option('demos',
+       type: 'boolean', value: false,
+       description: 'Build demo programs (requires GTK 4)')
+option('stack-protector',
+       type: 'boolean', value: true,
+       description: 'Enable stack-protector')
+option('vapi',
+       type: 'boolean', value: true,
+       description: 'Generate vapi data (requires vapigen)')
+option('introspection',
+       type: 'feature', value: 'enabled',
+       description: 'Generate gir data (requires gobject-introspection)')
+option('pygobject',
+       type: 'boolean', value: true,
+       description: 'Install PyGObject overrides')
+option('pygobject-override-dir',
+       type: 'string', value: '',
+       description: 'Relative path to PyGObject override directory')
+option('sqlite-backend',
+       type: 'feature', value: 'enabled',
+       description: 'Build SQLite driver backend')
+option('sqlite-vec1',
+       type: 'feature', value: 'auto',
+       description: 'Build SQLite vec1 vector search support')
+option('postgresql-backend',
+       type: 'feature', value: 'enabled',
+       description: 'Build PostgreSQL driver backend (pgsql-glib)')
+option('sysprof',
+       type: 'feature', value: 'auto',
+       description: 'Enable Sysprof capture integration')
+option('tests',
+       type: 'boolean', value: true,
+       description: 'Build and enable tests')
+option('performance-tests',
+       type: 'boolean', value: false,
+       description: 'Build and enable performance/stress tests')
+option('pgsql-tests',
+       type: 'boolean', value: false,
+       description: 'Build PostgreSQL conformance tests')
+option('pgsql-tests-dbname',
+       type: 'string', value: 'libgom',
+       description: 'PostgreSQL database used by conformance tests')
+option('pgsql-tests-tablespace',
+       type: 'string', value: '',
+       description: 'Expected default tablespace for PostgreSQL conformance tests')
+option('pgsql-tests-uri',
+       type: 'string', value: '',
+       description: 'Override PostgreSQL URI used by conformance tests')

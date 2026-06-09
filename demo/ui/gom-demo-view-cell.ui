@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GomDemoViewCell" parent="GtkBox">
+    <property name="orientation">horizontal</property>
+    <child>
+      <object class="GtkLabel">
+        <property name="xalign">0</property>
+        <property name="ellipsize">end</property>
+        <binding name="label">
+          <closure type="gchararray" function="gom_demo_view_cell_string">
+            <lookup name="record" type="GomRecordListItem">
+              <lookup name="item">GomDemoViewCell</lookup>
+            </lookup>
+            <lookup name="field">GomDemoViewCell</lookup>
+          </closure>
+        </binding>
+      </object>
+    </child>
+  </template>
+</interface>

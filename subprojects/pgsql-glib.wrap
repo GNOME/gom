@@ -1,0 +1,8 @@
+[wrap-git]
+directory=pgsql-glib
+url=https://gitlab.gnome.org/chergert/pgsql-glib.git
+revision=main
+
+[provide]
+dependency_names=pgsql-glib-1
+pgsql-glib-1=libpgsql_glib_dep

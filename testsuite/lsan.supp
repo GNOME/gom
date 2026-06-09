@@ -1,0 +1,15 @@
+# Ignore openssl leak
+#0 0xffff8add7d0c in malloc (/usr/lib/aarch64-linux-gnu/liblsan.so.0+0x17d0c) (BuildId: acc2cd3702404a9acdfcea96729b28ac6a40fd14)
+#1 0xffff8908324c in CRYPTO_malloc (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x21324c) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#2 0xffff890833e0 in CRYPTO_zalloc (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x2133e0) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#3 0xffff8906b28c in EVP_PKEY_meth_new (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x1fb28c) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#4 0xffff85b1dbb0  (<unknown module>)
+#5 0xffff89035340 in engine_pkey_meths_free (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x1c5340) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#6 0xffff890316ec in engine_free_util (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x1c16ec) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#7 0xffff8903249c in ENGINE_remove (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x1c249c) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#8 0xffff890325a0 in engine_list_cleanup (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x1c25a0) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#9 0xffff89031534 in engine_cleanup_cb_free (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x1c1534) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#10 0xffff890fb2f8 in OPENSSL_sk_pop_free (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x28b2f8) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#11 0xffff890318e0 in engine_cleanup_int (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x1c18e0) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+#12 0xffff890825c8 in OPENSSL_cleanup (/usr/lib/aarch64-linux-gnu/libcrypto.so.3+0x2125c8) (BuildId: 0060493bde98c7361f2ab6725480e0d085780668)
+leak:CRYPTO_malloc
