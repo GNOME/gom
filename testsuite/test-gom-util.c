@@ -50,6 +50,7 @@ test_gom_util_strv_text_roundtrip (void)
   empty_encoded = _gom_strv_to_text (empty_tags);
   g_assert_cmpstr (empty_encoded, ==, "\n\n");
   g_clear_pointer (&error, g_error_free);
+  g_clear_pointer (&parsed, g_strfreev);
   parsed = _gom_strv_from_text (empty_encoded, &error);
   g_assert_no_error (error);
   g_assert_nonnull (parsed);

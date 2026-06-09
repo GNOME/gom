@@ -1498,6 +1498,7 @@ test_repository_mutations_stage_without_session (void)
                 "value", 11,
                 NULL);
 
+  g_clear_object (&result);
   result = dex_await_object (gom_entity_update (entity), &error);
   g_assert_no_error (error);
   g_assert_nonnull (result);
@@ -1506,6 +1507,7 @@ test_repository_mutations_stage_without_session (void)
   g_assert_true (transport->last_repository == repository);
   g_assert_null (transport->last_session);
 
+  g_clear_object (&result);
   result = dex_await_object (gom_entity_delete (entity), &error);
   g_assert_no_error (error);
   g_assert_nonnull (result);
@@ -1558,11 +1560,13 @@ test_repository_mutations_without_coordinator_are_unchanged (void)
                 "value", 21,
                 NULL);
 
+  g_clear_object (&result);
   result = dex_await_object (gom_entity_update (entity), &error);
   g_assert_no_error (error);
   g_assert_nonnull (result);
   g_assert_cmpuint (gom_mutation_result_get_affected_rows (result), ==, 1);
 
+  g_clear_object (&result);
   result = dex_await_object (gom_entity_delete (entity), &error);
   g_assert_no_error (error);
   g_assert_nonnull (result);
@@ -2551,6 +2555,7 @@ test_memory_sync_transport_local_delete_records_tombstone (void)
   identity = test_sync_identity_for_id (4);
   g_assert_nonnull (identity);
 
+  g_clear_object (&result);
   result = dex_await_object (gom_entity_delete (entity), &error);
   g_assert_no_error (error);
   g_assert_nonnull (result);

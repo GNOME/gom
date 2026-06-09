@@ -2195,6 +2195,7 @@ test_sqlite_repository_insert (void)
   g_assert_no_error (error);
   g_assert_nonnull (insertion);
 
+  g_clear_object (&result);
   result = dex_await_object (gom_repository_mutate (repository, GOM_MUTATION (insertion)), &error);
   g_assert_no_error (error);
   g_assert_true (GOM_IS_MUTATION_RESULT (result));
@@ -2217,6 +2218,7 @@ test_sqlite_repository_insert (void)
     g_value_unset (&value);
   }
   g_clear_object (&record);
+  g_clear_object (&result);
 
   g_clear_pointer (&insert_builder, gom_insertion_builder_unref);
   g_clear_object (&insertion);
