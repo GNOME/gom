@@ -1262,7 +1262,9 @@ gom_cursor_materialize (GomCursor  *self,
   if (n_columns == 0)
     return NULL;
 
-  if (!self->discriminator_cached && entity_class != NULL)
+  g_assert (entity_class != NULL);
+
+  if (!self->discriminator_cached)
     {
       self->discriminator_cached = TRUE;
       self->discriminator_column = -1;
@@ -1299,12 +1301,11 @@ gom_cursor_materialize (GomCursor  *self,
             {
               GomEntityClass *match;
 
-              if ((match = gom_cursor_lookup_discriminator (self,
-                                                            entity_class,
-                                                            discriminator_value)))
+              if ((match = gom_cursor_lookup_discriminator (self, entity_class, discriminator_value)))
                 {
                   entity_class = match;
                   entity_type = G_TYPE_FROM_CLASS (entity_class);
+
                   if (!(entity_spec = _gom_registry_lookup_entity_by_type (registry, entity_type)))
                     {
                       g_set_error (error,
@@ -1318,6 +1319,8 @@ gom_cursor_materialize (GomCursor  *self,
             }
         }
     }
+
+  g_assert (entity_class != NULL);
 
   property_names = g_new0 (const char *, n_columns);
   property_values = g_new0 (GValue, n_columns);
@@ -1402,6 +1405,7 @@ gom_cursor_materialize (GomCursor  *self,
                                       property_values,
                                       n_properties,
                                       error);
+
   if (entity != NULL)
     {
       _gom_entity_set_origin (entity, GOM_ENTITY_ORIGIN_MATERIALIZED);
