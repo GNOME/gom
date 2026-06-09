@@ -1522,7 +1522,6 @@ session_worker_fiber (gpointer user_data)
           goto fail;
         }
 
-      worker_data->ids[worker_data->worker_id] = id;
     }
 
   g_atomic_int_add (&worker_data->counters->active, -1);
@@ -1530,6 +1529,9 @@ session_worker_fiber (gpointer user_data)
 
   if (!dex_await (gom_session_commit (session), &error))
     goto fail;
+
+  if (!worker_data->update_existing)
+    worker_data->ids[worker_data->worker_id] = id;
 
   return dex_future_new_true ();
 
