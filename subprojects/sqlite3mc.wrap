@@ -2,6 +2,7 @@
 url = https://github.com/utelle/SQLite3MultipleCiphers.git
 revision = 22b94a040e0375989312736ce8104dd3851ed302
 depth = 1
+patch_directory = sqlite3mc
 
 [provide]
 sqlite3mc = sqlite3mc_dep
