@@ -1016,7 +1016,7 @@ _gom_registry_add_entity_type (GomRegistry *registry,
         if (owner_type == GOM_TYPE_ENTITY || !g_type_is_a (owner_type, GOM_TYPE_ENTITY))
           continue;
 
-        if ((properties[i]->flags & (G_PARAM_READABLE | G_PARAM_WRITABLE)) != (G_PARAM_READABLE | G_PARAM_WRITABLE))
+        if ((properties[i]->flags & G_PARAM_READABLE) == 0)
           continue;
 
         if ((value_type = G_PARAM_SPEC_VALUE_TYPE (properties[i])) == G_TYPE_INVALID)

@@ -96,6 +96,10 @@ static gboolean               gom_entity_relationship_visible_at_version (GomEnt
                                                                           guint                       version);
 static gboolean               gom_property_spec_visible_at_version       (GomPropertySpec            *property,
                                                                           guint                       version);
+static gboolean               gom_entity_real_backfill_identity          (GomEntity                  *self,
+                                                                          const char * const         *identity_fields,
+                                                                          GomRecord                  *record,
+                                                                          GError                    **error);
 static const GomEntitySpec   *gom_entity_get_entity_spec                 (GomEntity                  *self);
 static const GomPropertySpec *gom_entity_get_property_spec               (GomEntity                  *self,
                                                                           const char                 *property_name);
@@ -110,7 +114,8 @@ static DexFuture             *gom_entity_mutate_run                      (GomEnt
                                                                           GomSession                 *session,
                                                                           GomRepository              *repository);
 static gboolean               gom_entity_backfill_identity_from_record   (GomEntity                  *self,
-                                                                          GomRecord                  *record);
+                                                                          GomRecord                  *record,
+                                                                          GError                    **error);
 static void                   gom_entity_tracked_value_clear             (GomEntityTrackedValue      *tracked);
 static GomEntityTrackedValue *gom_entity_tracked_value_new               (const GValue               *value);
 static void                   gom_entity_mark_property_dirty             (GomEntity                  *self,
@@ -197,6 +202,7 @@ gom_entity_class_init (GomEntityClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   klass->materialize = gom_entity_real_materialize;
+  klass->backfill_identity = gom_entity_real_backfill_identity;
   klass->build_delta = gom_entity_real_build_delta;
   klass->dup_identity_value = gom_entity_real_dup_identity_value;
   klass->attach = gom_entity_real_attach;
@@ -2475,10 +2481,15 @@ gom_entity_mutation_fiber (gpointer user_data)
                                       "Insert did not return mutation rows");
 
       record = g_list_model_get_item (G_LIST_MODEL (result), 0);
-      if (record == NULL || !gom_entity_backfill_identity_from_record (task->self, record))
-        return dex_future_new_reject (G_IO_ERROR,
-                                      G_IO_ERROR_FAILED,
-                                      "Insert did not return an identity value");
+      if (record == NULL || !gom_entity_backfill_identity_from_record (task->self, record, &error))
+        {
+          if (error == NULL)
+            return dex_future_new_reject (G_IO_ERROR,
+                                          G_IO_ERROR_FAILED,
+                                          "Insert did not return an identity value");
+
+          return dex_future_new_for_error (g_steal_pointer (&error));
+        }
 
       if (!(delta = gom_entity_build_snapshot_delta (task->self, task->repository, GOM_DELTA_KIND_INSERT, &error)))
         return dex_future_new_for_error (g_steal_pointer (&error));
@@ -3078,13 +3089,14 @@ gom_entity_validate_mutation_setup (GomEntity           *self,
 }
 
 static gboolean
-gom_entity_backfill_identity_from_record (GomEntity *self,
-                                          GomRecord *record)
+gom_entity_real_backfill_identity (GomEntity           *self,
+                                   const char * const  *identity_fields,
+                                   GomRecord           *record,
+                                   GError             **error)
 {
   g_autoptr(GomSession) session = NULL;
-  GObjectClass *object_class;
-  GomEntityClass *entity_class;
-  const char * const *identity_fields;
+  const GomPropertySpec *property_spec;
+  const GParamSpec *pspec;
   guint n_identity_fields;
   guint n_identity_fields_total;
   gboolean have_writable_identity = FALSE;
@@ -3092,26 +3104,27 @@ gom_entity_backfill_identity_from_record (GomEntity *self,
 
   g_assert (GOM_IS_ENTITY (self));
   g_assert (GOM_IS_RECORD (record));
+  g_assert (identity_fields != NULL);
+  g_assert (identity_fields[0] != NULL);
 
-  object_class = G_OBJECT_GET_CLASS (self);
-  entity_class = GOM_ENTITY_CLASS (object_class);
-  identity_fields = gom_entity_class_get_identity_fields (entity_class);
   session = _gom_entity_dup_session (self);
-
-  if (identity_fields == NULL || identity_fields[0] == NULL)
-    return FALSE;
 
   for (n_identity_fields_total = 0;
        identity_fields[n_identity_fields_total] != NULL;
        n_identity_fields_total++) { /* Do Nothing */ }
 
-  for (n_identity_fields = 0; identity_fields[n_identity_fields] != NULL; n_identity_fields++)
+  for (n_identity_fields = 0; identity_fields[n_identity_fields]; n_identity_fields++)
     {
       const char *identity_field = identity_fields[n_identity_fields];
       g_auto(GValue) value = G_VALUE_INIT;
       gboolean have_value = FALSE;
 
-      if (gom_entity_get_property_spec (self, identity_field) == NULL)
+      if (!(property_spec = gom_entity_get_property_spec (self, identity_field)))
+        continue;
+
+      pspec = _gom_property_spec_get_pspec ((GomPropertySpec *)property_spec);
+
+      if (pspec == NULL || (pspec->flags & G_PARAM_WRITABLE) == 0)
         continue;
 
       have_writable_identity = TRUE;
@@ -3132,15 +3145,62 @@ gom_entity_backfill_identity_from_record (GomEntity *self,
     return TRUE;
 
   if (!updated)
-    return FALSE;
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_FAILED,
+                   "Insert did not return an identity value");
+      return FALSE;
+    }
 
   if (session != NULL && !gom_entity_rekey_session_identity (self))
-    return FALSE;
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_FAILED,
+                   "Failed to re-key entity identity");
+      return FALSE;
+    }
 
   if (session != NULL)
     _gom_session_unregister_pending_entity (session, self);
 
   return TRUE;
+}
+
+static gboolean
+gom_entity_backfill_identity_from_record (GomEntity  *self,
+                                          GomRecord  *record,
+                                          GError    **error)
+{
+  GomEntityClass *entity_class;
+  const char * const *identity_fields;
+
+  g_assert (GOM_IS_ENTITY (self));
+  g_assert (GOM_IS_RECORD (record));
+
+  entity_class = GOM_ENTITY_CLASS (G_OBJECT_GET_CLASS (self));
+  identity_fields = gom_entity_class_get_identity_fields (entity_class);
+
+  if (identity_fields == NULL || identity_fields[0] == NULL)
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_FAILED,
+                   "Entity type has no identity fields");
+      return FALSE;
+    }
+
+  if (entity_class->backfill_identity == NULL)
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_FAILED,
+                   "Entity class has no backfill_identity vfunc");
+      return FALSE;
+    }
+
+  return entity_class->backfill_identity (self, identity_fields, record, error);
 }
 
 /**

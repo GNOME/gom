@@ -78,11 +78,12 @@ foreach test: lib_testsuite
 endforeach
 
 if get_option('sqlite-backend').enabled()
-lib_sqlite_testsuite = {
+  lib_sqlite_testsuite = {
     'test-gom-migrator': {},
     'test-gom-sqlite-encryption': {},
     'test-gom-sqlite': {},
     'test-gom-relations': {},
+    'test-read-only-object': {},
     'test-gom-sqlite-entity-migrator': {},
     'test-gom-sqlite-stress': {},
   }

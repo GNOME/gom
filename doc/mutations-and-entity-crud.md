@@ -117,16 +117,18 @@ If preconditions are not met, operations fail with `G_IO_ERROR_INVALID_ARGUMENT`
 - Reads mapped readable properties.
 - Identity properties are skipped when `GomEntityClass.dup_identity_value` returns `NULL`.
 - Byte transform ([method@Gom.EntityClass.property_set_byte_transform]) is applied before storage and can reject invalid serialized values with `GError`.
-- When the backend returns an inserted rowid, [method@Gom.Entity.insert] writes
-  it back to the entity's identity property. This keeps `id INTEGER PRIMARY KEY`
-  entities synchronized after insert.
+- When the backend returns an inserted rowid, [method@Gom.Entity.insert] attempts
+  to write it back to any identity property whose GObject property is
+  writable. This keeps `id INTEGER PRIMARY KEY` entities synchronized after
+  insert.
 - If the entity is session-managed, insert also rekeys the session identity map
   after the new identity is written back.
 - If the entity was staged with [method@Gom.Session.persist], the session will
   remove it from the pending set once the insert succeeds.
 - If the entity type declares an identity field but does not expose a writable
-  property for it, insert leaves the row result untouched and does not attempt
-  a back-fill.
+  property for it, insert still succeeds and leaves the row result untouched.
+  Subclasses can override `GomEntityClass.backfill_identity` to apply custom
+  behavior for read-only identity fields.
 
 ### Update behavior
 

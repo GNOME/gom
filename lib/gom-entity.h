@@ -57,9 +57,13 @@ struct _GomEntityClass
                                         GomSession          *session,
                                         char                *entity_key);
   void           (*detach)             (GomEntity           *self);
+  gboolean       (*backfill_identity)  (GomEntity           *self,
+                                        const char * const  *identity_fields,
+                                        GomRecord           *record,
+                                        GError             **error);
 
   /*< private >*/
-  gpointer _reserved[17];
+  gpointer _reserved[16];
 };
 
 GOM_AVAILABLE_IN_ALL
