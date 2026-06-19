@@ -1524,11 +1524,11 @@ session_worker_fiber (gpointer user_data)
 
     }
 
-  g_atomic_int_add (&worker_data->counters->active, -1);
-  counted_active = FALSE;
-
   if (!dex_await (gom_session_commit (session), &error))
     goto fail;
+
+  g_atomic_int_add (&worker_data->counters->active, -1);
+  counted_active = FALSE;
 
   if (!worker_data->update_existing)
     worker_data->ids[worker_data->worker_id] = id;
