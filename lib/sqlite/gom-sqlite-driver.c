@@ -244,6 +244,7 @@ typedef enum
   GOM_SQLITE_WRITE_MUTATE,
   GOM_SQLITE_WRITE_MIGRATE,
   GOM_SQLITE_WRITE_EXECUTE_SQL,
+  GOM_SQLITE_WRITE_REKEY,
 } GomSqliteWriteOperation;
 
 typedef struct
@@ -255,6 +256,7 @@ typedef struct
     GomSqliteMutationRequest *mutation;
     GomSqliteMigrateRequest  *migrate;
     GomSqliteExecuteRequest  *execute;
+    GBytes                   *rekey;
   } request;
 } GomSqliteWriteState;
 
@@ -263,6 +265,13 @@ typedef struct
   GomSqlitePool           *pool;
   GomSqliteSessionRequest *request;
 } GomSqliteBeginSessionState;
+
+typedef struct
+{
+  GomSqliteDriver     *driver;
+  GomSqliteLeaseState *lease_state;
+  GBytes              *encryption_key;
+} GomSqliteRekeyTask;
 
 typedef struct
 {
@@ -291,6 +300,14 @@ static DexFuture *gom_sqlite_driver_migrate_cb                     (DexFuture   
                                                                     gpointer                           user_data);
 static DexFuture *gom_sqlite_driver_execute_sql_cb                 (DexFuture                         *completed,
                                                                     gpointer                           user_data);
+static DexFuture *gom_sqlite_driver_rekey_cb                        (DexFuture                        *completed,
+                                                                    gpointer                           user_data);
+static DexFuture *gom_sqlite_driver_rekey_thread                    (gpointer                          user_data);
+static void       gom_sqlite_rekey_task_free                        (gpointer                          data);
+static gboolean   gom_sqlite_driver_verify_sqlite_access            (sqlite3                          *db,
+                                                                     GError                          **error);
+static gboolean   gom_sqlite_driver_verify_integrity                (sqlite3                          *db,
+                                                                     GError                          **error);
 
 static GomSqliteBinding *
 gom_sqlite_binding_new (const GValue *value)
@@ -536,6 +553,10 @@ gom_sqlite_write_state_free (gpointer data)
       g_clear_pointer (&state->request.execute, gom_sqlite_execute_request_free);
       break;
 
+    case GOM_SQLITE_WRITE_REKEY:
+      g_clear_pointer (&state->request.rekey, g_bytes_unref);
+      break;
+
     default:
       g_assert_not_reached ();
     }
@@ -602,6 +623,20 @@ gom_sqlite_driver_write_acquired_cb (DexFuture *completed,
                                 gom_sqlite_execute_request_free);
       break;
 
+    case GOM_SQLITE_WRITE_REKEY:
+      {
+        GomSqliteRekeyTask *rekey_task;
+
+        rekey_task = g_new0 (GomSqliteRekeyTask, 1);
+        rekey_task->driver = g_object_ref (state->driver);
+        rekey_task->encryption_key = g_steal_pointer (&state->request.rekey);
+        future = dex_future_then (gom_sqlite_pool_acquire (state->driver->pool),
+                                  gom_sqlite_driver_rekey_cb,
+                                  rekey_task,
+                                  NULL);
+      }
+      break;
+
     default:
       g_assert_not_reached ();
     }
@@ -610,6 +645,304 @@ gom_sqlite_driver_write_acquired_cb (DexFuture *completed,
                              gom_sqlite_driver_release_write_limiter_cb,
                              dex_ref (state->driver->write_limiter),
                              dex_unref);
+}
+
+static void
+gom_sqlite_rekey_task_free (gpointer data)
+{
+  GomSqliteRekeyTask *task = data;
+
+  if (task == NULL)
+    return;
+
+  g_clear_object (&task->driver);
+  g_clear_pointer (&task->encryption_key, g_bytes_unref);
+  gom_sqlite_lease_state_unref (task->lease_state);
+  g_free (task);
+}
+
+static gboolean
+gom_sqlite_driver_verify_sqlite_access (sqlite3  *db,
+                                        GError  **error)
+{
+  sqlite3_stmt *stmt = NULL;
+  int rc;
+
+  g_assert (db != NULL);
+
+  rc = sqlite3_prepare_v2 (db,
+                           "SELECT name FROM sqlite_master WHERE type='table'",
+                           -1,
+                           &stmt,
+                           NULL);
+  if (rc != SQLITE_OK)
+    {
+      g_set_error (error,
+                   GOM_ERROR,
+                   GOM_ERROR_METADATA_READ_FAILED,
+                   "Failed to verify SQLite database access: %s",
+                   sqlite3_errmsg (db));
+      return FALSE;
+    }
+
+  for (;;)
+    {
+      rc = gom_sqlite_driver_step (stmt, "verify SQLite database access", error);
+      if (rc != SQLITE_ROW)
+        break;
+    }
+
+  sqlite3_finalize (stmt);
+
+  if (rc != SQLITE_DONE)
+    {
+      if (error != NULL && *error != NULL)
+        return FALSE;
+
+      g_set_error (error,
+                   GOM_ERROR,
+                   GOM_ERROR_METADATA_READ_FAILED,
+                   "Failed to verify SQLite database access: %s",
+                   sqlite3_errmsg (db));
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+gom_sqlite_driver_verify_integrity (sqlite3  *db,
+                                    GError  **error)
+{
+  sqlite3_stmt *stmt = NULL;
+  int rc;
+
+  g_assert (db != NULL);
+
+  rc = sqlite3_prepare_v2 (db,
+                           "PRAGMA integrity_check",
+                           -1,
+                           &stmt,
+                           NULL);
+  if (rc != SQLITE_OK)
+    {
+      g_set_error (error,
+                   GOM_ERROR,
+                   GOM_ERROR_METADATA_READ_FAILED,
+                   "Failed to prepare integrity check: %s",
+                   sqlite3_errmsg (db));
+      return FALSE;
+    }
+
+  rc = gom_sqlite_driver_step (stmt, "verify SQLite integrity", error);
+  if (rc != SQLITE_ROW)
+    {
+      sqlite3_finalize (stmt);
+
+      if (error != NULL && *error != NULL)
+        return FALSE;
+
+      g_set_error (error,
+                   GOM_ERROR,
+                   GOM_ERROR_METADATA_READ_FAILED,
+                   "Failed to verify SQLite integrity: %s",
+                   sqlite3_errmsg (db));
+      return FALSE;
+    }
+
+  {
+    const char *status = (const char *)sqlite3_column_text (stmt, 0);
+
+    if (status == NULL || g_strcmp0 (status, "ok") != 0)
+      {
+        sqlite3_finalize (stmt);
+        g_set_error (error,
+                     GOM_ERROR,
+                     GOM_ERROR_METADATA_READ_FAILED,
+                     "SQLite integrity check failed: %s",
+                     status != NULL ? status : "unknown");
+        return FALSE;
+      }
+  }
+
+  rc = gom_sqlite_driver_step (stmt, "verify SQLite integrity", error);
+  sqlite3_finalize (stmt);
+
+  if (rc != SQLITE_DONE)
+    {
+      if (error != NULL && *error != NULL)
+        return FALSE;
+
+      g_set_error (error,
+                   GOM_ERROR,
+                   GOM_ERROR_METADATA_READ_FAILED,
+                   "SQLite integrity check did not finish cleanly: %s",
+                   sqlite3_errmsg (db));
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static DexFuture *
+gom_sqlite_driver_rekey_cb (DexFuture *completed,
+                            gpointer   user_data)
+{
+  GomSqliteRekeyTask *task = user_data;
+  const GValue *value;
+  DexFuture *future;
+
+  g_assert (DEX_IS_FUTURE (completed));
+  g_assert (task != NULL);
+
+  value = dex_future_get_value (completed, NULL);
+  if (value == NULL || !G_VALUE_HOLDS (value, GOM_TYPE_SQLITE_LEASE))
+    {
+      gom_sqlite_rekey_task_free (task);
+
+      if (value == NULL)
+        {
+          g_autoptr(GError) error = NULL;
+
+          if (dex_future_get_value (completed, &error) == NULL)
+            return dex_future_new_reject (G_IO_ERROR,
+                                          G_IO_ERROR_FAILED,
+                                          "Failed to acquire write lease for rekey: %s",
+                                          error != NULL ? error->message : "unknown");
+        }
+
+      return dex_future_new_reject (G_IO_ERROR,
+                                    G_IO_ERROR_FAILED,
+                                    "Failed to acquire write lease for rekey");
+    }
+
+  task->lease_state = gom_sqlite_lease_ref_state (g_value_get_object (value));
+
+  future = gom_sqlite_lease_state_invoke (task->lease_state,
+                                           "[gom-sqlite-rekey]",
+                                           gom_sqlite_driver_rekey_thread,
+                                           task,
+                                           gom_sqlite_rekey_task_free);
+
+  return future;
+}
+
+static DexFuture *
+gom_sqlite_driver_rekey_thread (gpointer user_data)
+{
+  GomSqliteRekeyTask *task = user_data;
+  g_autoptr(GError) error = NULL;
+  GomSqliteConnection *connection;
+  sqlite3 *db;
+  const guint8 *new_key_data = NULL;
+  gsize new_key_len = 0;
+  int new_key_len_int;
+  gint64 start_time = GOM_TRACE_BEGIN_MARK ();
+  sqlite3_stmt *stmt;
+
+  g_assert (task != NULL);
+  g_assert (task->driver != NULL);
+  g_assert (task->lease_state != NULL);
+
+  connection = gom_sqlite_lease_state_get_connection (task->lease_state);
+  db = gom_sqlite_connection_get_native (connection);
+
+  if (!sqlite3_get_autocommit (db))
+    return dex_future_new_reject (G_IO_ERROR,
+                                  G_IO_ERROR_BUSY,
+                                  "Cannot rekey while a transaction is active");
+
+  for (stmt = sqlite3_next_stmt (db, NULL); stmt != NULL; stmt = sqlite3_next_stmt (db, stmt))
+    {
+      return dex_future_new_reject (G_IO_ERROR,
+                                    G_IO_ERROR_BUSY,
+                                    "Cannot rekey while SQLite statements are active");
+    }
+
+  gom_sqlite_pool_clear_idle (task->driver->pool);
+
+  if (!gom_sqlite_driver_exec_sql (db,
+                                   "PRAGMA wal_checkpoint(FULL)",
+                                   "checkpoint SQLite WAL before rekey",
+                                   &error))
+    return dex_future_new_for_error (g_steal_pointer (&error));
+
+  if (!gom_sqlite_driver_exec_sql (db,
+                                   "PRAGMA journal_mode = DELETE",
+                                   "disable SQLite WAL before rekey",
+                                   &error))
+    return dex_future_new_for_error (g_steal_pointer (&error));
+
+  if (task->encryption_key != NULL)
+    {
+      new_key_data = g_bytes_get_data (task->encryption_key, &new_key_len);
+
+      if (new_key_len == 0)
+        return dex_future_new_reject (G_IO_ERROR,
+                                      G_IO_ERROR_INVALID_ARGUMENT,
+                                      "Encryption key is empty");
+
+      if (new_key_len > G_MAXINT)
+        return dex_future_new_reject (G_IO_ERROR,
+                                      G_IO_ERROR_INVALID_ARGUMENT,
+                                      "Encryption key exceeds maximum supported length");
+
+      new_key_len_int = (int)new_key_len;
+    }
+  else
+    {
+      new_key_len_int = 0;
+    }
+
+  if (sqlite3_rekey_v2 (db, "main", new_key_data, new_key_len_int) != SQLITE_OK)
+    {
+      gom_sqlite_driver_exec_sql (db,
+                                  "PRAGMA journal_mode = WAL",
+                                  "restore SQLite WAL after failed rekey",
+                                  NULL);
+
+      return dex_future_new_reject (GOM_ERROR,
+                                    GOM_ERROR_FAILED,
+                                    "Failed to rekey SQLite database: %s",
+                                    sqlite3_errmsg (db));
+    }
+
+  g_clear_pointer (&task->driver->encryption_key, g_bytes_unref);
+  if (task->encryption_key != NULL)
+    task->driver->encryption_key = g_bytes_ref (task->encryption_key);
+
+  gom_sqlite_pool_set_encryption_key (task->driver->pool, task->driver->encryption_key);
+
+  if (!gom_sqlite_driver_verify_sqlite_access (db, &error))
+    {
+      gom_sqlite_driver_exec_sql (db,
+                                  "PRAGMA journal_mode = WAL",
+                                  "restore SQLite WAL after rekey",
+                                  NULL);
+      return dex_future_new_for_error (g_steal_pointer (&error));
+    }
+
+  if (!gom_sqlite_driver_verify_integrity (db, &error))
+    {
+      gom_sqlite_driver_exec_sql (db,
+                                  "PRAGMA journal_mode = WAL",
+                                  "restore SQLite WAL after rekey",
+                                  NULL);
+      return dex_future_new_for_error (g_steal_pointer (&error));
+    }
+
+  if (!gom_sqlite_driver_exec_sql (db,
+                                   "PRAGMA journal_mode = WAL",
+                                   "restore SQLite WAL after rekey",
+                                   &error))
+    return dex_future_new_for_error (g_steal_pointer (&error));
+
+  GOM_TRACE_END_MARK (start_time,
+                      "SQLite",
+                      "rekey",
+                      "encrypted database");
+
+  return dex_future_new_true ();
 }
 
 static DexFuture *
@@ -5298,6 +5631,31 @@ gom_sqlite_driver_dup_uri (GomDriver *driver)
   return g_strdup (GOM_SQLITE_DRIVER (driver)->uri);
 }
 
+static DexFuture *
+gom_sqlite_driver_rekey (GomDriver        *driver,
+                         GomDriverOptions *options)
+{
+  GomSqliteDriver *self = (GomSqliteDriver *)driver;
+  g_autoptr(GBytes) encryption_key = NULL;
+  GomSqliteWriteState *state;
+
+  g_assert (GOM_IS_SQLITE_DRIVER (self));
+  dex_return_error_if_fail (GOM_IS_DRIVER_OPTIONS (options));
+
+  encryption_key = gom_driver_options_dup_encryption_key (options);
+  if (encryption_key != NULL && g_bytes_get_size (encryption_key) == 0)
+    return dex_future_new_reject (G_IO_ERROR,
+                                  G_IO_ERROR_INVALID_ARGUMENT,
+                                  "Encryption key is empty");
+
+  state = g_new0 (GomSqliteWriteState, 1);
+  state->driver = g_object_ref (self);
+  state->operation = GOM_SQLITE_WRITE_REKEY;
+  state->request.rekey = g_steal_pointer (&encryption_key);
+
+  return gom_sqlite_driver_run_write_state (state);
+}
+
 static void
 gom_sqlite_driver_finalize (GObject *object)
 {
@@ -5323,15 +5681,16 @@ gom_sqlite_driver_class_init (GomSqliteDriverClass *klass)
   object_class->finalize = gom_sqlite_driver_finalize;
   object_class->get_property = gom_sqlite_driver_get_property;
 
-  driver_class->dup_uri = gom_sqlite_driver_dup_uri;
-  driver_class->query = gom_sqlite_driver_query;
-  driver_class->mutate = gom_sqlite_driver_mutate;
-  driver_class->describe_relation = gom_sqlite_driver_describe_relation;
-  driver_class->list_relations = gom_sqlite_driver_list_relations;
-  driver_class->query_version = gom_sqlite_driver_query_version;
-  driver_class->migrate = gom_sqlite_driver_migrate;
-  driver_class->execute_sql = gom_sqlite_driver_execute_sql;
   driver_class->begin_session = gom_sqlite_driver_begin_session;
+  driver_class->describe_relation = gom_sqlite_driver_describe_relation;
+  driver_class->dup_uri = gom_sqlite_driver_dup_uri;
+  driver_class->execute_sql = gom_sqlite_driver_execute_sql;
+  driver_class->list_relations = gom_sqlite_driver_list_relations;
+  driver_class->migrate = gom_sqlite_driver_migrate;
+  driver_class->mutate = gom_sqlite_driver_mutate;
+  driver_class->query = gom_sqlite_driver_query;
+  driver_class->query_version = gom_sqlite_driver_query_version;
+  driver_class->rekey = gom_sqlite_driver_rekey;
   driver_class->supports_feature = gom_sqlite_driver_supports_feature;
   driver_class->supports_vector_distance = gom_sqlite_driver_supports_vector_distance;
 

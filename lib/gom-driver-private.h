@@ -67,6 +67,8 @@ struct _GomDriverClass
   gboolean   (*supports_vector_distance) (GomDriver            *self,
                                           GomVectorFormat       format,
                                           GomVectorMetric       metric);
+  DexFuture *(*rekey)                    (GomDriver            *self,
+                                          GomDriverOptions     *options);
 };
 
 DexFuture *_gom_driver_query                    (GomDriver            *self,

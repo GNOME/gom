@@ -538,3 +538,31 @@ _gom_driver_release_repository (GomDriver *self)
 
   g_atomic_int_dec_and_test (&self->repository_use_count);
 }
+
+/**
+ * gom_driver_rekey:
+ * @self: a [class@Gom.Driver]
+ * @options: options for rekeying the database
+ *
+ * Returns: (transfer full): a [class@Dex.Future] that resolves to any value
+ *   on success; or rejects with error.
+ */
+DexFuture *
+gom_driver_rekey (GomDriver        *self,
+                  GomDriverOptions *options)
+{
+  dex_return_error_if_fail (GOM_IS_DRIVER (self));
+  dex_return_error_if_fail (GOM_IS_DRIVER_OPTIONS (options));
+
+  if (g_atomic_int_get (&self->repository_use_count) > 0)
+    return dex_future_new_reject (G_IO_ERROR,
+                                  G_IO_ERROR_BUSY,
+                                  "Cannot rekey while repository is in use");
+
+  if (GOM_DRIVER_GET_CLASS (self)->rekey)
+    return GOM_DRIVER_GET_CLASS (self)->rekey (self, options);
+
+  return dex_future_new_reject (G_IO_ERROR,
+                                G_IO_ERROR_NOT_SUPPORTED,
+                                "Rekeying database not supported");
+}
