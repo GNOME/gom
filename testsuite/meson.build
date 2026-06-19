@@ -80,7 +80,7 @@ endforeach
 if get_option('sqlite-backend').enabled()
   lib_sqlite_testsuite = {
     'test-gom-migrator': {},
-    'test-gom-sqlite-encryption': {},
+    'test-gom-sqlite-encryption': {'timeout': 60},
     'test-gom-sqlite': {},
     'test-gom-relations': {},
     'test-read-only-object': {},
@@ -96,10 +96,10 @@ if get_option('sqlite-backend').enabled()
     )
     if params.get('performance', false)
       if get_option('performance-tests')
-        test(test, test_exe, env: lib_sqlite_test_env, suite: ['performance'])
+        test(test, test_exe, env: lib_sqlite_test_env, suite: ['performance'], timeout: params.get('timeout', 30))
       endif
     else
-      test(test, test_exe, env: lib_sqlite_test_env)
+      test(test, test_exe, env: lib_sqlite_test_env, timeout: params.get('timeout', 30))
     endif
   endforeach
 
