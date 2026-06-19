@@ -259,3 +259,30 @@ gom_sqlite_pool_acquire (GomSqlitePool *self)
                           g_object_ref (self),
                           g_object_unref);
 }
+
+void
+gom_sqlite_pool_clear_idle (GomSqlitePool *self)
+{
+  g_return_if_fail (GOM_IS_SQLITE_POOL (self));
+
+  g_mutex_lock (&self->mutex);
+  g_ptr_array_set_size (self->idle_connections, 0);
+  g_mutex_unlock (&self->mutex);
+}
+
+void
+gom_sqlite_pool_set_encryption_key (GomSqlitePool *self,
+                                    GBytes        *encryption_key)
+{
+  g_return_if_fail (GOM_IS_SQLITE_POOL (self));
+
+  g_mutex_lock (&self->mutex);
+
+  g_clear_pointer (&self->encryption_key, g_bytes_unref);
+  if (encryption_key != NULL)
+    self->encryption_key = g_bytes_ref (encryption_key);
+
+  g_ptr_array_set_size (self->idle_connections, 0);
+
+  g_mutex_unlock (&self->mutex);
+}

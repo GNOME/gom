@@ -34,10 +34,13 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (GomSqlitePool, gom_sqlite_pool, GOM, SQLITE_POOL, GObject)
 
-GomSqlitePool *gom_sqlite_pool_new               (const char          *uri,
-                                                  GBytes              *encryption_key);
-DexFuture     *gom_sqlite_pool_acquire           (GomSqlitePool       *self);
-void           gom_sqlite_pool_return_connection (GomSqlitePool       *self,
-                                                  GomSqliteConnection *connection);
+GomSqlitePool *gom_sqlite_pool_new                (const char          *uri,
+                                                   GBytes              *encryption_key);
+DexFuture     *gom_sqlite_pool_acquire            (GomSqlitePool       *self);
+void           gom_sqlite_pool_clear_idle         (GomSqlitePool       *self);
+void           gom_sqlite_pool_return_connection  (GomSqlitePool       *self,
+                                                   GomSqliteConnection *connection);
+void           gom_sqlite_pool_set_encryption_key (GomSqlitePool       *self,
+                                                   GBytes              *encryption_key);
 
 G_END_DECLS
