@@ -45,7 +45,7 @@ if sqlite_vec1_enabled
   ]
 endif
 
-shared_module('gom-sqlite-module',
+libgom_sqlite_module = shared_module('gom-sqlite-module',
   libgom_sqlite_module_sources,
   link_with: libgom,
   dependencies: libgom_sqlite_module_deps,

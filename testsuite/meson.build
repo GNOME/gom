@@ -79,6 +79,10 @@ foreach test: lib_testsuite
 endforeach
 
 if get_option('sqlite-backend').enabled()
+  lib_sqlite_test_depends = [
+    libgom_sqlite_module,
+  ]
+
   lib_sqlite_testsuite = {
     'test-gom-migrator': {},
     'test-gom-sqlite-encryption': {'timeout': 60},
@@ -97,10 +101,19 @@ if get_option('sqlite-backend').enabled()
     )
     if params.get('performance', false)
       if get_option('performance-tests')
-        test(test, test_exe, env: lib_sqlite_test_env, suite: ['performance'], timeout: params.get('timeout', 30))
+        test(test,
+             test_exe,
+             env: lib_sqlite_test_env,
+             suite: ['performance'],
+             timeout: params.get('timeout', 30),
+             depends: lib_sqlite_test_depends)
       endif
     else
-      test(test, test_exe, env: lib_sqlite_test_env, timeout: params.get('timeout', 30))
+      test(test,
+           test_exe,
+           env: lib_sqlite_test_env,
+           timeout: params.get('timeout', 30),
+           depends: lib_sqlite_test_depends)
     endif
   endforeach
 
@@ -131,7 +144,8 @@ if get_option('sqlite-backend').enabled()
     test('test-gom-sqlite-stress-performance',
          test_gom_sqlite_stress_performance,
          env: lib_sqlite_test_env,
-         suite: ['performance'])
+         suite: ['performance'],
+         depends: lib_sqlite_test_depends)
   endif
 endif
 
