@@ -36,7 +36,12 @@ dex_req = '>= @0@'.format(dex_req_version)
 dex_dep = dependency('libdex-1', version: dex_req)
 
 if get_option('sqlite-backend').enabled()
-  sqlite3mc_sp = subproject('sqlite3mc')
+  sqlite3mc_sp = subproject('sqlite3mc',
+    default_options: [
+      'warning_level=0',
+      'werror=false',
+    ],
+  )
   sqlite3mc_dep = sqlite3mc_sp.get_variable('sqlite3mc_dep')
 endif
 if get_option('sqlite-vec1').enabled() and not get_option('sqlite-backend').enabled()

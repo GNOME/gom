@@ -1,7 +1,10 @@
 project('sqlite3mc', 'c',
   version: '2.3.4',
   meson_version: '>= 1.1.0',
-  default_options: ['warning_level=1'],
+  default_options: [
+    'warning_level=0',
+    'werror=false',
+  ],
 )
 
 cc = meson.get_compiler('c')
@@ -10,6 +13,13 @@ sqlite3mc_include = include_directories(
   'src',
   'src/aegis/include',
   'src/argon2/include',
+)
+
+sqlite3mc_system_include = include_directories(
+  'src',
+  'src/aegis/include',
+  'src/argon2/include',
+  is_system: true,
 )
 
 sqlite3mc_c_args = [
@@ -51,7 +61,7 @@ sqlite3mc_lib = static_library('sqlite3mc',
 )
 
 sqlite3mc_dep = declare_dependency(
-  include_directories: sqlite3mc_include,
+  include_directories: sqlite3mc_system_include,
   compile_args: ['-DSQLITE_OS_WIN=0'],
   link_with: sqlite3mc_lib,
   dependencies: sqlite3mc_deps,
