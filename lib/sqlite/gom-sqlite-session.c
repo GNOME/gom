@@ -101,6 +101,8 @@ static DexFuture *gom_sqlite_session_query                     (GomSession      
 static DexFuture *gom_sqlite_session_mutate                    (GomSession                 *session,
                                                                 GomMutation                *mutation);
 static DexFuture *gom_sqlite_session_close_thread              (gpointer                    user_data);
+static DexFuture *gom_sqlite_session_close_complete_cb         (DexFuture                  *completed,
+                                                                gpointer                    user_data);
 static DexFuture *gom_sqlite_session_commit_after_flush_cb     (DexFuture                  *completed,
                                                                 gpointer                    user_data);
 static DexFuture *gom_sqlite_session_commit                    (GomSession                 *session);
@@ -899,6 +901,25 @@ gom_sqlite_session_commit_after_flush_cb (DexFuture *completed,
 }
 
 static DexFuture *
+gom_sqlite_session_close_complete_cb (DexFuture *completed,
+                                      gpointer   user_data)
+{
+  GomSqliteSession *session = user_data;
+  g_autoptr(GError) error = NULL;
+  const GValue *value;
+
+  g_assert (DEX_IS_FUTURE (completed));
+  g_assert (GOM_IS_SQLITE_SESSION (session));
+
+  if (!(value = dex_future_get_value (completed, &error)))
+    return dex_future_new_for_error (g_steal_pointer (&error));
+
+  gom_sqlite_session_release_write_permit (session);
+
+  return dex_future_new_for_value (value);
+}
+
+static DexFuture *
 gom_sqlite_session_close_thread (gpointer user_data)
 {
   GomSqliteSessionCloseState *state = user_data;
@@ -938,8 +959,6 @@ gom_sqlite_session_close_thread (gpointer user_data)
       state->session->lease_state = NULL;
     }
 
-  gom_sqlite_session_release_write_permit (state->session);
-
   GOM_TRACE_END_MARK (start_time,
                       "Session",
                       state->rollback ? "rollback" : "commit",
@@ -967,10 +986,13 @@ gom_sqlite_session_commit (GomSession *session)
                   "session=%" G_GINT64_FORMAT " backend=sqlite",
                   self->parent_instance.id);
 
-  return dex_future_then (gom_sqlite_session_flush (session),
-                          gom_sqlite_session_commit_after_flush_cb,
-                          state,
-                          (GDestroyNotify)gom_sqlite_session_close_state_free);
+  return dex_future_finally (dex_future_then (gom_sqlite_session_flush (session),
+                                              gom_sqlite_session_commit_after_flush_cb,
+                                              state,
+                                              (GDestroyNotify)gom_sqlite_session_close_state_free),
+                             gom_sqlite_session_close_complete_cb,
+                             g_object_ref (self),
+                             g_object_unref);
 }
 
 static DexFuture *
@@ -983,7 +1005,7 @@ gom_sqlite_session_rollback (GomSession *session)
     return dex_future_new_true ();
 
   state = g_new0 (GomSqliteSessionCloseState, 1);
-  state->session = g_object_ref (GOM_SQLITE_SESSION (session));
+  state->session = g_object_ref (self);
   state->rollback = TRUE;
 
   GOM_TRACE_MARK ("Session",
@@ -991,11 +1013,14 @@ gom_sqlite_session_rollback (GomSession *session)
                   "session=%" G_GINT64_FORMAT " backend=sqlite",
                   self->parent_instance.id);
 
-  return gom_sqlite_lease_state_invoke (self->lease_state,
-                                        "[gom-sqlite-session-rollback]",
-                                        gom_sqlite_session_close_thread,
-                                        state,
-                                        (GDestroyNotify)gom_sqlite_session_close_state_free);
+  return dex_future_finally (gom_sqlite_lease_state_invoke (self->lease_state,
+                                                            "[gom-sqlite-session-rollback]",
+                                                            gom_sqlite_session_close_thread,
+                                                            state,
+                                                            (GDestroyNotify)gom_sqlite_session_close_state_free),
+                             gom_sqlite_session_close_complete_cb,
+                             g_object_ref (self),
+                             g_object_unref);
 }
 
 static void
