@@ -48,6 +48,7 @@ lib_testsuite = [
   'test-gom-entity-type-invalid-inverse-target',
   'test-gom-entity-type-versioned-inverse-source',
   'test-gom-entity-type-missing-metadata',
+  'test-gom-schema-role',
   'test-gom-sync',
 ]
 

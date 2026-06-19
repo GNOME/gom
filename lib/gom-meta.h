@@ -80,6 +80,8 @@ const char                    *gom_entity_spec_get_table                    (Gom
 GOM_AVAILABLE_IN_ALL
 GType                          gom_entity_spec_get_entity_type              (GomEntitySpec       *self);
 GOM_AVAILABLE_IN_ALL
+GomEntitySchemaRole            gom_entity_spec_get_schema_role              (GomEntitySpec       *self);
+GOM_AVAILABLE_IN_ALL
 const char * const            *gom_entity_spec_get_identity_fields          (GomEntitySpec       *self);
 GOM_AVAILABLE_IN_ALL
 const char                    *gom_entity_spec_get_discriminator_field      (GomEntitySpec       *self);

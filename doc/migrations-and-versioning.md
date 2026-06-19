@@ -9,6 +9,8 @@ Version data is derived from entity and property metadata:
 - Entity lifecycle: `version_added`, `version_removed`.
 - Property lifecycle: `version_added`, `version_removed`.
 - Index lifecycle: `version_added`, `version_removed`.
+- Entity schema role: primary entities participate in schema migration;
+  alias entities are query/materialization views over an existing relation.
 
 `GomRegistry` tracks:
 
@@ -48,10 +50,18 @@ SQLite backend currently:
 
 - Stores version in `PRAGMA user_version`.
 - Computes schema deltas from snapshot pairs.
-- Creates/drops relations by entity visibility window.
+- Creates/drops relations by primary entity visibility window.
 - Adds/removes columns as supported by SQLite migration strategy.
 - Creates/drops indexes and search structures from property/index metadata.
 - Updates `user_version` as migration steps complete.
+
+## Schema Aliases
+
+Use `gom_entity_class_set_schema_role()` with
+`GOM_ENTITY_SCHEMA_ROLE_ALIAS` for lightweight entity types that map to the
+same relation as a full entity. Alias entities remain usable as query targets
+and materialization targets, but they do not affect the migration target
+version and do not create or alter relation schema.
 
 PostgreSQL backend:
 

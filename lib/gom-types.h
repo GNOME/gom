@@ -311,6 +311,20 @@ typedef enum
 } GomEntityOrigin;
 
 /**
+ * GomEntitySchemaRole:
+ * @GOM_ENTITY_SCHEMA_ROLE_PRIMARY: The entity owns schema migration for its relation.
+ * @GOM_ENTITY_SCHEMA_ROLE_ALIAS: The entity maps to an existing relation for querying.
+ *
+ * Describes whether a [class@Gom.Entity] class is authoritative for schema
+ * migration.
+ */
+typedef enum _GomEntitySchemaRole
+{
+  GOM_ENTITY_SCHEMA_ROLE_PRIMARY,
+  GOM_ENTITY_SCHEMA_ROLE_ALIAS,
+} GomEntitySchemaRole;
+
+/**
  * GomRelationshipCardinality:
  * @GOM_RELATIONSHIP_CARDINALITY_TO_ONE: The relationship points to one target.
  * @GOM_RELATIONSHIP_CARDINALITY_TO_MANY: The relationship points to multiple targets.

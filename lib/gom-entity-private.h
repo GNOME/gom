@@ -75,10 +75,12 @@ typedef struct _GomEntityClassInfo
   char                       **identity_fields;
   GomEntityPropertyInfo       *properties;
   GomEntityRelationshipInfo   *relationships;
+  GomEntitySchemaRole          schema_role;
   guint                        version_added;
   guint                        version_removed;
   const char                  *discriminator_field;
   const char                  *discriminator_value;
+  guint                        schema_role_set : 1;
 } GomEntityClassInfo;
 
 GomEntityClassInfo        *_gom_entity_class_get_info            (GomEntityClass      *klass,

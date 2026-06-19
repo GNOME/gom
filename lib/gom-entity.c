@@ -1249,6 +1249,54 @@ gom_entity_class_get_relation (GomEntityClass *klass)
   return NULL;
 }
 
+/**
+ * gom_entity_class_set_schema_role:
+ * @klass: a [struct@Gom.EntityClass]
+ * @schema_role: the schema role for the entity class
+ *
+ * Sets whether @klass is authoritative for schema migration.
+ *
+ * Primary entities own relation creation and migration. Alias entities map to
+ * an existing relation for querying and materialization, but do not contribute
+ * tables, columns, indexes, or search structures to schema migration.
+ */
+void
+gom_entity_class_set_schema_role (GomEntityClass      *klass,
+                                  GomEntitySchemaRole  schema_role)
+{
+  GomEntityClassInfo *info;
+
+  g_return_if_fail (GOM_IS_ENTITY_CLASS (klass));
+  g_return_if_fail (schema_role == GOM_ENTITY_SCHEMA_ROLE_PRIMARY ||
+                    schema_role == GOM_ENTITY_SCHEMA_ROLE_ALIAS);
+
+  info = _gom_entity_class_get_info (klass, TRUE);
+  info->schema_role = schema_role;
+  info->schema_role_set = TRUE;
+}
+
+/**
+ * gom_entity_class_get_schema_role:
+ * @klass: a [struct@Gom.EntityClass]
+ *
+ * Gets the schema role for @klass.
+ *
+ * Returns: the schema role, or %GOM_ENTITY_SCHEMA_ROLE_PRIMARY when no role was
+ *   explicitly configured.
+ */
+GomEntitySchemaRole
+gom_entity_class_get_schema_role (GomEntityClass *klass)
+{
+  g_return_val_if_fail (GOM_IS_ENTITY_CLASS (klass), GOM_ENTITY_SCHEMA_ROLE_PRIMARY);
+
+  FOREACH_INFO_TO_ROOT (klass, info, {
+    if (info->schema_role_set)
+      return info->schema_role;
+  })
+
+  return GOM_ENTITY_SCHEMA_ROLE_PRIMARY;
+}
+
 void
 gom_entity_class_set_discriminator_field (GomEntityClass *klass,
                                           const char     *discriminator_field)

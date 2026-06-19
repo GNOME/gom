@@ -71,6 +71,7 @@ struct _GomEntitySpec
   char       **identity_fields;
   char        *discriminator_field;
   char        *discriminator_value;
+  GomEntitySchemaRole schema_role;
   guint        version_added;
   guint        version_removed;
   GPtrArray   *properties;
@@ -649,14 +650,15 @@ gom_relationship_spec_init (GomRelationshipSpec *self)
 }
 
 static GomEntitySpec *
-_gom_entity_spec_new (const char  *name,
-                      const char  *table,
-                      GType        entity_type,
-                      char       **identity_fields,
-                      const char  *discriminator_field,
-                      const char  *discriminator_value,
-                      guint        version_added,
-                      guint        version_removed)
+_gom_entity_spec_new (const char           *name,
+                      const char           *table,
+                      GType                 entity_type,
+                      char                **identity_fields,
+                      const char           *discriminator_field,
+                      const char           *discriminator_value,
+                      GomEntitySchemaRole   schema_role,
+                      guint                 version_added,
+                      guint                 version_removed)
 {
   GomEntitySpec *self;
 
@@ -667,6 +669,7 @@ _gom_entity_spec_new (const char  *name,
   self->identity_fields = identity_fields != NULL ? g_strdupv (identity_fields) : NULL;
   self->discriminator_field = g_strdup (discriminator_field);
   self->discriminator_value = g_strdup (discriminator_value);
+  self->schema_role = schema_role;
   self->version_added = version_added;
   self->version_removed = version_removed;
 
@@ -841,8 +844,11 @@ _gom_registry_add_entity (GomRegistry   *self,
   g_return_if_fail (GOM_IS_REGISTRY (self));
   g_return_if_fail (GOM_IS_ENTITY_SPEC (entity));
 
-  _gom_registry_consider_version (self, entity->version_added);
-  _gom_registry_consider_version (self, entity->version_removed);
+  if (entity->schema_role == GOM_ENTITY_SCHEMA_ROLE_PRIMARY)
+    {
+      _gom_registry_consider_version (self, entity->version_added);
+      _gom_registry_consider_version (self, entity->version_removed);
+    }
   self->version = self->max_version;
 
   g_ptr_array_add (self->entities, g_object_ref (entity));
@@ -851,8 +857,16 @@ _gom_registry_add_entity (GomRegistry   *self,
   if (gom_spec_get_name (GOM_SPEC (entity)) != NULL)
     g_hash_table_insert (self->by_name, (gpointer)gom_spec_get_name (GOM_SPEC (entity)), entity);
 
-  if (entity->table != NULL)
-    g_hash_table_insert (self->by_table, entity->table, entity);
+  if (entity->table != NULL && entity->schema_role == GOM_ENTITY_SCHEMA_ROLE_PRIMARY)
+    {
+      GomEntitySpec *existing = g_hash_table_lookup (self->by_table, entity->table);
+
+      if (existing == NULL)
+        g_hash_table_insert (self->by_table, entity->table, entity);
+      else if (!g_type_is_a (entity->entity_type, existing->entity_type) &&
+               !g_type_is_a (existing->entity_type, entity->entity_type))
+        g_warning ("Multiple unrelated primary entity types registered for relation `%s`", entity->table);
+    }
 }
 
 static void
@@ -948,11 +962,13 @@ _gom_registry_add_entity_type (GomRegistry *registry,
   const char *discriminator_field;
   const char *discriminator_value;
   const char * const *identity_fields;
+  GomEntitySchemaRole schema_role;
   g_autoptr(GHashTable) seen_properties = NULL;
   g_autoptr(GHashTable) seen_relationships = NULL;
   g_autoptr(GomEntitySpec) entity = NULL;
   guint version_added;
   guint version_removed;
+  gboolean schema_primary;
 
   g_return_if_fail (GOM_IS_REGISTRY (registry));
   g_return_if_fail (registry->frozen == FALSE);
@@ -965,13 +981,15 @@ _gom_registry_add_entity_type (GomRegistry *registry,
   discriminator_field = gom_entity_class_get_discriminator_field (klass);
   discriminator_value = gom_entity_class_get_discriminator_value (klass);
   identity_fields = gom_entity_class_get_identity_fields (klass);
+  schema_role = gom_entity_class_get_schema_role (klass);
   version_added = gom_entity_class_get_version_added (klass);
   version_removed = gom_entity_class_get_version_removed (klass);
+  schema_primary = schema_role == GOM_ENTITY_SCHEMA_ROLE_PRIMARY;
 
   if (table == NULL || *table == '\0')
     g_warning ("%s is missing a relation name", g_type_name (entity_type));
 
-  if (version_added == 0)
+  if (schema_primary && version_added == 0)
     g_warning ("%s is missing version_added", g_type_name (entity_type));
 
   entity = _gom_entity_spec_new (g_type_name (entity_type),
@@ -980,6 +998,7 @@ _gom_registry_add_entity_type (GomRegistry *registry,
                                  (char **)identity_fields,
                                  discriminator_field,
                                  discriminator_value,
+                                 schema_role,
                                  version_added,
                                  version_removed);
 
@@ -1054,11 +1073,14 @@ _gom_registry_add_entity_type (GomRegistry *registry,
           continue;
 
         g_hash_table_add (seen_properties, (gpointer)property_name);
-        _gom_registry_consider_version (registry, property_version_added);
-        _gom_registry_consider_version (registry, property_version_removed);
+        if (schema_primary)
+          {
+            _gom_registry_consider_version (registry, property_version_added);
+            _gom_registry_consider_version (registry, property_version_removed);
+          }
         _gom_entity_spec_add_property (entity, spec);
 
-        if (prop != NULL)
+        if (prop != NULL && schema_primary)
           _gom_registry_add_index_from_property (registry, entity, prop);
       }
   }
@@ -1110,8 +1132,11 @@ _gom_registry_add_entity_type (GomRegistry *registry,
                                              relationship->ordered,
                                              relationship->delete_rule);
 
-          _gom_registry_consider_version (registry, relationship->version_added);
-          _gom_registry_consider_version (registry, relationship->version_removed);
+          if (schema_primary)
+            {
+              _gom_registry_consider_version (registry, relationship->version_added);
+              _gom_registry_consider_version (registry, relationship->version_removed);
+            }
 
           _gom_entity_spec_add_relationship (entity, spec);
         }
@@ -1209,6 +1234,7 @@ _gom_entity_spec_snapshot (GomEntitySpec *entity,
                                    entity->identity_fields,
                                    entity->discriminator_field,
                                    entity->discriminator_value,
+                                   entity->schema_role,
                                    entity->version_added,
                                    entity->version_removed);
 
@@ -1356,6 +1382,22 @@ gom_entity_spec_get_entity_type (GomEntitySpec *self)
   g_return_val_if_fail (GOM_IS_ENTITY_SPEC (self), G_TYPE_INVALID);
 
   return self->entity_type;
+}
+
+/**
+ * gom_entity_spec_get_schema_role:
+ * @self: a [class@Gom.EntitySpec]
+ *
+ * Gets the schema role of @self.
+ *
+ * Returns: the schema role.
+ */
+GomEntitySchemaRole
+gom_entity_spec_get_schema_role (GomEntitySpec *self)
+{
+  g_return_val_if_fail (GOM_IS_ENTITY_SPEC (self), GOM_ENTITY_SCHEMA_ROLE_PRIMARY);
+
+  return self->schema_role;
 }
 
 const char * const *

@@ -269,6 +269,9 @@ gom_registry_diff_build_entity_table_map (GomRegistry *registry)
       GomEntitySpec *entity = (GomEntitySpec *)entities[i];
       const char *table = gom_entity_spec_get_table (entity);
 
+      if (gom_entity_spec_get_schema_role (entity) != GOM_ENTITY_SCHEMA_ROLE_PRIMARY)
+        continue;
+
       if (table == NULL || *table == '\0')
         continue;
 
