@@ -522,3 +522,19 @@ gom_driver_open (const char  *uri,
 
   return gom_driver_open_with_options (uri, NULL, error);
 }
+
+void
+_gom_driver_acquire_repository (GomDriver *self)
+{
+  g_return_if_fail (GOM_IS_DRIVER (self));
+
+  g_atomic_int_inc (&self->repository_use_count);
+}
+
+void
+_gom_driver_release_repository (GomDriver *self)
+{
+  g_return_if_fail (GOM_IS_DRIVER (self));
+
+  g_atomic_int_dec_and_test (&self->repository_use_count);
+}

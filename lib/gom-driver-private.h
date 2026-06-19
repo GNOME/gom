@@ -34,6 +34,7 @@ typedef GomDriver *(*GomDriverConstructor) (const char        *uri,
 struct _GomDriver
 {
   GObject parent_instance;
+  int     repository_use_count;
 };
 
 struct _GomDriverClass
@@ -93,5 +94,7 @@ gboolean   _gom_driver_supports_feature         (GomDriver            *self,
 gboolean   _gom_driver_supports_vector_distance (GomDriver            *self,
                                                  GomVectorFormat       format,
                                                  GomVectorMetric       metric);
+void       _gom_driver_acquire_repository       (GomDriver            *self);
+void       _gom_driver_release_repository       (GomDriver            *self);
 
 G_END_DECLS

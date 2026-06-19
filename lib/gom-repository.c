@@ -280,6 +280,9 @@ gom_repository_finalize (GObject *object)
 {
   GomRepository *self = (GomRepository *)object;
 
+  if (self->driver != NULL)
+    _gom_driver_release_repository (self->driver);
+
   g_clear_pointer (&self->entity_types, g_array_unref);
   g_clear_pointer (&self->built_types, g_hash_table_unref);
   g_clear_object (&self->registry);
@@ -519,6 +522,7 @@ gom_repository_new_fiber (gpointer user_data)
                       G_OBJECT_TYPE_NAME (state->driver),
                       n_entities);
 
+  _gom_driver_acquire_repository (self->driver);
   return dex_future_new_take_object (g_steal_pointer (&self));
 }
 
