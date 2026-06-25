@@ -192,6 +192,10 @@ libgom_pkg_requires = [
   'gio-2.0',
   'libdex-1',
 ]
+libgom_vapi_packages = libgom_pkg_requires
+if host_machine.system() != 'windows'
+  libgom_vapi_packages += ['gio-unix-2.0']
+endif
 
 pkg.generate(
   description: 'Future-based programming for GLib-based applications and libraries',
@@ -225,7 +229,7 @@ if get_option('introspection').enabled()
             sources: libgom_gir.get(0),
             install: true,
         install_dir: join_paths(datadir, 'vala', 'vapi'),
-           packages: ['gio-2.0'],
+           packages: libgom_vapi_packages,
     )
   endif
 
