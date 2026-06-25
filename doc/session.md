@@ -23,6 +23,27 @@ Sessions are for the cases where the sequence matters:
 
 In other words, a session is the unit of work for stateful data access.
 
+## Session Lifetime And SQLite
+
+On SQLite, calling [method@Gom.Repository.begin_session] does more than group work:
+
+- it opens `BEGIN IMMEDIATE TRANSACTION` for the session
+- it acquires the repository write limiter for the life of that session
+- it holds both until the session is committed or rolled back
+
+That means creating additional sessions while one is still alive can block.
+For session-backed UI models, this includes `GomQueryModel`: the model keeps a
+strong reference to its session, so long-lived views can unintentionally
+serialise write-bound workflows.
+
+Treat sessions as short-lived transaction scopes. Keep them as UI-owned state
+only when you are actively editing or need session identity semantics across
+operations.
+
+For read-only list views, prefer repository-backed models created with
+[method@Gom.Repository.list_query] and inspect data through
+[class@Gom.EntityListModel].
+
 ## How To Use It
 
 Start one from a repository with [method@Gom.Repository.begin_session].

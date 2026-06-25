@@ -30,6 +30,28 @@ That means:
 instance is already materialized in the session, the list and the app will share
 that object.
 
+## `GomEntityListModel`
+
+Use `GomEntityListModel` for long-lived read-only list views.
+
+- get one with [method@Gom.Repository.list_query] for repository-backed reads
+- get one with [method@Gom.Session.list_query] for session-scoped reads
+- watch `loading` while pages are loaded lazily
+- handle rows as [class@Gom.EntityListItem] wrappers and read the real entity via
+  [method@Gom.EntityListItem.dup_item]
+
+`GomEntityListModel` is often a better match for UI lists because it does not
+require a long-lived session for read-only workflows.
+
+## Model Choice
+
+Use `GomQueryModel` when you already have a session-scoped workflow and want
+the model to reflect that session’s `changed` signal and identity map.
+
+Use `GomEntityListModel` (via [method@Gom.Repository.list_query]) for
+long-lived read-only UI lists where you want pagination and do not need session
+liveness.
+
 ## `GomRelatedModel`
 
 Use `GomRelatedModel` for relationship-backed collections.

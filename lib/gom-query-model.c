@@ -460,6 +460,12 @@ gom_query_model_session_changed_cb (GomSession    *session,
  *
  * Creates a live query-backed model for @entity_type.
  *
+ * Warning: this keeps a strong reference to @session. On SQLite, active
+ * sessions hold the repository write limiter for their lifetime, so a
+ * long-lived session-backed model can block later calls to
+ * [method@Gom.Repository.begin_session]. For read-only UI lists, prefer
+ * [method@Gom.Repository.list_query] and [class@Gom.EntityListModel].
+ *
  * The model reloads automatically when the bound session emits `changed`.
  *
  * Returns: (transfer full): a new [class@Gom.QueryModel]
