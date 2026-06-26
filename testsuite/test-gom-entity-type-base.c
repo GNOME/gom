@@ -124,6 +124,10 @@ test_entity_subclass_metadata (void)
   GomRelationshipSpec *parent_spec;
   GomRelationshipSpec *children_spec;
   GomRelationshipSpec *related_spec;
+  GomRelationshipSpec *feed_child_relationship_spec;
+  GomRelationshipSpec *child_feed_relationship_spec;
+  GomEntitySpec *one_to_one_feed_spec;
+  GomEntitySpec *one_to_one_child_spec;
   guint n_property_specs = 0;
   guint n_relationships = 0;
   guint version_added;
@@ -233,6 +237,34 @@ test_entity_subclass_metadata (void)
   g_assert_nonnull (join_remote_fields);
   g_assert_cmpstr (join_local_fields[0], ==, "left_id");
   g_assert_cmpstr (join_remote_fields[0], ==, "right_id");
+
+  one_to_one_feed_spec = test_entity_find_spec (registry, TEST_ENTITY_ONE_TO_ONE_FEED_TYPE);
+  g_assert_nonnull (one_to_one_feed_spec);
+
+  feed_child_relationship_spec = test_entity_find_relationship_spec (one_to_one_feed_spec, "child");
+  g_assert_nonnull (feed_child_relationship_spec);
+  g_assert_cmpint (gom_relationship_spec_get_cardinality (feed_child_relationship_spec), ==, GOM_RELATIONSHIP_CARDINALITY_TO_MANY);
+  g_assert_cmpint (gom_relationship_spec_get_storage (feed_child_relationship_spec), ==, GOM_RELATIONSHIP_STORAGE_FK);
+  g_assert_cmpstr (gom_relationship_spec_get_inverse_name (feed_child_relationship_spec), ==, "feed");
+  g_assert_cmpuint (gom_relationship_spec_get_min_count (feed_child_relationship_spec), ==, 0);
+  g_assert_cmpuint (gom_relationship_spec_get_max_count (feed_child_relationship_spec), ==, 1);
+  remote_fields = gom_relationship_spec_get_remote_fields (feed_child_relationship_spec);
+  g_assert_nonnull (remote_fields);
+  g_assert_cmpstr (remote_fields[0], ==, "feed-id");
+  g_assert_null (remote_fields[1]);
+
+  one_to_one_child_spec = test_entity_find_spec (registry, TEST_ENTITY_ONE_TO_ONE_CHILD_TYPE);
+  g_assert_nonnull (one_to_one_child_spec);
+
+  child_feed_relationship_spec = test_entity_find_relationship_spec (one_to_one_child_spec, "feed");
+  g_assert_nonnull (child_feed_relationship_spec);
+  g_assert_cmpint (gom_relationship_spec_get_cardinality (child_feed_relationship_spec), ==, GOM_RELATIONSHIP_CARDINALITY_TO_ONE);
+  g_assert_cmpint (gom_relationship_spec_get_storage (child_feed_relationship_spec), ==, GOM_RELATIONSHIP_STORAGE_FK);
+  g_assert_cmpstr (gom_relationship_spec_get_inverse_name (child_feed_relationship_spec), ==, "child");
+  local_fields = gom_relationship_spec_get_local_fields (child_feed_relationship_spec);
+  g_assert_nonnull (local_fields);
+  g_assert_cmpstr (local_fields[0], ==, "feed-id");
+  g_assert_null (local_fields[1]);
   custom_identity_spec = test_entity_find_spec (registry, TEST_ENTITY_BASE_CUSTOM_IDENTITY_TYPE);
   g_assert_nonnull (custom_identity_spec);
 

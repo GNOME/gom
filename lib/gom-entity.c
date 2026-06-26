@@ -1679,6 +1679,35 @@ gom_entity_class_add_many_to_one (GomEntityClass *klass,
 }
 
 void
+gom_entity_class_add_one_to_one (GomEntityClass *klass,
+                                 const char     *name,
+                                 GType           target_type,
+                                 const char     *foreign_field,
+                                 const char     *inverse_name)
+{
+  const char *remote_fields[] = { foreign_field, NULL };
+
+  g_return_if_fail (foreign_field != NULL);
+
+  gom_entity_class_add_relationship (klass,
+                                     name,
+                                     target_type,
+                                     GOM_RELATIONSHIP_CARDINALITY_TO_MANY,
+                                     GOM_RELATIONSHIP_STORAGE_FK,
+                                     NULL,
+                                     remote_fields,
+                                     NULL,
+                                     NULL,
+                                     NULL,
+                                     inverse_name,
+                                     TRUE,
+                                     FALSE,
+                                     0,
+                                     1,
+                                     GOM_RELATIONSHIP_DELETE_NULLIFY);
+}
+
+void
 gom_entity_class_add_one_to_many (GomEntityClass *klass,
                                   const char     *name,
                                   GType           target_type,
@@ -2339,7 +2368,11 @@ gom_entity_validate_relationship_state (GomEntity                  *self,
         return FALSE;
 
       n_related = g_list_model_get_n_items (G_LIST_MODEL (related));
-      if (n_related == 0 || (relationship->max_count != 0 && n_related > relationship->max_count))
+      if ((relationship->cardinality == GOM_RELATIONSHIP_CARDINALITY_TO_ONE && n_related == 0) ||
+          (relationship->cardinality != GOM_RELATIONSHIP_CARDINALITY_TO_ONE &&
+           ((!relationship->optional && n_related == 0) ||
+            (relationship->min_count > 0 && n_related < relationship->min_count))) ||
+          (relationship->max_count != 0 && n_related > relationship->max_count))
         {
           g_set_error (error,
                        G_IO_ERROR,

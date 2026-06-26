@@ -18,6 +18,36 @@ other side consistent where the schema declares an inverse. That includes:
 The intent is that you can update one side of the graph and trust the inverse
 to stay aligned without hand-written fixup code.
 
+## One-to-One Modeling
+
+Use this when one object should have a single companion object (for example one
+`NewsFeed` has one `NewsIcon`).
+
+In this pattern, the `NewsIcon` row keeps the FK (`feed_id`) that points back to
+`NewsFeed`. So you define the relation on the feed side as:
+
+- `feed.icon` (has-one) using `gom_entity_class_add_one_to_one()`
+- `icon.feed` (belongs-to) using `gom_entity_class_add_many_to_one()`
+
+`gom_entity_class_add_one_to_one()` is the API-friendly way to express “at most
+one related row” for this shape.
+
+It is still important to enforce uniqueness in the database too (for example
+with a unique index on `feed_id`) so your schema cannot accidentally store two
+icons for the same feed.
+
+### Both Directions
+
+If you want both objects to reference each other (`feed.icon` and `icon.feed`), you
+still define them as a pair:
+
+- `feed.icon` with `gom_entity_class_add_one_to_one()`
+- `icon.feed` with `gom_entity_class_add_many_to_one()`
+
+That gives you a bidirectional one-to-one navigation while matching libgom’s
+storage model (the FK is on `NewsIcon`). In practice, this is the correct pattern
+for “one object has one child, and that child belongs to one parent.”
+
 ## Delete Rules
 
 Relationship delete behavior is explicit and schema-driven:

@@ -30,6 +30,10 @@ typedef struct _TestEntityBaseInheritedMetadata      TestEntityBaseInheritedMeta
 typedef struct _TestEntityBaseInheritedMetadataClass TestEntityBaseInheritedMetadataClass;
 typedef struct _TestEntityInvalidInverseTarget       TestEntityInvalidInverseTarget;
 typedef struct _TestEntityInvalidInverseTargetClass  TestEntityInvalidInverseTargetClass;
+typedef struct _TestEntityOneToOneFeed              TestEntityOneToOneFeed;
+typedef struct _TestEntityOneToOneFeedClass         TestEntityOneToOneFeedClass;
+typedef struct _TestEntityOneToOneChild             TestEntityOneToOneChild;
+typedef struct _TestEntityOneToOneChildClass        TestEntityOneToOneChildClass;
 
 struct _TestEntityBase
 {
@@ -75,14 +79,41 @@ struct _TestEntityInvalidInverseTargetClass
   GomEntityClass parent_class;
 };
 
+struct _TestEntityOneToOneFeed
+{
+  GomEntity parent_instance;
+  gint64    id;
+};
+
+struct _TestEntityOneToOneFeedClass
+{
+  GomEntityClass parent_class;
+};
+
+struct _TestEntityOneToOneChild
+{
+  GomEntity parent_instance;
+  gint64    id;
+  gint64    feed_id;
+};
+
+struct _TestEntityOneToOneChildClass
+{
+  GomEntityClass parent_class;
+};
+
 GType test_entity_base_get_type                    (void);
 GType test_entity_base_custom_identity_get_type    (void);
 GType test_entity_base_inherited_metadata_get_type (void);
 GType test_entity_invalid_inverse_target_get_type  (void);
+GType test_entity_one_to_one_feed_get_type        (void);
+GType test_entity_one_to_one_child_get_type       (void);
 
 #define TEST_ENTITY_BASE_TYPE (test_entity_base_get_type ())
 #define TEST_ENTITY_BASE_CUSTOM_IDENTITY_TYPE (test_entity_base_custom_identity_get_type ())
 #define TEST_ENTITY_BASE_INHERITED_METADATA_TYPE (test_entity_base_inherited_metadata_get_type ())
 #define TEST_ENTITY_INVALID_INVERSE_TARGET_TYPE (test_entity_invalid_inverse_target_get_type ())
+#define TEST_ENTITY_ONE_TO_ONE_FEED_TYPE (test_entity_one_to_one_feed_get_type ())
+#define TEST_ENTITY_ONE_TO_ONE_CHILD_TYPE (test_entity_one_to_one_child_get_type ())
 
 void test_entity_register_types (GomRegistryBuilder *builder);

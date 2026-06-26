@@ -41,8 +41,25 @@ enum
   TEST_ENTITY_INVALID_INVERSE_TARGET_N_PROPS
 };
 
+enum
+{
+  TEST_ENTITY_ONE_TO_ONE_FEED_PROP_0,
+  TEST_ENTITY_ONE_TO_ONE_FEED_PROP_ID,
+  TEST_ENTITY_ONE_TO_ONE_FEED_N_PROPS
+};
+
+enum
+{
+  TEST_ENTITY_ONE_TO_ONE_CHILD_PROP_0,
+  TEST_ENTITY_ONE_TO_ONE_CHILD_PROP_ID,
+  TEST_ENTITY_ONE_TO_ONE_CHILD_PROP_FEED_ID,
+  TEST_ENTITY_ONE_TO_ONE_CHILD_N_PROPS
+};
+
 static GParamSpec *test_entity_base_properties[TEST_ENTITY_BASE_N_PROPS];
 static GParamSpec *test_entity_invalid_inverse_target_properties[TEST_ENTITY_INVALID_INVERSE_TARGET_N_PROPS];
+static GParamSpec *test_entity_one_to_one_feed_properties[TEST_ENTITY_ONE_TO_ONE_FEED_N_PROPS];
+static GParamSpec *test_entity_one_to_one_child_properties[TEST_ENTITY_ONE_TO_ONE_CHILD_N_PROPS];
 
 G_DEFINE_TYPE (TestEntityBase, test_entity_base, GOM_TYPE_ENTITY)
 
@@ -211,6 +228,171 @@ G_DEFINE_TYPE (TestEntityInvalidInverseTarget,
                test_entity_invalid_inverse_target,
                GOM_TYPE_ENTITY)
 
+G_DEFINE_TYPE (TestEntityOneToOneFeed,
+               test_entity_one_to_one_feed,
+               GOM_TYPE_ENTITY)
+
+G_DEFINE_TYPE (TestEntityOneToOneChild,
+               test_entity_one_to_one_child,
+               GOM_TYPE_ENTITY)
+
+static void
+test_entity_one_to_one_feed_get_property (GObject    *object,
+                                          guint       prop_id,
+                                          GValue     *value,
+                                          GParamSpec *pspec)
+{
+  TestEntityOneToOneFeed *self = (TestEntityOneToOneFeed *) object;
+
+  switch (prop_id)
+    {
+    case TEST_ENTITY_ONE_TO_ONE_FEED_PROP_ID:
+      g_value_set_int64 (value, self->id);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+test_entity_one_to_one_feed_set_property (GObject      *object,
+                                          guint         prop_id,
+                                          const GValue *value,
+                                          GParamSpec   *pspec)
+{
+  TestEntityOneToOneFeed *self = (TestEntityOneToOneFeed *) object;
+
+  switch (prop_id)
+    {
+    case TEST_ENTITY_ONE_TO_ONE_FEED_PROP_ID:
+      self->id = g_value_get_int64 (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+test_entity_one_to_one_feed_class_init (TestEntityOneToOneFeedClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  GomEntityClass *entity_class = GOM_ENTITY_CLASS (klass);
+
+  object_class->get_property = test_entity_one_to_one_feed_get_property;
+  object_class->set_property = test_entity_one_to_one_feed_set_property;
+
+  test_entity_one_to_one_feed_properties[TEST_ENTITY_ONE_TO_ONE_FEED_PROP_ID] =
+    g_param_spec_int64 ("id", NULL, NULL,
+                        0, G_MAXINT64, 0,
+                        (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_properties (object_class,
+                                    TEST_ENTITY_ONE_TO_ONE_FEED_N_PROPS,
+                                    test_entity_one_to_one_feed_properties);
+
+  gom_entity_class_set_relation (entity_class, "one_to_one_feeds");
+  gom_entity_class_set_identity_field (entity_class, "id");
+  gom_entity_class_set_version_added (entity_class, 1);
+  gom_entity_class_property_set_mapped (entity_class, "id", TRUE);
+  gom_entity_class_add_one_to_one (entity_class,
+                                  "child",
+                                  TEST_ENTITY_ONE_TO_ONE_CHILD_TYPE,
+                                  "feed-id",
+                                  "feed");
+}
+
+static void
+test_entity_one_to_one_feed_init (TestEntityOneToOneFeed *self)
+{
+}
+
+static void
+test_entity_one_to_one_child_get_property (GObject    *object,
+                                           guint       prop_id,
+                                           GValue     *value,
+                                           GParamSpec *pspec)
+{
+  TestEntityOneToOneChild *self = (TestEntityOneToOneChild *) object;
+
+  switch (prop_id)
+    {
+    case TEST_ENTITY_ONE_TO_ONE_CHILD_PROP_ID:
+      g_value_set_int64 (value, self->id);
+      break;
+
+    case TEST_ENTITY_ONE_TO_ONE_CHILD_PROP_FEED_ID:
+      g_value_set_int64 (value, self->feed_id);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+test_entity_one_to_one_child_set_property (GObject      *object,
+                                          guint         prop_id,
+                                          const GValue *value,
+                                          GParamSpec   *pspec)
+{
+  TestEntityOneToOneChild *self = (TestEntityOneToOneChild *) object;
+
+  switch (prop_id)
+    {
+    case TEST_ENTITY_ONE_TO_ONE_CHILD_PROP_ID:
+      self->id = g_value_get_int64 (value);
+      break;
+
+    case TEST_ENTITY_ONE_TO_ONE_CHILD_PROP_FEED_ID:
+      self->feed_id = g_value_get_int64 (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+test_entity_one_to_one_child_class_init (TestEntityOneToOneChildClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  GomEntityClass *entity_class = GOM_ENTITY_CLASS (klass);
+
+  object_class->get_property = test_entity_one_to_one_child_get_property;
+  object_class->set_property = test_entity_one_to_one_child_set_property;
+
+  test_entity_one_to_one_child_properties[TEST_ENTITY_ONE_TO_ONE_CHILD_PROP_ID] =
+    g_param_spec_int64 ("id", NULL, NULL,
+                        0, G_MAXINT64, 0,
+                        (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+  test_entity_one_to_one_child_properties[TEST_ENTITY_ONE_TO_ONE_CHILD_PROP_FEED_ID] =
+    g_param_spec_int64 ("feed-id", NULL, NULL,
+                        0, G_MAXINT64, 0,
+                        (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_properties (object_class,
+                                    TEST_ENTITY_ONE_TO_ONE_CHILD_N_PROPS,
+                                    test_entity_one_to_one_child_properties);
+
+  gom_entity_class_set_relation (entity_class, "one_to_one_children");
+  gom_entity_class_set_identity_field (entity_class, "id");
+  gom_entity_class_set_version_added (entity_class, 1);
+  gom_entity_class_property_set_mapped (entity_class, "id", TRUE);
+  gom_entity_class_property_set_mapped (entity_class, "feed-id", TRUE);
+  gom_entity_class_add_many_to_one (entity_class,
+                                    "feed",
+                                    TEST_ENTITY_ONE_TO_ONE_FEED_TYPE,
+                                    "feed-id",
+                                    "child");
+}
+
+static void
+test_entity_one_to_one_child_init (TestEntityOneToOneChild *self)
+{
+}
+
 static void
 test_entity_invalid_inverse_target_finalize (GObject *object)
 {
@@ -291,4 +473,7 @@ test_entity_register_types (GomRegistryBuilder *builder)
   gom_registry_builder_add_entity_type (builder, TEST_ENTITY_BASE_TYPE);
   gom_registry_builder_add_entity_type (builder, TEST_ENTITY_BASE_CUSTOM_IDENTITY_TYPE);
   gom_registry_builder_add_entity_type (builder, TEST_ENTITY_BASE_INHERITED_METADATA_TYPE);
+  gom_registry_builder_add_entity_type (builder, TEST_ENTITY_ONE_TO_ONE_FEED_TYPE);
+  gom_registry_builder_add_entity_type (builder, TEST_ENTITY_ONE_TO_ONE_CHILD_TYPE);
+  gom_registry_builder_add_entity_type (builder, TEST_ENTITY_INVALID_INVERSE_TARGET_TYPE);
 }

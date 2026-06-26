@@ -194,6 +194,12 @@ void                 gom_entity_class_add_many_to_one              (GomEntityCla
                                                                     const char                 *local_field,
                                                                     const char                 *inverse_name);
 GOM_AVAILABLE_IN_ALL
+void                 gom_entity_class_add_one_to_one               (GomEntityClass             *klass,
+                                                                    const char                 *name,
+                                                                    GType                       target_type,
+                                                                    const char                 *foreign_field,
+                                                                    const char                 *inverse_name);
+GOM_AVAILABLE_IN_ALL
 void                 gom_entity_class_add_one_to_many              (GomEntityClass             *klass,
                                                                     const char                 *name,
                                                                     GType                       target_type,
