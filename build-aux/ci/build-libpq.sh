@@ -27,7 +27,7 @@ build_libpq_main() {
 
   rm -rf "${source_dir}" "${build_dir}" "${POSTGRESQL_PREFIX}"
   mkdir -p "${source_dir}" "${build_dir}" "${POSTGRESQL_PREFIX}"
-  tar -xf "${cache_dir}/${archive}" -C "${source_dir}" --strip-components=1
+  tar -xf "${cache_dir}/${archive}" -C "${source_dir}" --strip-components=1 --no-same-owner
 
   (
     cd "${build_dir}"
