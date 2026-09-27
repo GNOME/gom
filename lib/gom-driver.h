@@ -42,9 +42,9 @@ GomDriver *gom_driver_open_with_options (const char        *uri,
                                          GomDriverOptions  *options,
                                          GError           **error);
 GOM_AVAILABLE_IN_ALL
+DexFuture *gom_driver_query_version     (GomDriver         *self) G_GNUC_WARN_UNUSED_RESULT;
+GOM_AVAILABLE_IN_ALL
 DexFuture *gom_driver_rekey             (GomDriver         *self,
                                          GomDriverOptions  *options) G_GNUC_WARN_UNUSED_RESULT;
-GOM_AVAILABLE_IN_ALL
-DexFuture *gom_driver_query_version     (GomDriver         *self) G_GNUC_WARN_UNUSED_RESULT;
 
 G_END_DECLS

@@ -29,7 +29,7 @@ G_BEGIN_DECLS
 
 struct _GomSession
 {
-  GObject parent_instance;
+  GObject        parent_instance;
 
   gint64         id;
   char          *commit_id;
@@ -45,7 +45,7 @@ struct _GomSession
 
 struct _GomSessionClass
 {
-  GObjectClass parent_class;
+  GObjectClass  parent_class;
 
   DexFuture *(*query)                     (GomSession  *self,
                                            GomQuery    *query);
@@ -80,48 +80,48 @@ struct _GomSessionClass
   void       (*clear_entities)            (GomSession  *self);
 };
 
-void           _gom_session_set_repository            (GomSession    *self,
-                                                       GomRepository *repository);
+void           _gom_session_accept_entity_changes     (GomSession    *self,
+                                                       GomEntity     *entity,
+                                                       GomDelta      *delta);
+void           _gom_session_clear_entities            (GomSession    *self);
+DexFuture     *_gom_session_commit                    (GomSession    *self) G_GNUC_WARN_UNUSED_RESULT;
 GomRepository *_gom_session_dup_repository            (GomSession    *self);
-void           _gom_session_set_closed                (GomSession    *self,
-                                                       gboolean       closed);
+void           _gom_session_emit_changed              (GomSession    *self);
+DexFuture     *_gom_session_flush                     (GomSession    *self) G_GNUC_WARN_UNUSED_RESULT;
 gboolean       _gom_session_is_closed                 (GomSession    *self);
 GomEntity     *_gom_session_lookup_entity             (GomSession    *self,
                                                        const char    *entity_key) G_GNUC_WARN_UNUSED_RESULT;
+void           _gom_session_mark_entity_dirty         (GomSession    *self,
+                                                       GomEntity     *entity);
+DexFuture     *_gom_session_mutate                    (GomSession    *self,
+                                                       GomMutation   *mutation) G_GNUC_WARN_UNUSED_RESULT;
+DexFuture     *_gom_session_persist                   (GomSession    *self,
+                                                       GomEntity     *entity) G_GNUC_WARN_UNUSED_RESULT;
+DexFuture     *_gom_session_query                     (GomSession    *self,
+                                                       GomQuery      *query) G_GNUC_WARN_UNUSED_RESULT;
+void           _gom_session_record_entity_changes     (GomSession    *self,
+                                                       GomEntity     *entity,
+                                                       GomDelta      *delta);
 GomEntity     *_gom_session_register_entity           (GomSession    *self,
                                                        GomEntity     *entity,
                                                        char          *entity_key) G_GNUC_WARN_UNUSED_RESULT;
 gboolean       _gom_session_rekey_entity_identity     (GomSession    *self,
                                                        GomEntity     *entity,
                                                        char          *entity_key) G_GNUC_WARN_UNUSED_RESULT;
+DexFuture     *_gom_session_rollback                  (GomSession    *self) G_GNUC_WARN_UNUSED_RESULT;
+void           _gom_session_set_closed                (GomSession    *self,
+                                                       gboolean       closed);
+void           _gom_session_set_repository            (GomSession    *self,
+                                                       GomRepository *repository);
+void           _gom_session_track_entity_changes      (GomSession    *self,
+                                                       GomEntity     *entity);
+DexFuture     *_gom_session_track_mutation_result     (GomSession    *self,
+                                                       DexFuture     *mutation_result) G_GNUC_WARN_UNUSED_RESULT;
 void           _gom_session_unregister_entity         (GomSession    *self,
                                                        GomEntity     *entity);
-void           _gom_session_clear_entities            (GomSession    *self);
-DexFuture     *_gom_session_query                     (GomSession    *self,
-                                                       GomQuery      *query) G_GNUC_WARN_UNUSED_RESULT;
-DexFuture     *_gom_session_mutate                    (GomSession    *self,
-                                                       GomMutation   *mutation) G_GNUC_WARN_UNUSED_RESULT;
-DexFuture     *_gom_session_persist                   (GomSession    *self,
-                                                       GomEntity     *entity) G_GNUC_WARN_UNUSED_RESULT;
-DexFuture     *_gom_session_flush                     (GomSession    *self) G_GNUC_WARN_UNUSED_RESULT;
-DexFuture     *_gom_session_commit                    (GomSession    *self) G_GNUC_WARN_UNUSED_RESULT;
-DexFuture     *_gom_session_rollback                  (GomSession    *self) G_GNUC_WARN_UNUSED_RESULT;
 void           _gom_session_unregister_pending_entity (GomSession    *self,
-                                                       GomEntity     *entity);
-void           _gom_session_track_entity_changes      (GomSession    *self,
                                                        GomEntity     *entity);
 void           _gom_session_untrack_entity_changes    (GomSession    *self,
                                                        GomEntity     *entity);
-void           _gom_session_accept_entity_changes     (GomSession    *self,
-                                                       GomEntity     *entity,
-                                                       GomDelta      *delta);
-void           _gom_session_record_entity_changes     (GomSession    *self,
-                                                       GomEntity     *entity,
-                                                       GomDelta      *delta);
-void           _gom_session_mark_entity_dirty         (GomSession    *self,
-                                                       GomEntity     *entity);
-void           _gom_session_emit_changed              (GomSession    *self);
-DexFuture     *_gom_session_track_mutation_result     (GomSession    *self,
-                                                       DexFuture     *mutation_result) G_GNUC_WARN_UNUSED_RESULT;
 
 G_END_DECLS

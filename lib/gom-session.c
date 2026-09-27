@@ -120,9 +120,10 @@ gom_session_class_init (GomSessionClass *klass)
                   GOM_TYPE_SESSION,
                   G_SIGNAL_RUN_LAST,
                   0,
-                  NULL,
                   NULL, NULL,
-                  G_TYPE_NONE, 0);
+                  NULL,
+                  G_TYPE_NONE,
+                  0);
 
   /**
    * GomSession::committed:
@@ -136,7 +137,8 @@ gom_session_class_init (GomSessionClass *klass)
                   0,
                   NULL, NULL,
                   NULL,
-                  G_TYPE_NONE, 0);
+                  G_TYPE_NONE,
+                  0);
 
   /**
    * GomSession::rolled-back:
@@ -150,7 +152,8 @@ gom_session_class_init (GomSessionClass *klass)
                   0,
                   NULL, NULL,
                   NULL,
-                  G_TYPE_NONE, 0);
+                  G_TYPE_NONE,
+                  0);
 }
 
 static void
@@ -230,7 +233,6 @@ gom_session_find_one_fiber (gpointer user_data)
     {
       if (error != NULL)
         return dex_future_new_for_error (g_steal_pointer (&error));
-
       return dex_future_new_take_object (NULL);
     }
 
@@ -509,8 +511,10 @@ _gom_session_record_entity_changes (GomSession *self,
 
   g_return_if_fail (!self->frozen);
 
-  if (_gom_session_is_closed (self) || delta == NULL ||
-      (gom_delta_is_empty (delta) && gom_delta_get_kind (delta) == GOM_DELTA_KIND_UPDATE))
+  if (_gom_session_is_closed (self) ||
+      delta == NULL ||
+      (gom_delta_is_empty (delta) &&
+       gom_delta_get_kind (delta) == GOM_DELTA_KIND_UPDATE))
     return;
 
   change = g_new0 (GomSessionSyncChange, 1);
@@ -1214,7 +1218,8 @@ gom_session_rollback_failed_commit_fiber (gpointer user_data)
     g_signal_emit (session, signals[SIGNAL_ROLLED_BACK], 0);
 
   if (original == NULL)
-    original = g_error_new_literal (G_IO_ERROR, G_IO_ERROR_FAILED,
+    original = g_error_new_literal (G_IO_ERROR,
+                                    G_IO_ERROR_FAILED,
                                     "Commit failed without an error");
   return dex_future_new_for_error (original);
 }
@@ -1223,8 +1228,10 @@ static DexFuture *
 gom_session_fail_and_rollback (GomSession *session,
                                GError     *error)
 {
-  g_object_set_data_full (G_OBJECT (session), "gom-commit-error",
-                          error, (GDestroyNotify)g_error_free);
+  g_object_set_data_full (G_OBJECT (session),
+                          "gom-commit-error",
+                          error,
+                          (GDestroyNotify)g_error_free);
   return dex_scheduler_spawn (NULL, 0,
                               gom_session_rollback_failed_commit_fiber,
                               g_object_ref (session), g_object_unref);
@@ -1281,8 +1288,11 @@ gom_session_stage_sync_changes_fiber (gpointer user_data)
   for (guint i = 0; i < session->sync_changes->len; i++)
     {
       GomSessionSyncChange *change = g_ptr_array_index (session->sync_changes, i);
-
-      if (!dex_await (gom_sync_coordinator_stage_local_change (coordinator, repository, session, change->entity, change->delta), &error))
+      if (!dex_await (gom_sync_coordinator_stage_local_change (coordinator,
+                                                               repository,
+                                                               session,
+                                                               change->entity,
+                                                               change->delta), &error))
         return dex_future_new_for_error (g_steal_pointer (&error));
     }
 
@@ -1448,7 +1458,9 @@ gom_session_set_replay_mode (GomSession *self,
 {
   g_return_val_if_fail (GOM_IS_SESSION (self), FALSE);
 
-  if (self->committing || self->sync_changes->len > 0 || self->closed)
+  if (self->committing ||
+      self->sync_changes->len > 0 ||
+      self->closed)
     return FALSE;
 
   self->replay_mode = !!replay_mode;

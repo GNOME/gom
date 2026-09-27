@@ -33,28 +33,28 @@ GOM_AVAILABLE_IN_ALL
 G_DECLARE_FINAL_TYPE (GomDriverOptions, gom_driver_options, GOM, DRIVER_OPTIONS, GObject)
 
 GOM_AVAILABLE_IN_ALL
-GomDriverOptions *gom_driver_options_new                (void);
-GOM_AVAILABLE_IN_ALL
-void              gom_driver_options_set_encryption_key (GomDriverOptions  *self,
-                                                         GBytes            *key);
-GOM_AVAILABLE_IN_ALL
 GBytes           *gom_driver_options_dup_encryption_key (GomDriverOptions  *self);
 GOM_AVAILABLE_IN_ALL
-void              gom_driver_options_set_boolean        (GomDriverOptions  *self,
+gboolean          gom_driver_options_dup_string         (GomDriverOptions  *self,
                                                          const char        *key,
-                                                         gboolean           value);
+                                                         char             **value);
 GOM_AVAILABLE_IN_ALL
 gboolean          gom_driver_options_get_boolean        (GomDriverOptions  *self,
                                                          const char        *key,
                                                          gboolean          *value);
 GOM_AVAILABLE_IN_ALL
+GomDriverOptions *gom_driver_options_new                (void);
+GOM_AVAILABLE_IN_ALL
+void              gom_driver_options_set_boolean        (GomDriverOptions  *self,
+                                                         const char        *key,
+                                                         gboolean           value);
+GOM_AVAILABLE_IN_ALL
+void              gom_driver_options_set_encryption_key (GomDriverOptions  *self,
+                                                         GBytes            *key);
+GOM_AVAILABLE_IN_ALL
 void              gom_driver_options_set_string         (GomDriverOptions  *self,
                                                          const char        *key,
                                                          const char        *value);
-GOM_AVAILABLE_IN_ALL
-gboolean          gom_driver_options_dup_string         (GomDriverOptions  *self,
-                                                         const char        *key,
-                                                         char             **value);
 GOM_AVAILABLE_IN_ALL
 void              gom_driver_options_unset              (GomDriverOptions  *self,
                                                          const char        *key);

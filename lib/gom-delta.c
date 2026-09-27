@@ -239,5 +239,6 @@ void
 _gom_delta_freeze (GomDelta *self)
 {
   g_return_if_fail (GOM_IS_DELTA (self));
+
   self->frozen = TRUE;
 }

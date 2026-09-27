@@ -74,7 +74,8 @@ gom_driver_class_init (GomDriverClass *klass)
   properties[PROP_URI] =
     g_param_spec_string ("uri", NULL, NULL,
                          NULL,
-                         (G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+                         (G_PARAM_READABLE |
+                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPS, properties);
 }

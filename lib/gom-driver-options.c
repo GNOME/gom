@@ -58,8 +58,10 @@ gom_driver_options_class_init (GomDriverOptionsClass *klass)
 static void
 gom_driver_options_init (GomDriverOptions *self)
 {
-  self->values = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                        g_free, (GDestroyNotify)g_variant_unref);
+  self->values = g_hash_table_new_full (g_str_hash,
+                                        g_str_equal,
+                                        g_free,
+                                        (GDestroyNotify)g_variant_unref);
 }
 
 /**
@@ -259,8 +261,10 @@ _gom_driver_options_dup_values (GomDriverOptions *self)
 
   g_return_val_if_fail (GOM_IS_DRIVER_OPTIONS (self), NULL);
 
-  copy = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                g_free, (GDestroyNotify)g_variant_unref);
+  copy = g_hash_table_new_full (g_str_hash,
+                                g_str_equal,
+                                g_free,
+                                (GDestroyNotify)g_variant_unref);
   g_hash_table_iter_init (&iter, self->values);
   while (g_hash_table_iter_next (&iter, &key, &value))
     g_hash_table_insert (copy, g_strdup (key), g_variant_ref (value));

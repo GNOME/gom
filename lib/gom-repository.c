@@ -368,17 +368,23 @@ gom_repository_class_init (GomRepositoryClass *klass)
   properties[PROP_DRIVER] =
     g_param_spec_object ("driver", NULL, NULL,
                          GOM_TYPE_DRIVER,
-                         (G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_STATIC_STRINGS));
 
   properties[PROP_MIGRATOR] =
     g_param_spec_object ("migrator", NULL, NULL,
                          GOM_TYPE_MIGRATOR,
-                         (G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_STATIC_STRINGS));
 
   properties[PROP_COORDINATOR] =
     g_param_spec_object ("coordinator", NULL, NULL,
                          GOM_TYPE_SYNC_COORDINATOR,
-                         (G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPS, properties);
 }
@@ -472,13 +478,16 @@ gom_repository_new_fiber (gpointer user_data)
     {
       g_autofree char **relations = NULL;
 
-      relations = dex_await_boxed (_gom_driver_list_relations (self->driver,
-                                                               self->registry),
+      relations = dex_await_boxed (_gom_driver_list_relations (self->driver, self->registry),
                                    &error);
       if (relations != NULL)
-        self->sync_history_available = gom_repository_relations_have_sync_history (relations);
+        {
+          self->sync_history_available = gom_repository_relations_have_sync_history (relations);
+        }
       else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED))
-        g_clear_error (&error);
+        {
+          g_clear_error (&error);
+        }
       else
         {
           GOM_TRACE_END_MARK (start_time, "Repository", "open", "failed: %s", error->message);

@@ -31,6 +31,7 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (GomSqliteConnection, gom_sqlite_connection, GOM, SQLITE_CONNECTION, GObject)
 
+sqlite3   *gom_sqlite_connection_get_native (GomSqliteConnection *self);
 DexFuture *gom_sqlite_connection_new        (const char          *uri,
                                              GBytes              *encryption_key,
                                              const char          *synchronous_pragma,
@@ -38,6 +39,5 @@ DexFuture *gom_sqlite_connection_new        (const char          *uri,
                                              gboolean             foreign_keys,
                                              DexThreadPool       *thread_pool,
                                              DexLimiter          *open_limiter);
-sqlite3   *gom_sqlite_connection_get_native (GomSqliteConnection *self);
 
 G_END_DECLS
