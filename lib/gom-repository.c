@@ -36,6 +36,7 @@
 #include "gom-meta-version-private.h"
 #include "gom-record-list-model-private.h"
 #include "gom-repository-private.h"
+#include "gom-session.h"
 #include "gom-sync-coordinator.h"
 #include "gom-sync-history-private.h"
 #include "gom-tombstone-private.h"
@@ -45,16 +46,20 @@
 
 struct _GomRepository
 {
-  GObject             parent_instance;
-  GMutex              mutex;
-  GomDriver          *driver;
-  GArray             *entity_types;
-  GHashTable         *built_types;
-  GomRegistry        *registry;
-  GomMigrator        *migrator;
-  GomSyncCoordinator *coordinator;
-  guint               dirty : 1;
-  guint               sync_history_available : 1;
+  GObject               parent_instance;
+  GMutex                mutex;
+  GomDriver            *driver;
+  GArray               *entity_types;
+  GHashTable           *built_types;
+  GomRegistry          *registry;
+  GomMigrator          *migrator;
+  GomSyncCoordinator   *coordinator;
+  GomCommitParticipant  commit_participant;
+  gpointer              commit_participant_data;
+  GDestroyNotify        commit_participant_destroy;
+  guint                 sessions_started : 1;
+  guint                 dirty : 1;
+  guint                 sync_history_available : 1;
 };
 
 enum
@@ -288,6 +293,8 @@ gom_repository_finalize (GObject *object)
   g_clear_object (&self->registry);
   g_clear_object (&self->migrator);
   g_clear_object (&self->coordinator);
+  if (self->commit_participant_destroy != NULL)
+    self->commit_participant_destroy (self->commit_participant_data);
   g_mutex_clear (&self->mutex);
   g_clear_object (&self->driver);
   gom_trace_counter_add (GOM_TRACE_COUNTER_REPOSITORIES, -1);
@@ -850,9 +857,89 @@ gom_repository_begin_session (GomRepository *self)
   dex_return_error_if_fail (GOM_IS_REPOSITORY (self));
 
   _gom_repository_precompute (self);
+  g_mutex_lock (&self->mutex);
+  self->sessions_started = TRUE;
+  g_mutex_unlock (&self->mutex);
   driver = gom_repository_dup_driver (self);
 
   return _gom_driver_begin_session (driver, self);
+}
+
+/**
+ * gom_repository_set_commit_participant:
+ * @self: a repository
+ * @participant: (scope notified) (closure user_data) (destroy destroy):
+ *   callback run before each application session commits
+ * @user_data: (nullable): data passed to @participant
+ * @destroy: (nullable): destroys @user_data when the repository is finalized
+ * @error: return location for an error
+ *
+ * Registers a participant before the first session. The callback may query
+ * and mutate local bookkeeping tables using its session. A rejected future
+ * prevents COMMIT. The callback must not commit or roll back the session.
+ *
+ * Returns: %TRUE if the participant was registered
+ */
+gboolean
+gom_repository_set_commit_participant (GomRepository         *self,
+                                       GomCommitParticipant   participant,
+                                       gpointer               user_data,
+                                       GDestroyNotify         destroy,
+                                       GError               **error)
+{
+  g_return_val_if_fail (GOM_IS_REPOSITORY (self), FALSE);
+  g_return_val_if_fail (participant != NULL, FALSE);
+
+  g_mutex_lock (&self->mutex);
+
+  if (self->sessions_started || self->commit_participant != NULL)
+    {
+      g_mutex_unlock (&self->mutex);
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_BUSY,
+                           "Commit participant must be registered before the first session");
+      return FALSE;
+    }
+
+  self->commit_participant = participant;
+  self->commit_participant_data = user_data;
+  self->commit_participant_destroy = destroy;
+
+  g_mutex_unlock (&self->mutex);
+
+  return TRUE;
+}
+
+gboolean
+_gom_repository_has_commit_participant (GomRepository *self)
+{
+  g_return_val_if_fail (GOM_IS_REPOSITORY (self), FALSE);
+
+  return self->commit_participant != NULL;
+}
+
+DexFuture *
+_gom_repository_run_commit_participant (GomRepository *self,
+                                        GomSession    *session,
+                                        const char    *commit_id)
+{
+  DexFuture *future;
+
+  dex_return_error_if_fail (GOM_IS_REPOSITORY (self));
+  dex_return_error_if_fail (GOM_IS_SESSION (session));
+  dex_return_error_if_fail (commit_id != NULL);
+
+  if (self->commit_participant == NULL)
+    return dex_future_new_true ();
+
+  future = self->commit_participant (session,
+                                     commit_id,
+                                     self->commit_participant_data);
+
+  dex_return_error_if_fail (future != NULL);
+
+  return g_steal_pointer (&future);
 }
 
 /**

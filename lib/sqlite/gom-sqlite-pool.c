@@ -29,6 +29,9 @@ struct _GomSqlitePool
   GObject        parent_instance;
   char          *uri;
   GBytes        *encryption_key;
+  const char    *synchronous_pragma;
+  gboolean       foreign_keys_set;
+  gboolean       foreign_keys;
   GMutex         mutex;
   GPtrArray     *idle_connections;
   DexThreadPool *thread_pool;
@@ -147,17 +150,24 @@ gom_sqlite_pool_init (GomSqlitePool *self)
 
 GomSqlitePool *
 gom_sqlite_pool_new (const char *uri,
-                     GBytes     *encryption_key)
+                     GBytes     *encryption_key,
+                     const char *synchronous_pragma,
+                     gboolean    foreign_keys_set,
+                     gboolean    foreign_keys)
 {
   GomSqlitePool *self;
 
   g_return_val_if_fail (uri != NULL, NULL);
+  g_return_val_if_fail (synchronous_pragma != NULL, NULL);
 
   self = g_object_new (GOM_TYPE_SQLITE_POOL,
                        "uri", uri,
                        NULL);
   if (encryption_key != NULL)
     self->encryption_key = g_bytes_ref (encryption_key);
+  self->synchronous_pragma = synchronous_pragma;
+  self->foreign_keys_set = foreign_keys_set;
+  self->foreign_keys = foreign_keys;
   return self;
 }
 
@@ -242,6 +252,9 @@ gom_sqlite_pool_acquire_permit_cb (DexFuture *completed,
 
   return dex_future_finally (gom_sqlite_connection_new (self->uri,
                                                         self->encryption_key,
+                                                        self->synchronous_pragma,
+                                                        self->foreign_keys_set,
+                                                        self->foreign_keys,
                                                         self->thread_pool,
                                                         self->open_limiter),
                              gom_sqlite_pool_open_complete_cb,

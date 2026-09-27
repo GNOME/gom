@@ -566,3 +566,17 @@ gom_driver_rekey (GomDriver        *self,
                                 G_IO_ERROR_NOT_SUPPORTED,
                                 "Rekeying database not supported");
 }
+
+/**
+ * gom_driver_query_version:
+ * @self: a [class@Gom.Driver]
+ *
+ * Queries the current schema version. For SQLite this is `PRAGMA user_version`.
+ *
+ * Returns: (transfer full): a [class@Dex.Future] resolving to `guint`
+ */
+DexFuture *
+gom_driver_query_version (GomDriver *self)
+{
+  return _gom_driver_query_version (self);
+}

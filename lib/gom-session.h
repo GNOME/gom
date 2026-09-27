@@ -72,6 +72,21 @@ DexFuture          *gom_session_commit                   (GomSession         *se
 GOM_AVAILABLE_IN_ALL
 DexFuture          *gom_session_rollback                 (GomSession         *self) G_GNUC_WARN_UNUSED_RESULT;
 GOM_AVAILABLE_IN_ALL
+char               *gom_session_dup_commit_id            (GomSession         *self);
+GOM_AVAILABLE_IN_ALL
+guint               gom_session_get_n_commit_changes     (GomSession         *self);
+GOM_AVAILABLE_IN_ALL
+GomEntity          *gom_session_dup_commit_change_entity (GomSession         *self,
+                                                          guint               index);
+GOM_AVAILABLE_IN_ALL
+GomDelta           *gom_session_dup_commit_change_delta  (GomSession         *self,
+                                                          guint               index);
+GOM_AVAILABLE_IN_ALL
+gboolean            gom_session_set_replay_mode          (GomSession         *self,
+                                                          gboolean            replay_mode);
+GOM_AVAILABLE_IN_ALL
+gboolean            gom_session_is_replay_mode           (GomSession         *self);
+GOM_AVAILABLE_IN_ALL
 GomRepository      *gom_session_dup_repository           (GomSession         *self);
 GOM_AVAILABLE_IN_ALL
 GomSyncCoordinator *gom_session_dup_coordinator          (GomSession         *self);

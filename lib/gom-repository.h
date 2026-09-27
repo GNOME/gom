@@ -29,75 +29,84 @@ G_BEGIN_DECLS
 
 #define GOM_TYPE_REPOSITORY (gom_repository_get_type())
 
-GOM_AVAILABLE_IN_ALL
-G_DECLARE_FINAL_TYPE (GomRepository, gom_repository, GOM, REPOSITORY, GObject)
+typedef DexFuture *(*GomCommitParticipant) (GomSession *session,
+                                            const char *commit_id,
+                                            gpointer    user_data);
 
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_new                      (GomDriver            *driver,
-                                                             GomRegistry          *registry,
-                                                             GomMigrator          *migrator) G_GNUC_WARN_UNUSED_RESULT;
+G_DECLARE_FINAL_TYPE (GomRepository, gom_repository, GOM, REPOSITORY, GObject)
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_new_with_coordinator     (GomDriver            *driver,
-                                                             GomRegistry          *registry,
-                                                             GomMigrator          *migrator,
-                                                             GomSyncCoordinator   *coordinator) G_GNUC_WARN_UNUSED_RESULT;
+gboolean            gom_repository_set_commit_participant   (GomRepository         *self,
+                                                             GomCommitParticipant   participant,
+                                                             gpointer               user_data,
+                                                             GDestroyNotify         destroy,
+                                                             GError               **error);
 GOM_AVAILABLE_IN_ALL
-void                gom_repository_register_entity_type     (GomRepository        *self,
-                                                             GType                 entity_type);
+DexFuture          *gom_repository_new                      (GomDriver             *driver,
+                                                             GomRegistry           *registry,
+                                                             GomMigrator           *migrator) G_GNUC_WARN_UNUSED_RESULT;
 GOM_AVAILABLE_IN_ALL
-GType              *gom_repository_list_entity_types        (GomRepository        *self,
-                                                             guint                *n_entity_types);
+DexFuture          *gom_repository_new_with_coordinator     (GomDriver             *driver,
+                                                             GomRegistry           *registry,
+                                                             GomMigrator           *migrator,
+                                                             GomSyncCoordinator    *coordinator) G_GNUC_WARN_UNUSED_RESULT;
 GOM_AVAILABLE_IN_ALL
-GomDriver          *gom_repository_dup_driver               (GomRepository        *self);
+void                gom_repository_register_entity_type     (GomRepository         *self,
+                                                             GType                  entity_type);
 GOM_AVAILABLE_IN_ALL
-GomSyncCoordinator *gom_repository_dup_coordinator          (GomRepository        *self);
+GType              *gom_repository_list_entity_types        (GomRepository         *self,
+                                                             guint                 *n_entity_types);
 GOM_AVAILABLE_IN_ALL
-gboolean            gom_repository_supports_feature         (GomRepository        *self,
-                                                             GomRepositoryFeature  feature);
+GomDriver          *gom_repository_dup_driver               (GomRepository         *self);
 GOM_AVAILABLE_IN_ALL
-gboolean            gom_repository_supports_vector_distance (GomRepository        *self,
-                                                             GomVectorFormat       format,
-                                                             GomVectorMetric       metric);
+GomSyncCoordinator *gom_repository_dup_coordinator          (GomRepository         *self);
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_begin_session            (GomRepository        *self) G_GNUC_WARN_UNUSED_RESULT;
+gboolean            gom_repository_supports_feature         (GomRepository         *self,
+                                                             GomRepositoryFeature   feature);
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_query                    (GomRepository        *self,
-                                                             GomQuery             *query);
+gboolean            gom_repository_supports_vector_distance (GomRepository         *self,
+                                                             GomVectorFormat        format,
+                                                             GomVectorMetric        metric);
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_count                    (GomRepository        *self,
-                                                             GomQuery             *query) G_GNUC_WARN_UNUSED_RESULT;
+DexFuture          *gom_repository_begin_session            (GomRepository         *self) G_GNUC_WARN_UNUSED_RESULT;
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_find_one                 (GomRepository        *self,
-                                                             GType                 entity_type,
-                                                             const char           *first_property,
+DexFuture          *gom_repository_query                    (GomRepository         *self,
+                                                             GomQuery              *query);
+GOM_AVAILABLE_IN_ALL
+DexFuture          *gom_repository_count                    (GomRepository         *self,
+                                                             GomQuery              *query) G_GNUC_WARN_UNUSED_RESULT;
+GOM_AVAILABLE_IN_ALL
+DexFuture          *gom_repository_find_one                 (GomRepository         *self,
+                                                             GType                  entity_type,
+                                                             const char            *first_property,
                                                              ...) G_GNUC_NULL_TERMINATED G_GNUC_WARN_UNUSED_RESULT;
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_find_one_with_properties (GomRepository        *self,
-                                                             GType                 entity_type,
-                                                             guint                 n_properties,
-                                                             const char * const   *properties,
-                                                             const GValue         *values) G_GNUC_WARN_UNUSED_RESULT;
+DexFuture          *gom_repository_find_one_with_properties (GomRepository         *self,
+                                                             GType                  entity_type,
+                                                             guint                  n_properties,
+                                                             const char * const    *properties,
+                                                             const GValue          *values) G_GNUC_WARN_UNUSED_RESULT;
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_list_entities            (GomRepository        *self,
-                                                             GType                 entity_type,
-                                                             GomExpression        *filter,
-                                                             GomOrdering          *ordering);
+DexFuture          *gom_repository_list_entities            (GomRepository         *self,
+                                                             GType                  entity_type,
+                                                             GomExpression         *filter,
+                                                             GomOrdering           *ordering);
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_list_query               (GomRepository        *self,
-                                                             GomQuery             *query) G_GNUC_WARN_UNUSED_RESULT;
+DexFuture          *gom_repository_list_query               (GomRepository         *self,
+                                                             GomQuery              *query) G_GNUC_WARN_UNUSED_RESULT;
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_list_records             (GomRepository        *self,
-                                                             GomQuery             *query) G_GNUC_WARN_UNUSED_RESULT;
+DexFuture          *gom_repository_list_records             (GomRepository         *self,
+                                                             GomQuery              *query) G_GNUC_WARN_UNUSED_RESULT;
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_mutate                   (GomRepository        *self,
-                                                             GomMutation          *mutation);
+DexFuture          *gom_repository_mutate                   (GomRepository         *self,
+                                                             GomMutation           *mutation);
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_insert_entity            (GomRepository        *self,
-                                                             GomEntity            *entity) G_GNUC_WARN_UNUSED_RESULT;
+DexFuture          *gom_repository_insert_entity            (GomRepository         *self,
+                                                             GomEntity             *entity) G_GNUC_WARN_UNUSED_RESULT;
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_describe_relation        (GomRepository        *self,
-                                                             const char           *relation);
+DexFuture          *gom_repository_describe_relation        (GomRepository         *self,
+                                                             const char            *relation);
 GOM_AVAILABLE_IN_ALL
-DexFuture          *gom_repository_list_relations           (GomRepository        *self);
+DexFuture          *gom_repository_list_relations           (GomRepository         *self);
 
 G_END_DECLS

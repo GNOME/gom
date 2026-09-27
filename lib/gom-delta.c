@@ -21,6 +21,7 @@
 #include "config.h"
 
 #include "gom-delta.h"
+#include "gom-delta-private.h"
 
 typedef struct
 {
@@ -37,6 +38,7 @@ struct _GomDelta
   GType         entity_type;
   GomDeltaKind  kind;
   GPtrArray    *entries;
+  guint         frozen : 1;
 };
 
 struct _GomDeltaClass
@@ -213,6 +215,7 @@ gom_delta_add_property (GomDelta     *self,
 
   g_return_if_fail (GOM_IS_DELTA (self));
   g_return_if_fail (property_name != NULL);
+  g_return_if_fail (!self->frozen);
 
   entry = g_new0 (GomDeltaEntry, 1);
   entry->property_name = g_strdup (property_name);
@@ -230,4 +233,11 @@ gom_delta_add_property (GomDelta     *self,
     }
 
   g_ptr_array_add (self->entries, entry);
+}
+
+void
+_gom_delta_freeze (GomDelta *self)
+{
+  g_return_if_fail (GOM_IS_DELTA (self));
+  self->frozen = TRUE;
 }

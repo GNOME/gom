@@ -35,7 +35,10 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (GomSqlitePool, gom_sqlite_pool, GOM, SQLITE_POOL, GObject)
 
 GomSqlitePool *gom_sqlite_pool_new                (const char          *uri,
-                                                   GBytes              *encryption_key);
+                                                   GBytes              *encryption_key,
+                                                   const char          *synchronous_pragma,
+                                                   gboolean             foreign_keys_set,
+                                                   gboolean             foreign_keys);
 DexFuture     *gom_sqlite_pool_acquire            (GomSqlitePool       *self);
 void           gom_sqlite_pool_clear_idle         (GomSqlitePool       *self);
 void           gom_sqlite_pool_return_connection  (GomSqlitePool       *self,

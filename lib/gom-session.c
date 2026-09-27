@@ -21,6 +21,7 @@
 #include "config.h"
 
 #include "gom-delta.h"
+#include "gom-delta-private.h"
 #include "gom-cursor-private.h"
 #include "gom-driver-private.h"
 #include "gom-entity.h"
@@ -64,6 +65,8 @@ G_DEFINE_ABSTRACT_TYPE (GomSession, gom_session, G_TYPE_OBJECT)
 enum
 {
   SIGNAL_CHANGED,
+  SIGNAL_COMMITTED,
+  SIGNAL_ROLLED_BACK,
   N_SIGNALS
 };
 
@@ -93,6 +96,7 @@ gom_session_dispose (GObject *object)
   GomSession *self = GOM_SESSION (object);
 
   g_clear_object (&self->repository);
+  g_clear_pointer (&self->commit_id, g_free);
   g_clear_pointer (&self->sync_changes, g_ptr_array_unref);
   gom_trace_counter_add (GOM_TRACE_COUNTER_SESSIONS, -1);
 
@@ -119,6 +123,34 @@ gom_session_class_init (GomSessionClass *klass)
                   NULL,
                   NULL, NULL,
                   G_TYPE_NONE, 0);
+
+  /**
+   * GomSession::committed:
+   *
+   * Emitted after the backend has reported a successful COMMIT.
+   */
+  signals[SIGNAL_COMMITTED] =
+    g_signal_new ("committed",
+                  GOM_TYPE_SESSION,
+                  G_SIGNAL_RUN_LAST,
+                  0,
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE, 0);
+
+  /**
+   * GomSession::rolled-back:
+   *
+   * Emitted after the backend has reported a successful ROLLBACK.
+   */
+  signals[SIGNAL_ROLLED_BACK] =
+    g_signal_new ("rolled-back",
+                  GOM_TYPE_SESSION,
+                  G_SIGNAL_RUN_LAST,
+                  0,
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE, 0);
 }
 
 static void
@@ -127,6 +159,7 @@ gom_session_init (GomSession *self)
   static gpointer next_session_id = NULL;
 
   self->id = (gintptr)g_atomic_pointer_add (&next_session_id, (gintptr)1) + 1;
+  self->commit_id = g_uuid_string_random ();
   self->sync_changes = g_ptr_array_new_with_free_func (gom_session_sync_change_free);
   gom_trace_counter_add (GOM_TRACE_COUNTER_SESSIONS, 1);
   GOM_TRACE_MARK ("Session", "open", "session=%" G_GINT64_FORMAT, self->id);
@@ -474,7 +507,10 @@ _gom_session_record_entity_changes (GomSession *self,
   g_return_if_fail (GOM_IS_ENTITY (entity));
   g_return_if_fail (delta == NULL || GOM_IS_DELTA (delta));
 
-  if (_gom_session_is_closed (self) || delta == NULL || gom_delta_is_empty (delta))
+  g_return_if_fail (!self->frozen);
+
+  if (_gom_session_is_closed (self) || delta == NULL ||
+      (gom_delta_is_empty (delta) && gom_delta_get_kind (delta) == GOM_DELTA_KIND_UPDATE))
     return;
 
   change = g_new0 (GomSessionSyncChange, 1);
@@ -969,6 +1005,13 @@ gom_session_mutate (GomSession  *self,
   dex_return_error_if_fail (GOM_IS_SESSION (self));
   dex_return_error_if_fail (GOM_IS_MUTATION (mutation));
 
+  if (self->repository != NULL &&
+      _gom_repository_has_commit_participant (self->repository) &&
+      !self->participant_active)
+    return dex_future_new_reject (G_IO_ERROR,
+                                  G_IO_ERROR_NOT_SUPPORTED,
+                                  "Direct mutation is not tracked in a replicated session");
+
   if (self->repository != NULL)
     _gom_repository_precompute (self->repository);
 
@@ -1035,6 +1078,11 @@ gom_session_persist (GomSession *self,
   dex_return_error_if_fail (GOM_IS_SESSION (self));
   dex_return_error_if_fail (GOM_IS_ENTITY (entity));
 
+  if (self->frozen)
+    return dex_future_new_reject (G_IO_ERROR,
+                                  G_IO_ERROR_CLOSED,
+                                  "Commit batch is frozen");
+
   if (self->repository != NULL)
     _gom_repository_precompute (self->repository);
 
@@ -1060,6 +1108,11 @@ DexFuture *
 gom_session_flush (GomSession *self)
 {
   dex_return_error_if_fail (GOM_IS_SESSION (self));
+
+  if (self->frozen)
+    return dex_future_new_reject (G_IO_ERROR,
+                                  G_IO_ERROR_CLOSED,
+                                  "Commit batch is frozen");
 
   if (self->repository != NULL)
     _gom_repository_precompute (self->repository);
@@ -1108,7 +1161,73 @@ gom_session_commit_after_sync_stage_cb (DexFuture *completed,
                                   G_IO_ERROR_FAILED,
                                   "Sync staging did not complete successfully");
 
+  session->frozen = TRUE;
+
+  for (guint i = 0; i < session->sync_changes->len; i++)
+    {
+      GomSessionSyncChange *change = g_ptr_array_index (session->sync_changes, i);
+
+      _gom_delta_freeze (change->delta);
+    }
+
+  if (session->repository != NULL)
+    {
+      session->participant_active = TRUE;
+      return _gom_repository_run_commit_participant (session->repository,
+                                                     session,
+                                                     session->commit_id);
+    }
+
+  return dex_future_new_true ();
+}
+
+static DexFuture *
+gom_session_commit_after_participant_cb (DexFuture *completed,
+                                         gpointer   user_data)
+{
+  GomSession *session = user_data;
+  g_autoptr(GError) error = NULL;
+  const GValue *value;
+
+  session->participant_active = FALSE;
+
+  if (!(value = dex_future_get_value (completed, &error)))
+    return dex_future_new_for_error (g_steal_pointer (&error));
+
+  if (G_VALUE_HOLDS_BOOLEAN (value) && !g_value_get_boolean (value))
+    return dex_future_new_reject (G_IO_ERROR,
+                                  G_IO_ERROR_FAILED,
+                                  "Commit participant did not complete successfully");
+
   return _gom_session_commit (session);
+}
+
+static DexFuture *
+gom_session_rollback_failed_commit_fiber (gpointer user_data)
+{
+  GomSession *session = user_data;
+  g_autoptr(GError) ignored = NULL;
+  GError *original = g_object_steal_data (G_OBJECT (session), "gom-commit-error");
+
+  if (!_gom_session_is_closed (session) &&
+      dex_await (_gom_session_rollback (session), &ignored))
+    g_signal_emit (session, signals[SIGNAL_ROLLED_BACK], 0);
+
+  if (original == NULL)
+    original = g_error_new_literal (G_IO_ERROR, G_IO_ERROR_FAILED,
+                                    "Commit failed without an error");
+  return dex_future_new_for_error (original);
+}
+
+static DexFuture *
+gom_session_fail_and_rollback (GomSession *session,
+                               GError     *error)
+{
+  g_object_set_data_full (G_OBJECT (session), "gom-commit-error",
+                          error, (GDestroyNotify)g_error_free);
+  return dex_scheduler_spawn (NULL, 0,
+                              gom_session_rollback_failed_commit_fiber,
+                              g_object_ref (session), g_object_unref);
 }
 
 static DexFuture *
@@ -1123,14 +1242,16 @@ gom_session_commit_complete_cb (DexFuture *completed,
   g_assert (GOM_IS_SESSION (session));
 
   if (!(value = dex_future_get_value (completed, &error)))
-    return dex_future_new_for_error (g_steal_pointer (&error));
+    return gom_session_fail_and_rollback (session, g_steal_pointer (&error));
 
   if (G_VALUE_HOLDS_BOOLEAN (value) && !g_value_get_boolean (value))
-    return dex_future_new_reject (G_IO_ERROR,
-                                  G_IO_ERROR_FAILED,
-                                  "Session close did not complete successfully");
+    return gom_session_fail_and_rollback (session,
+      g_error_new_literal (G_IO_ERROR, G_IO_ERROR_FAILED,
+                           "Session close did not complete successfully"));
 
   g_ptr_array_set_size (session->sync_changes, 0);
+  g_signal_emit (session,
+                 signals[session->rolling_back ? SIGNAL_ROLLED_BACK : SIGNAL_COMMITTED], 0);
 
   return dex_future_new_true ();
 }
@@ -1146,6 +1267,9 @@ gom_session_stage_sync_changes_fiber (gpointer user_data)
   g_assert (GOM_IS_SESSION (session));
 
   if (session->sync_changes == NULL || session->sync_changes->len == 0)
+    return dex_future_new_true ();
+
+  if (session->replay_mode)
     return dex_future_new_true ();
 
   if (!(repository = _gom_session_dup_repository (session)))
@@ -1189,20 +1313,99 @@ _gom_session_stage_sync_changes (GomSession *self)
 DexFuture *
 gom_session_commit (GomSession *self)
 {
+  DexFuture *future;
+
   dex_return_error_if_fail (GOM_IS_SESSION (self));
 
   GOM_TRACE_MARK ("Session", "commit", "session=%" G_GINT64_FORMAT, self->id);
 
-  return dex_future_then (dex_future_then (dex_future_then (gom_session_flush (self),
-                                                            gom_session_commit_after_flush_cb,
-                                                            g_object_ref (self),
-                                                            g_object_unref),
-                                           gom_session_commit_after_sync_stage_cb,
-                                           g_object_ref (self),
-                                           g_object_unref),
-                          gom_session_commit_complete_cb,
-                          g_object_ref (self),
-                          g_object_unref);
+  if (self->committing)
+    return dex_future_new_reject (G_IO_ERROR, G_IO_ERROR_BUSY,
+                                  "Session commit is already in progress");
+  self->committing = TRUE;
+
+  future = dex_future_then (gom_session_flush (self),
+                            gom_session_commit_after_flush_cb,
+                            g_object_ref (self), g_object_unref);
+  future = dex_future_then (future, gom_session_commit_after_sync_stage_cb,
+                            g_object_ref (self), g_object_unref);
+  future = dex_future_then (future, gom_session_commit_after_participant_cb,
+                            g_object_ref (self), g_object_unref);
+  return dex_future_then (future, gom_session_commit_complete_cb,
+                          g_object_ref (self), g_object_unref);
+}
+
+/**
+ * gom_session_dup_commit_id:
+ * @self: a session
+ *
+ * Returns: (transfer full): the stable ID for this session's commit
+ */
+char *
+gom_session_dup_commit_id (GomSession *self)
+{
+  g_return_val_if_fail (GOM_IS_SESSION (self), NULL);
+
+  return g_strdup (self->commit_id);
+}
+
+/**
+ * gom_session_get_n_commit_changes:
+ * @self: a session
+ *
+ * Returns: number of changes in the frozen commit batch
+ */
+guint
+gom_session_get_n_commit_changes (GomSession *self)
+{
+  g_return_val_if_fail (GOM_IS_SESSION (self), 0);
+  g_return_val_if_fail (self->frozen, 0);
+
+  return self->sync_changes->len;
+}
+
+/**
+ * gom_session_dup_commit_change_entity:
+ * @self: a session
+ * @index: a change index
+ *
+ * Returns: (transfer full): the changed entity at @index
+ */
+GomEntity *
+gom_session_dup_commit_change_entity (GomSession *self,
+                                      guint       index)
+{
+  GomSessionSyncChange *change;
+
+  g_return_val_if_fail (GOM_IS_SESSION (self), NULL);
+  g_return_val_if_fail (self->frozen, NULL);
+  g_return_val_if_fail (index < self->sync_changes->len, NULL);
+
+  change = g_ptr_array_index (self->sync_changes, index);
+
+  return g_object_ref (change->entity);
+}
+
+/**
+ * gom_session_dup_commit_change_delta:
+ * @self: a session
+ * @index: a change index
+ *
+ * Returns: (transfer full): the frozen delta at @index
+ */
+GomDelta *
+gom_session_dup_commit_change_delta (GomSession *self,
+                                     guint       index)
+{
+  GomSessionSyncChange *change;
+
+  g_return_val_if_fail (GOM_IS_SESSION (self), NULL);
+  g_return_val_if_fail (self->frozen, NULL);
+  g_return_val_if_fail (index < self->sync_changes->len, NULL);
+
+  change = g_ptr_array_index (self->sync_changes, index);
+
+  return g_object_ref (change->delta);
 }
 
 /**
@@ -1221,10 +1424,50 @@ gom_session_rollback (GomSession *self)
 
   GOM_TRACE_MARK ("Session", "rollback", "session=%" G_GINT64_FORMAT, self->id);
 
+  self->rolling_back = TRUE;
+
   return dex_future_then (_gom_session_rollback (self),
                           gom_session_commit_complete_cb,
                           g_object_ref (self),
                           g_object_unref);
+}
+
+/**
+ * gom_session_set_replay_mode:
+ * @self: a session
+ * @replay_mode: whether this session applies an incoming change
+ *
+ * Sets replay mode before the first mutation. Replay changes do not stage
+ * outgoing history, but still run the repository commit participant.
+ *
+ * Returns: %TRUE if the mode was set
+ */
+gboolean
+gom_session_set_replay_mode (GomSession *self,
+                             gboolean    replay_mode)
+{
+  g_return_val_if_fail (GOM_IS_SESSION (self), FALSE);
+
+  if (self->committing || self->sync_changes->len > 0 || self->closed)
+    return FALSE;
+
+  self->replay_mode = !!replay_mode;
+
+  return TRUE;
+}
+
+/**
+ * gom_session_is_replay_mode:
+ * @self: a session
+ *
+ * Returns: whether this session applies an incoming change
+ */
+gboolean
+gom_session_is_replay_mode (GomSession *self)
+{
+  g_return_val_if_fail (GOM_IS_SESSION (self), FALSE);
+
+  return self->replay_mode;
 }
 
 /**

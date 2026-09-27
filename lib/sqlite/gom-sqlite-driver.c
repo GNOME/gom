@@ -29,6 +29,7 @@
 #include "gom-cursor-private.h"
 #include "gom-deletion-private.h"
 #include "gom-driver-private.h"
+#include "gom-driver-options-private.h"
 #include "gom-driver-options.h"
 #include "gom-entity-private.h"
 #include "gom-expression-private.h"
@@ -5708,6 +5709,94 @@ gom_sqlite_driver_init (GomSqliteDriver *self)
   self->write_limiter = dex_limiter_new (1);
 }
 
+static gboolean
+gom_sqlite_driver_parse_options (GomDriverOptions  *options,
+                                 const char       **synchronous_pragma,
+                                 gboolean          *foreign_keys_set,
+                                 gboolean          *foreign_keys,
+                                 GError           **error)
+{
+  g_autoptr(GHashTable) values = NULL;
+  GHashTableIter iter;
+  gpointer key;
+  gpointer value;
+
+  g_assert (GOM_IS_DRIVER_OPTIONS (options));
+  g_assert (synchronous_pragma != NULL);
+  g_assert (foreign_keys_set != NULL);
+  g_assert (foreign_keys != NULL);
+
+  values = _gom_driver_options_dup_values (options);
+  g_hash_table_iter_init (&iter, values);
+
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+      const char *name = key;
+      GVariant *setting = value;
+
+      if (!g_str_has_prefix (name, "sqlite."))
+        continue;
+
+      if (g_str_equal (name, "sqlite.synchronous"))
+        {
+          const char *mode;
+
+          if (!g_variant_is_of_type (setting, G_VARIANT_TYPE_STRING))
+            goto invalid_type;
+
+          mode = g_variant_get_string (setting, NULL);
+
+          if (g_ascii_strcasecmp (mode, "OFF") == 0)
+            *synchronous_pragma = "PRAGMA synchronous = OFF";
+          else if (g_ascii_strcasecmp (mode, "NORMAL") == 0)
+            *synchronous_pragma = "PRAGMA synchronous = NORMAL";
+          else if (g_ascii_strcasecmp (mode, "FULL") == 0)
+            *synchronous_pragma = "PRAGMA synchronous = FULL";
+          else if (g_ascii_strcasecmp (mode, "EXTRA") == 0)
+            *synchronous_pragma = "PRAGMA synchronous = EXTRA";
+          else
+            {
+              g_set_error (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_INVALID_ARGUMENT,
+                           "Invalid value `%s` for SQLite option `%s`",
+                           mode,
+                           name);
+              return FALSE;
+            }
+        }
+      else if (g_str_equal (name, "sqlite.foreign-keys"))
+        {
+          if (!g_variant_is_of_type (setting, G_VARIANT_TYPE_BOOLEAN))
+            goto invalid_type;
+
+          *foreign_keys_set = TRUE;
+          *foreign_keys = g_variant_get_boolean (setting);
+        }
+      else
+        {
+          g_set_error (error,
+                       G_IO_ERROR,
+                       G_IO_ERROR_INVALID_ARGUMENT,
+                       "Unknown SQLite option `%s`",
+                       name);
+          return FALSE;
+        }
+
+      continue;
+
+    invalid_type:
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_INVALID_ARGUMENT,
+                   "Invalid type for SQLite option `%s`",
+                   name);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
 G_MODULE_EXPORT GomDriver *
 _gom_sqlite_driver_new (const char        *uri,
                         GomDriverOptions  *options,
@@ -5715,13 +5804,21 @@ _gom_sqlite_driver_new (const char        *uri,
 {
   g_autoptr(GUri) guri = NULL;
   g_autoptr(GBytes) encryption_key = NULL;
+  const char *synchronous_pragma = "PRAGMA synchronous = NORMAL";
+  gboolean foreign_keys_set = FALSE;
+  gboolean foreign_keys = FALSE;
   GomSqliteDriver *self;
 
   if (uri == NULL || !(guri = g_uri_parse (uri, G_URI_FLAGS_NONE, error)))
     return NULL;
 
   if (options != NULL)
-    encryption_key = gom_driver_options_dup_encryption_key (options);
+    {
+      encryption_key = gom_driver_options_dup_encryption_key (options);
+      if (!gom_sqlite_driver_parse_options (options, &synchronous_pragma,
+                                            &foreign_keys_set, &foreign_keys, error))
+        return NULL;
+    }
 
   if (sqlite3_initialize () != SQLITE_OK)
     {
@@ -5736,7 +5833,8 @@ _gom_sqlite_driver_new (const char        *uri,
   self->uri = g_strdup (uri);
   if (encryption_key != NULL)
     self->encryption_key = g_bytes_ref (encryption_key);
-  self->pool = gom_sqlite_pool_new (uri, encryption_key);
+  self->pool = gom_sqlite_pool_new (uri, encryption_key,
+                                    synchronous_pragma, foreign_keys_set, foreign_keys);
 
   return GOM_DRIVER (g_steal_pointer (&self));
 }

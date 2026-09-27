@@ -48,8 +48,11 @@ struct _GomSqliteConnection
 
 typedef struct
 {
-  char   *uri;
-  GBytes *encryption_key;
+  char       *uri;
+  GBytes     *encryption_key;
+  const char *synchronous_pragma;
+  gboolean    foreign_keys_set;
+  gboolean    foreign_keys;
 } GomSqliteConnectionNewState;
 
 struct _GomSqliteConnectionClass
@@ -89,8 +92,11 @@ gom_sqlite_connection_init (GomSqliteConnection *self)
 }
 
 static gboolean
-gom_sqlite_connection_configure (sqlite3  *db,
-                                 GError  **error)
+gom_sqlite_connection_configure (sqlite3     *db,
+                                 const char  *synchronous_pragma,
+                                 gboolean     foreign_keys_set,
+                                 gboolean     foreign_keys,
+                                 GError     **error)
 {
   g_assert (db != NULL);
 
@@ -118,8 +124,15 @@ gom_sqlite_connection_configure (sqlite3  *db,
     return FALSE;
 
   if (!gom_sqlite_driver_exec_sql (db,
-                                   "PRAGMA synchronous = NORMAL",
+                                   synchronous_pragma,
                                    "configure SQLite synchronous mode",
+                                   error))
+    return FALSE;
+
+  if (foreign_keys_set &&
+      !gom_sqlite_driver_exec_sql (db,
+                                   foreign_keys ? "PRAGMA foreign_keys = ON" : "PRAGMA foreign_keys = OFF",
+                                   "configure SQLite foreign keys",
                                    error))
     return FALSE;
 
@@ -226,7 +239,8 @@ gom_sqlite_connection_new_thread (gpointer user_data)
   }
 #endif
 
-  if (!gom_sqlite_connection_configure (db, &error))
+  if (!gom_sqlite_connection_configure (db, state->synchronous_pragma,
+                                         state->foreign_keys_set, state->foreign_keys, &error))
     {
       sqlite3_close_v2 (db);
       return dex_future_new_for_error (g_steal_pointer (&error));
@@ -257,17 +271,24 @@ gom_sqlite_connection_new_state_free (gpointer data)
 DexFuture *
 gom_sqlite_connection_new (const char    *uri,
                            GBytes        *encryption_key,
+                           const char    *synchronous_pragma,
+                           gboolean       foreign_keys_set,
+                           gboolean       foreign_keys,
                            DexThreadPool *thread_pool,
                            DexLimiter    *open_limiter)
 {
   GomSqliteConnectionNewState *state;
 
   dex_return_error_if_fail (uri != NULL);
+  dex_return_error_if_fail (synchronous_pragma != NULL);
   dex_return_error_if_fail (DEX_IS_THREAD_POOL (thread_pool));
   dex_return_error_if_fail (DEX_IS_LIMITER (open_limiter));
 
   state = g_new0 (GomSqliteConnectionNewState, 1);
   state->uri = g_strdup (uri);
+  state->synchronous_pragma = synchronous_pragma;
+  state->foreign_keys_set = foreign_keys_set;
+  state->foreign_keys = foreign_keys;
   if (encryption_key != NULL)
     state->encryption_key = g_bytes_ref (encryption_key);
 

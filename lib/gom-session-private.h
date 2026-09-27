@@ -32,9 +32,15 @@ struct _GomSession
   GObject parent_instance;
 
   gint64         id;
+  char          *commit_id;
   GomRepository *repository;
   GPtrArray     *sync_changes;
   guint          closed : 1;
+  guint          committing : 1;
+  guint          frozen : 1;
+  guint          participant_active : 1;
+  guint          rolling_back : 1;
+  guint          replay_mode : 1;
 };
 
 struct _GomSessionClass

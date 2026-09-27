@@ -30,6 +30,10 @@ G_BEGIN_DECLS
 DexFuture   *_gom_repository_migrate                    (GomRepository *self) G_GNUC_WARN_UNUSED_RESULT;
 GomRegistry *_gom_repository_get_registry               (GomRepository *self);
 void         _gom_repository_precompute                 (GomRepository *self);
+gboolean     _gom_repository_has_commit_participant     (GomRepository *self);
+DexFuture   *_gom_repository_run_commit_participant     (GomRepository *self,
+                                                         GomSession    *session,
+                                                         const char    *commit_id);
 gboolean     _gom_repository_has_sync_history           (GomRepository *self);
 void         _gom_repository_set_sync_history_available (GomRepository *self,
                                                          gboolean       available);

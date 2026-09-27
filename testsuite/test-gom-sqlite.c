@@ -5510,12 +5510,208 @@ test_sqlite_repository_vector_distance (void)
 #endif
 }
 
+static void
+test_sqlite_driver_options_api (void)
+{
+  g_autoptr(GomDriverOptions) options = gom_driver_options_new ();
+  g_autofree char *string = NULL;
+  gboolean boolean = TRUE;
+
+  g_assert_false (gom_driver_options_get_boolean (options, "sqlite.foreign-keys", NULL));
+  g_assert_false (gom_driver_options_get_boolean (options, "sqlite.foreign-keys", &boolean));
+  g_assert_false (boolean);
+  g_assert_false (gom_driver_options_dup_string (options, "sqlite.synchronous", NULL));
+
+  gom_driver_options_set_boolean (options, "sqlite.foreign-keys", FALSE);
+  g_assert_true (gom_driver_options_get_boolean (options, "sqlite.foreign-keys", NULL));
+  g_assert_true (gom_driver_options_get_boolean (options, "sqlite.foreign-keys", &boolean));
+  g_assert_false (boolean);
+
+  gom_driver_options_set_string (options, "sqlite.synchronous", "FULL");
+  g_assert_true (gom_driver_options_dup_string (options, "sqlite.synchronous", NULL));
+  g_assert_true (gom_driver_options_dup_string (options, "sqlite.synchronous", &string));
+  g_assert_cmpstr (string, ==, "FULL");
+
+  gom_driver_options_set_string (options, "sqlite.synchronous", "NORMAL");
+  g_assert_cmpstr (string, ==, "FULL");
+  g_clear_pointer (&string, g_free);
+  g_assert_true (gom_driver_options_dup_string (options, "sqlite.synchronous", &string));
+  g_assert_cmpstr (string, ==, "NORMAL");
+
+  gom_driver_options_set_boolean (options, "sqlite.synchronous", TRUE);
+  g_clear_pointer (&string, g_free);
+  g_assert_false (gom_driver_options_dup_string (options, "sqlite.synchronous", &string));
+  g_assert_null (string);
+  g_assert_true (gom_driver_options_get_boolean (options, "sqlite.synchronous", &boolean));
+  g_assert_true (boolean);
+
+  gom_driver_options_unset (options, "sqlite.synchronous");
+  gom_driver_options_unset (options, "sqlite.synchronous");
+  g_assert_false (gom_driver_options_get_boolean (options, "sqlite.synchronous", NULL));
+  gom_driver_options_unset (options, "sqlite.foreign-keys");
+  g_assert_false (gom_driver_options_get_boolean (options, "sqlite.foreign-keys", NULL));
+}
+
+static void
+test_sqlite_assert_pragma (GomRepository *repository,
+                           const char    *relation,
+                           int            expected)
+{
+  g_autoptr(GomQueryBuilder) builder = gom_query_builder_new ();
+  g_autoptr(GomQuery) query = NULL;
+  g_autoptr(GError) error = NULL;
+  GomCursor *cursors[4] = { NULL };
+
+  gom_query_builder_set_target_relation (builder, relation);
+  query = gom_query_builder_build (builder, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (query);
+
+  for (guint i = 0; i < G_N_ELEMENTS (cursors); i++)
+    {
+      cursors[i] = dex_await_object (gom_repository_query (repository, query), &error);
+      g_assert_no_error (error);
+      g_assert_nonnull (cursors[i]);
+      g_assert_true (dex_await_boolean (gom_cursor_next (cursors[i]), &error));
+      g_assert_no_error (error);
+      g_assert_cmpint (gom_cursor_get_column_int64 (cursors[i], 0), ==, expected);
+    }
+
+  for (guint i = 0; i < G_N_ELEMENTS (cursors); i++)
+    {
+      g_assert_true (dex_await (gom_cursor_close (cursors[i]), &error));
+      g_assert_no_error (error);
+      g_clear_object (&cursors[i]);
+    }
+}
+
+static void
+test_sqlite_durable_options (void)
+{
+  static const struct {
+    const char *mode;
+    int synchronous;
+    gboolean foreign_keys_set;
+    gboolean foreign_keys;
+  } cases[] = {
+    { NULL,     1, FALSE, FALSE },
+    { "OFF",    0, TRUE,  FALSE },
+    { "normal", 1, TRUE,  TRUE  },
+    { "FULL",   2, TRUE,  TRUE  },
+    { "EXTRA",  3, TRUE,  FALSE },
+  };
+  g_auto(TestSqliteContext) context = {0};
+  g_autoptr(GomDriverOptions) options = gom_driver_options_new ();
+  g_autoptr(GomRegistry) registry = NULL;
+  g_autoptr(GomRepository) repository = NULL;
+  g_autoptr(GError) error = NULL;
+
+  g_assert_true (test_sqlite_context_init (&context, "gom-sqlite-options-XXXXXX", &error));
+  g_assert_no_error (error);
+  g_clear_object (&context.driver);
+  registry = test_sqlite_create_registry ();
+
+  for (guint setting = 0; setting < G_N_ELEMENTS (cases); setting++)
+    {
+      if (cases[setting].mode != NULL)
+        gom_driver_options_set_string (options, "sqlite.synchronous", cases[setting].mode);
+      else
+        gom_driver_options_unset (options, "sqlite.synchronous");
+
+      if (cases[setting].foreign_keys_set)
+        gom_driver_options_set_boolean (options, "sqlite.foreign-keys",
+                                        cases[setting].foreign_keys);
+      else
+        gom_driver_options_unset (options, "sqlite.foreign-keys");
+
+      for (guint opened = 0; opened < 2; opened++)
+        {
+          g_clear_object (&repository);
+          g_clear_object (&context.driver);
+          context.driver = gom_driver_open_with_options (context.db_uri, options, &error);
+          g_assert_no_error (error);
+          g_assert_nonnull (context.driver);
+
+          gom_driver_options_set_string (options, "sqlite.synchronous",
+                                         cases[setting].synchronous == 0 ? "FULL" : "OFF");
+          gom_driver_options_set_boolean (options, "sqlite.foreign-keys",
+                                          !cases[setting].foreign_keys);
+
+          repository = test_sqlite_context_create_repository (&context, registry, &error);
+          g_assert_no_error (error);
+          g_assert_nonnull (repository);
+
+          test_sqlite_assert_pragma (repository, "pragma_synchronous", cases[setting].synchronous);
+          test_sqlite_assert_pragma (repository, "pragma_foreign_keys", cases[setting].foreign_keys);
+
+          if (cases[setting].mode != NULL)
+            gom_driver_options_set_string (options, "sqlite.synchronous", cases[setting].mode);
+          else
+            gom_driver_options_unset (options, "sqlite.synchronous");
+
+          if (cases[setting].foreign_keys_set)
+            gom_driver_options_set_boolean (options, "sqlite.foreign-keys",
+                                            cases[setting].foreign_keys);
+          else
+            gom_driver_options_unset (options, "sqlite.foreign-keys");
+        }
+    }
+}
+
+static void
+test_sqlite_invalid_options (void)
+{
+  g_auto(TestSqliteContext) context = {0};
+  g_autoptr(GomDriverOptions) options = gom_driver_options_new ();
+  g_autoptr(GomDriver) driver = NULL;
+  g_autoptr(GError) error = NULL;
+
+  g_assert_true (test_sqlite_context_init (&context, "gom-sqlite-options-XXXXXX", &error));
+  g_assert_no_error (error);
+  g_clear_object (&context.driver);
+
+  gom_driver_options_set_string (options, "sqlite.synchronous", "FAST; DROP TABLE x");
+  driver = gom_driver_open_with_options (context.db_uri, options, &error);
+  g_assert_null (driver);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT);
+  g_clear_error (&error);
+
+  gom_driver_options_set_boolean (options, "sqlite.synchronous", TRUE);
+  driver = gom_driver_open_with_options (context.db_uri, options, &error);
+  g_assert_null (driver);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT);
+  g_clear_error (&error);
+  gom_driver_options_unset (options, "sqlite.synchronous");
+
+  gom_driver_options_set_string (options, "sqlite.foreign-keys", "ON");
+  driver = gom_driver_open_with_options (context.db_uri, options, &error);
+  g_assert_null (driver);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT);
+  g_clear_error (&error);
+  gom_driver_options_unset (options, "sqlite.foreign-keys");
+
+  gom_driver_options_set_string (options, "sqlite.foreign-key", "ON");
+  driver = gom_driver_open_with_options (context.db_uri, options, &error);
+  g_assert_null (driver);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT);
+  g_clear_error (&error);
+  gom_driver_options_unset (options, "sqlite.foreign-key");
+
+  gom_driver_options_set_string (options, "postgresql.application-name", "test");
+  driver = gom_driver_open_with_options (context.db_uri, options, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (driver);
+}
+
 int
 main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
   _g_test_add_func ("/Gom/Sqlite/driver-pool", test_sqlite_driver_pool);
+  _g_test_add_func ("/Gom/Sqlite/driver-options-api", test_sqlite_driver_options_api);
+  _g_test_add_func ("/Gom/Sqlite/durable-options", test_sqlite_durable_options);
+  _g_test_add_func ("/Gom/Sqlite/invalid-options", test_sqlite_invalid_options);
   _g_test_add_func ("/Gom/Sqlite/repository-query", test_sqlite_repository_query);
   _g_test_add_func ("/Gom/Sqlite/repository-count", test_sqlite_repository_count);
   _g_test_add_func ("/Gom/Sqlite/repository-list-records", test_sqlite_repository_list_records);
