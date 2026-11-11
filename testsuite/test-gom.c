@@ -25,6 +25,7 @@
 #include "lib/gom-delta.h"
 #include "lib/gom-cursor-private.h"
 #include "lib/gom-entity-private.h"
+#include "lib/gom-expression-private.h"
 #include "lib/gom-query-private.h"
 #include "lib/gom-session-private.h"
 #include "lib/gom-value-private.h"
@@ -782,6 +783,137 @@ new_boolean_literal (gboolean value)
 }
 
 static void
+test_expression_transfer (void)
+{
+  static GomExpression *(*binary_constructors[]) (GomExpression *, GomExpression *) = {
+    gom_binary_expression_new_add,
+    gom_binary_expression_new_subtract,
+    gom_binary_expression_new_multiply,
+    gom_binary_expression_new_divide,
+    gom_binary_expression_new_modulo,
+    gom_binary_expression_new_equal,
+    gom_binary_expression_new_not_equal,
+    gom_binary_expression_new_less_than,
+    gom_binary_expression_new_less_equal,
+    gom_binary_expression_new_greater_than,
+    gom_binary_expression_new_greater_equal,
+    gom_binary_expression_new_and,
+    gom_binary_expression_new_or,
+    gom_binary_expression_new_like,
+    gom_binary_expression_new_concat,
+  };
+  static GomExpression *(*unary_constructors[]) (GomExpression *) = {
+    gom_unary_expression_new_negate,
+    gom_unary_expression_new_not,
+  };
+
+  for (gsize i = 0; i < G_N_ELEMENTS (binary_constructors); i++)
+    {
+      GomExpression *left = gom_literal_expression_new_int64 (1);
+      GomExpression *right = gom_literal_expression_new_int64 (2);
+      GomExpression *left_weak = left;
+      GomExpression *right_weak = right;
+      GomExpression *parent;
+
+      g_object_add_weak_pointer (G_OBJECT (left), (gpointer *)&left_weak);
+      g_object_add_weak_pointer (G_OBJECT (right), (gpointer *)&right_weak);
+      parent = binary_constructors[i] (left, right);
+      g_assert_nonnull (parent);
+      g_assert_nonnull (left_weak);
+      g_assert_nonnull (right_weak);
+      g_object_unref (parent);
+      g_assert_null (left_weak);
+      g_assert_null (right_weak);
+    }
+
+  for (gsize i = 0; i < G_N_ELEMENTS (unary_constructors); i++)
+    {
+      GomExpression *operand = gom_literal_expression_new_int64 (1);
+      GomExpression *operand_weak = operand;
+      GomExpression *parent;
+
+      g_object_add_weak_pointer (G_OBJECT (operand), (gpointer *)&operand_weak);
+      parent = unary_constructors[i] (operand);
+      g_assert_nonnull (parent);
+      g_assert_nonnull (operand_weak);
+      g_object_unref (parent);
+      g_assert_null (operand_weak);
+    }
+
+  {
+    GomExpression *target = gom_field_expression_new ("body");
+    GomExpression *query = gom_literal_expression_new_string ("needle");
+    GomExpression *target_weak = target;
+    GomExpression *query_weak = query;
+    GomExpression *parent;
+
+    g_object_add_weak_pointer (G_OBJECT (target), (gpointer *)&target_weak);
+    g_object_add_weak_pointer (G_OBJECT (query), (gpointer *)&query_weak);
+    parent = gom_search_expression_new (target, query, GOM_SEARCH_MODE_PREFIX);
+    g_assert_nonnull (parent);
+    g_object_unref (parent);
+    g_assert_null (target_weak);
+    g_assert_null (query_weak);
+  }
+
+  {
+    GomExpression *parent = gom_search_expression_new_for_field ("body",
+                                                                 "needle",
+                                                                 GOM_SEARCH_MODE_PREFIX);
+    GomExpression *target_weak;
+    GomExpression *query_weak;
+
+    g_assert_nonnull (parent);
+    target_weak = gom_search_expression_get_target (GOM_SEARCH_EXPRESSION (parent));
+    query_weak = gom_search_expression_get_query (GOM_SEARCH_EXPRESSION (parent));
+    g_object_add_weak_pointer (G_OBJECT (target_weak), (gpointer *)&target_weak);
+    g_object_add_weak_pointer (G_OBJECT (query_weak), (gpointer *)&query_weak);
+    g_object_unref (parent);
+    g_assert_null (target_weak);
+    g_assert_null (query_weak);
+  }
+
+  {
+    GomExpression *argument = gom_literal_expression_new_int64 (1);
+    GomExpression *argument_weak = argument;
+    GomExpression *parent;
+
+    g_object_add_weak_pointer (G_OBJECT (argument), (gpointer *)&argument_weak);
+    parent = gom_function_expression_new ("abs", &argument, 1);
+    g_assert_nonnull (parent);
+    g_object_unref (argument);
+    g_assert_nonnull (argument_weak);
+    g_object_unref (parent);
+    g_assert_null (argument_weak);
+  }
+
+  {
+    const float values[] = { 1.f, 0.f };
+    g_autoptr(GomVector) query = gom_vector_new_float32 (values, G_N_ELEMENTS (values));
+
+    GomExpression *target = gom_field_expression_new ("embedding");
+    GomExpression *target_weak = target;
+    GomExpression *parent;
+
+    g_object_add_weak_pointer (G_OBJECT (target), (gpointer *)&target_weak);
+    parent = gom_vector_distance_expression_new (target, query, GOM_VECTOR_METRIC_COSINE);
+    g_assert_nonnull (parent);
+    g_assert_nonnull (target_weak);
+    g_object_unref (parent);
+    g_assert_null (target_weak);
+
+    parent = gom_vector_distance_expression_new_for_field ("embedding",
+                                                           query,
+                                                           GOM_VECTOR_METRIC_COSINE);
+    g_assert_nonnull (parent);
+    target_weak = _gom_vector_distance_expression_get_target (GOM_VECTOR_DISTANCE_EXPRESSION (parent));
+    g_object_add_weak_pointer (G_OBJECT (target_weak), (gpointer *)&target_weak);
+    g_object_unref (parent);
+    g_assert_null (target_weak);
+  }
+}
+
+static void
 test_expression_api (void)
 {
   g_autoptr(GomExpression) literal = new_int64_literal (42);
@@ -875,12 +1007,14 @@ test_expression_api (void)
   g_assert_true (GOM_IS_BINARY_EXPRESSION (binary_or));
   g_assert_true (GOM_IS_BINARY_EXPRESSION (binary_like));
 
-  binary_concat = gom_binary_expression_new_concat (string_literal, string_literal);
+  binary_concat = gom_binary_expression_new_concat (g_object_ref (string_literal),
+                                                    g_object_ref (string_literal));
   g_assert_true (GOM_IS_BINARY_EXPRESSION (binary_concat));
   g_assert_true (gom_expression_is_constant (binary_concat));
 
   g_clear_object (&binary_concat);
-  binary_concat = gom_binary_expression_new_concat (field, string_literal);
+  binary_concat = gom_binary_expression_new_concat (g_object_ref (field),
+                                                    g_object_ref (string_literal));
   g_assert_false (gom_expression_is_constant (binary_concat));
 
   search = gom_search_expression_new (gom_field_expression_new ("body"),
@@ -939,17 +1073,27 @@ test_ordering_and_query_builder (void)
   gom_query_builder_clear_projections (builder);
   gom_query_builder_add_projection (builder, gom_field_expression_new ("title"));
 
-  gom_query_builder_set_filter (builder,
-                                gom_binary_expression_new_equal (gom_field_expression_new ("enabled"),
-                                                                 new_int_literal (1)));
+  {
+    g_autoptr(GomExpression) filter = NULL;
+
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("enabled"),
+                                              new_int_literal (1));
+
+    gom_query_builder_set_filter (builder, filter);
+  }
 
   gom_query_builder_add_grouping (builder, gom_field_expression_new ("group_id"));
   gom_query_builder_clear_groupings (builder);
   gom_query_builder_add_grouping (builder, gom_field_expression_new ("group_id"));
 
-  gom_query_builder_set_group_filter (builder,
-                                      gom_binary_expression_new_greater_than (gom_field_expression_new ("count"),
-                                                                              new_int_literal (0)));
+  {
+    g_autoptr(GomExpression) filter = NULL;
+
+    filter = gom_binary_expression_new_greater_than (gom_field_expression_new ("count"),
+                                                     new_int_literal (0));
+
+    gom_query_builder_set_group_filter (builder, filter);
+  }
 
   ordering = gom_ordering_new (gom_field_expression_new ("title"), GOM_SORT_DESCENDING);
   g_assert_cmpint (gom_ordering_get_direction (ordering), ==, GOM_SORT_DESCENDING);
@@ -1092,9 +1236,13 @@ test_update_builder_api (void)
   gom_update_builder_add_assignment (builder,
                                      gom_field_expression_new ("name"),
                                      new_string_literal ("updated"));
-  gom_update_builder_set_filter (builder,
-                                 gom_binary_expression_new_equal (gom_field_expression_new ("id"),
-                                                                  new_int_literal (1)));
+  {
+    g_autoptr(GomExpression) filter = NULL;
+
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("id"), new_int_literal (1));
+
+    gom_update_builder_set_filter (builder, filter);
+  }
   gom_update_builder_set_limit (builder, 1);
 
   update = gom_update_builder_build (builder, &error);
@@ -1164,9 +1312,13 @@ test_insertion_deletion_builder_api (void)
   g_clear_error (&error);
 
   gom_deletion_builder_set_target_relation (deletion_builder, "items");
-  gom_deletion_builder_set_filter (deletion_builder,
-                                   gom_binary_expression_new_equal (gom_field_expression_new ("id"),
-                                                                    new_int_literal (1)));
+  {
+    g_autoptr(GomExpression) filter = NULL;
+
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("id"), new_int_literal (1));
+
+    gom_deletion_builder_set_filter (deletion_builder, filter);
+  }
   gom_deletion_builder_set_limit (deletion_builder, 1);
   deletion = gom_deletion_builder_build (deletion_builder, &error);
   g_assert_no_error (error);
@@ -1564,6 +1716,7 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
   _g_test_add_func ("/Gom/expression/api", test_expression_api);
+  _g_test_add_func ("/Gom/expression/transfer", test_expression_transfer);
   _g_test_add_func ("/Gom/query/builder", test_ordering_and_query_builder);
   _g_test_add_func ("/Gom/update/builder", test_update_builder_api);
   _g_test_add_func ("/Gom/mutation/builders", test_insertion_deletion_builder_api);

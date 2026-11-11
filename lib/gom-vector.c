@@ -401,8 +401,8 @@ gom_vector_distance (GomVector        *left,
 
 /**
  * gom_vector_distance_expression_new:
- * @target: the vector expression to compare against
- * @query: the query vector
+ * @target: (transfer full): the vector expression to compare against
+ * @query: (transfer none): the query vector
  * @metric: the metric to use
  *
  * Creates an expression that evaluates the distance between @target and
@@ -425,7 +425,7 @@ gom_vector_distance_expression_new (GomExpression   *target,
 /**
  * gom_vector_distance_expression_new_for_field:
  * @field: the field or property containing the vector
- * @query: the query vector
+ * @query: (transfer none): the query vector
  * @metric: the metric to use
  *
  * Creates a vector distance expression for @field.
@@ -443,5 +443,5 @@ gom_vector_distance_expression_new_for_field (const char      *field,
   g_return_val_if_fail (query != NULL, NULL);
 
   target = gom_field_expression_new (field);
-  return gom_vector_distance_expression_new (target, query, metric);
+  return gom_vector_distance_expression_new (g_steal_pointer (&target), query, metric);
 }

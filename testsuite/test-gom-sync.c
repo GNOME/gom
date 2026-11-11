@@ -1273,7 +1273,7 @@ test_sync_sqlite_find_entity (GomRepository  *repository,
   g_value_set_int (&value, id);
   field = gom_field_expression_new ("id");
   literal = gom_literal_expression_new (&value);
-  filter = gom_binary_expression_new_equal (field, literal);
+  filter = gom_binary_expression_new_equal (g_steal_pointer (&field), g_steal_pointer (&literal));
   g_value_unset (&value);
 
   builder = gom_query_builder_new ();

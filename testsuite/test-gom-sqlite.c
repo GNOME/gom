@@ -3223,9 +3223,14 @@ test_sqlite_repository_query_invalid_entity_field (void)
 
   builder = gom_query_builder_new ();
   gom_query_builder_set_target_entity_type (builder, test_insert_item_get_type ());
-  gom_query_builder_set_filter (builder,
-                                gom_binary_expression_new_equal (gom_field_expression_new ("does_not_exist"),
-                                                                 gom_literal_expression_new (&value)));
+  {
+    g_autoptr(GomExpression) filter = NULL;
+
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("does_not_exist"),
+                                              gom_literal_expression_new (&value));
+
+    gom_query_builder_set_filter (builder, filter);
+  }
   query = gom_query_builder_build (builder, &error);
   g_assert_no_error (error);
   g_assert_nonnull (query);
@@ -3813,9 +3818,10 @@ test_sqlite_session_rekey_identity_map (void)
   gom_update_builder_add_assignment (update_builder,
                                      gom_field_expression_new ("id"),
                                      gom_literal_expression_new (&new_id_value));
-  gom_update_builder_set_filter (update_builder,
-                                 gom_binary_expression_new_equal (gom_field_expression_new ("id"),
-                                                                  gom_literal_expression_new (&old_id_value)));
+  filter = gom_binary_expression_new_equal (gom_field_expression_new ("id"),
+                                            gom_literal_expression_new (&old_id_value));
+  gom_update_builder_set_filter (update_builder, filter);
+  g_clear_object (&filter);
   update = gom_update_builder_build (update_builder, &error);
   g_assert_no_error (error);
   g_assert_nonnull (update);
@@ -3832,7 +3838,7 @@ test_sqlite_session_rekey_identity_map (void)
 
   requery_builder = gom_query_builder_new ();
   gom_query_builder_set_target_entity_type (requery_builder, test_crud_item_get_type ());
-  gom_query_builder_set_filter (requery_builder, g_steal_pointer (&filter));
+  gom_query_builder_set_filter (requery_builder, filter);
   requery = gom_query_builder_build (requery_builder, &error);
   g_assert_no_error (error);
   g_assert_nonnull (requery);
@@ -4043,6 +4049,7 @@ test_sqlite_repository_update_delete (void)
   {
     g_auto(GValue) value = G_VALUE_INIT;
     g_auto(GValue) filter_value = G_VALUE_INIT;
+    g_autoptr(GomExpression) filter = NULL;
 
     g_value_init (&value, G_TYPE_STRING);
     g_value_set_string (&value, "updated");
@@ -4052,9 +4059,9 @@ test_sqlite_repository_update_delete (void)
 
     g_value_init (&filter_value, G_TYPE_STRING);
     g_value_set_string (&filter_value, "alpha");
-    gom_update_builder_set_filter (update_builder,
-                                   gom_binary_expression_new_equal (gom_field_expression_new ("name"),
-                                                                    gom_literal_expression_new (&filter_value)));
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("name"),
+                                              gom_literal_expression_new (&filter_value));
+    gom_update_builder_set_filter (update_builder, filter);
   }
   gom_update_builder_set_limit (update_builder, 1);
 
@@ -4072,12 +4079,13 @@ test_sqlite_repository_update_delete (void)
   gom_deletion_builder_set_target_relation (deletion_builder, "items");
   {
     g_auto(GValue) value = G_VALUE_INIT;
+    g_autoptr(GomExpression) filter = NULL;
 
     g_value_init (&value, G_TYPE_STRING);
     g_value_set_string (&value, "beta");
-    gom_deletion_builder_set_filter (deletion_builder,
-                                     gom_binary_expression_new_equal (gom_field_expression_new ("name"),
-                                                                      gom_literal_expression_new (&value)));
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("name"),
+                                              gom_literal_expression_new (&value));
+    gom_deletion_builder_set_filter (deletion_builder, filter);
   }
   gom_deletion_builder_set_limit (deletion_builder, 1);
 
@@ -4681,7 +4689,9 @@ test_sqlite_repository_expression_concat (void)
       right = gom_literal_expression_new_string (cases[i].right);
       builder = gom_query_builder_new ();
       gom_query_builder_set_target_relation (builder, "concat_items");
-      gom_query_builder_add_projection (builder, gom_binary_expression_new_concat (left, right));
+      gom_query_builder_add_projection (builder,
+                                        gom_binary_expression_new_concat (g_steal_pointer (&left),
+                                                                          g_steal_pointer (&right)));
       query = gom_query_builder_build (builder, &error);
       g_assert_no_error (error);
       g_assert_nonnull (query);
@@ -4749,7 +4759,8 @@ test_sqlite_repository_expression_concat_like (void)
 
   field = gom_field_expression_new ("name");
   wildcard = gom_literal_expression_new_string ("%");
-  pattern = gom_binary_expression_new_concat (field, wildcard);
+  pattern = gom_binary_expression_new_concat (g_steal_pointer (&field),
+                                              g_steal_pointer (&wildcard));
 
   for (guint i = 0; i < G_N_ELEMENTS (cases); i++)
     {
@@ -4758,7 +4769,8 @@ test_sqlite_repository_expression_concat_like (void)
       g_autoptr(GListModel) list = NULL;
 
       candidate = gom_literal_expression_new_string (cases[i].candidate);
-      filter = gom_binary_expression_new_like (candidate, pattern);
+      filter = gom_binary_expression_new_like (g_steal_pointer (&candidate),
+                                               g_object_ref (pattern));
       list = dex_await_object (gom_repository_list_entities (repository,
                                                              test_crud_item_get_type (),
                                                              filter,
@@ -5649,10 +5661,10 @@ test_sqlite_repository_vector_distance (void)
   gom_query_builder_set_target_relation (builder, "vectors");
   id = gom_field_expression_new ("id");
   field = gom_field_expression_new ("vector");
-  projection_distance = gom_vector_distance_expression_new (field,
+  projection_distance = gom_vector_distance_expression_new (g_object_ref (field),
                                                             query_vector,
                                                             GOM_VECTOR_METRIC_COSINE);
-  order_distance = gom_vector_distance_expression_new (field,
+  order_distance = gom_vector_distance_expression_new (g_steal_pointer (&field),
                                                        query_vector,
                                                        GOM_VECTOR_METRIC_COSINE);
   gom_query_builder_add_projection (builder, g_steal_pointer (&id));

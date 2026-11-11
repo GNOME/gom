@@ -3480,7 +3480,7 @@ gom_entity_update (GomEntity *self)
   if (!(filter = gom_entity_build_identity_filter (self, entity_class, identity_fields, &error)))
     return dex_future_new_for_error (g_steal_pointer (&error));
 
-  gom_update_builder_set_filter (builder, g_steal_pointer (&filter));
+  gom_update_builder_set_filter (builder, filter);
   gom_update_builder_set_limit (builder, 1);
 
   {

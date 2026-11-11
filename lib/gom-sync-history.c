@@ -1403,7 +1403,8 @@ gom_sync_history_load_delta (GomRepository         *repository,
   g_value_set_uint64 (&sequence_value, change->sequence);
   field = gom_field_expression_new ("sequence");
   literal = gom_literal_expression_new (&sequence_value);
-  filter = gom_binary_expression_new_equal (field, literal);
+  filter = gom_binary_expression_new_equal (g_steal_pointer (&field),
+                                            g_steal_pointer (&literal));
   g_value_unset (&sequence_value);
 
   builder = gom_query_builder_new ();
@@ -1500,7 +1501,8 @@ gom_sync_history_replay_fiber (gpointer user_data)
   g_value_set_uint64 (&sequence_value, state->sequence);
   field = gom_field_expression_new ("sequence");
   literal = gom_literal_expression_new (&sequence_value);
-  filter = gom_binary_expression_new_greater_than (field, literal);
+  filter = gom_binary_expression_new_greater_than (g_steal_pointer (&field),
+                                                   g_steal_pointer (&literal));
   g_value_unset (&sequence_value);
 
   builder = gom_query_builder_new ();
@@ -1711,7 +1713,8 @@ _gom_sync_history_ack (GomRepository *repository,
   g_value_set_boolean (&value, TRUE);
   outbound_field = gom_field_expression_new ("outbound");
   outbound_value = gom_literal_expression_new (&value);
-  outbound_match = gom_binary_expression_new_equal (outbound_field, outbound_value);
+  outbound_match = gom_binary_expression_new_equal (g_steal_pointer (&outbound_field),
+                                                    g_steal_pointer (&outbound_value));
   acked_field = gom_field_expression_new ("acked");
   acked_value = gom_literal_expression_new (&value);
   g_value_unset (&value);
@@ -1720,10 +1723,12 @@ _gom_sync_history_ack (GomRepository *repository,
   g_value_set_uint64 (&seq_value, sequence);
   sequence_field = gom_field_expression_new ("sequence");
   sequence_value = gom_literal_expression_new (&seq_value);
-  sequence_match = gom_binary_expression_new_less_equal (sequence_field, sequence_value);
+  sequence_match = gom_binary_expression_new_less_equal (g_steal_pointer (&sequence_field),
+                                                         g_steal_pointer (&sequence_value));
   g_value_unset (&seq_value);
 
-  filter = gom_binary_expression_new_and (outbound_match, sequence_match);
+  filter = gom_binary_expression_new_and (g_steal_pointer (&outbound_match),
+                                          g_steal_pointer (&sequence_match));
 
   builder = gom_update_builder_new ();
   gom_update_builder_set_target_entity_type (builder, GOM_TYPE_SYNC_HISTORY_CHANGE);

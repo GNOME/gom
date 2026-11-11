@@ -530,7 +530,7 @@ gom_field_expression_new (const char *field)
 /**
  * gom_function_expression_new:
  * @name: the function name
- * @arguments: (array length=n_arguments) (nullable) (element-type Gom.Expression): arguments
+ * @arguments: (array length=n_arguments) (nullable) (element-type Gom.Expression) (transfer none): arguments
  * @n_arguments: number of arguments in @arguments
  *
  * Creates a function expression.
@@ -571,7 +571,7 @@ gom_unary_expression_new (GomUnaryOperator  operator,
 
   self = g_object_new (GOM_TYPE_UNARY_EXPRESSION, NULL);
   self->operator = operator;
-  self->operand = g_object_ref (operand);
+  self->operand = operand;
 
   return GOM_EXPRESSION (self);
 }
@@ -588,8 +588,8 @@ gom_binary_expression_new (GomBinaryOperator  operator,
 
   self = g_object_new (GOM_TYPE_BINARY_EXPRESSION, NULL);
   self->operator = operator;
-  self->left = g_object_ref (left);
-  self->right = g_object_ref (right);
+  self->left = left;
+  self->right = right;
 
   return GOM_EXPRESSION (self);
 }
@@ -848,8 +848,8 @@ gom_binary_expression_new_like (GomExpression *left,
 
 /**
  * gom_binary_expression_new_concat:
- * @left: (transfer none): a string [class@Gom.Expression]
- * @right: (transfer none): a string [class@Gom.Expression]
+ * @left: (transfer full): a string [class@Gom.Expression]
+ * @right: (transfer full): a string [class@Gom.Expression]
  *
  * Creates a string concatenation expression using the SQL `||` operator.
  *
@@ -886,8 +886,8 @@ gom_search_expression_new (GomExpression *target,
   g_return_val_if_fail (GOM_IS_EXPRESSION (query), NULL);
 
   self = g_object_new (GOM_TYPE_SEARCH_EXPRESSION, NULL);
-  self->target = g_object_ref (target);
-  self->query = g_object_ref (query);
+  self->target = target;
+  self->query = query;
   self->mode = mode;
 
   return GOM_EXPRESSION (self);
@@ -1083,7 +1083,7 @@ _gom_vector_distance_expression_new (GomExpression   *target,
   g_return_val_if_fail (query != NULL, NULL);
 
   self = g_object_new (GOM_TYPE_VECTOR_DISTANCE_EXPRESSION, NULL);
-  self->target = g_object_ref (target);
+  self->target = target;
   self->query = gom_vector_ref (query);
   self->metric = metric;
 

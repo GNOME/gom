@@ -512,9 +512,14 @@ test_pgsql_repository_migrate_v1_to_v2_preserves_data (void)
 
   query_builder = gom_query_builder_new ();
   gom_query_builder_set_target_entity_type (query_builder, test_pgsql_item_get_type ());
-  gom_query_builder_set_filter (query_builder,
-                               gom_binary_expression_new_equal (gom_field_expression_new ("id"),
-                                                                test_pgsql_int64_literal_expression (1)));
+  {
+    g_autoptr(GomExpression) filter = NULL;
+
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("id"),
+                                              test_pgsql_int64_literal_expression (1));
+
+    gom_query_builder_set_filter (query_builder, filter);
+  }
   query = gom_query_builder_build_with_count (query_builder, &error);
   g_assert_no_error (error);
   g_assert_nonnull (query);
@@ -618,9 +623,14 @@ test_pgsql_session_persist_flush_commit_and_search (void)
 
   search_builder = gom_query_builder_new ();
   gom_query_builder_set_target_entity_type (search_builder, test_pgsql_item_get_type ());
-  gom_query_builder_set_filter (search_builder,
-                                gom_binary_expression_new_equal (gom_field_expression_new ("name"),
-                                                                 gom_literal_expression_new_string ("alpha beta")));
+  {
+    g_autoptr(GomExpression) filter = NULL;
+
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("name"),
+                                              gom_literal_expression_new_string ("alpha beta"));
+
+    gom_query_builder_set_filter (search_builder, filter);
+  }
   search_query = gom_query_builder_build (search_builder, &error);
   g_assert_no_error (error);
   g_assert_nonnull (search_query);

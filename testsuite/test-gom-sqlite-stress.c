@@ -897,9 +897,14 @@ stress_item_query_by_id_new (gint64   id,
   g_value_set_int64 (&id_value, id);
 
   gom_query_builder_set_target_entity_type (builder, test_stress_item_get_type ());
-  gom_query_builder_set_filter (builder,
-                                gom_binary_expression_new_equal (gom_field_expression_new ("id"),
-                                                                 gom_literal_expression_new (&id_value)));
+  {
+    g_autoptr(GomExpression) filter = NULL;
+
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("id"),
+                                              gom_literal_expression_new (&id_value));
+
+    gom_query_builder_set_filter (builder, filter);
+  }
 
   return gom_query_builder_build (builder, error);
 }
@@ -1101,9 +1106,14 @@ stress_one_iteration (GomRepository  *repository,
 
   query_builder = gom_query_builder_new ();
   gom_query_builder_set_target_entity_type (query_builder, test_stress_item_get_type ());
-  gom_query_builder_set_filter (query_builder,
-                                gom_binary_expression_new_equal (gom_field_expression_new ("id"),
-                                                                 gom_literal_expression_new (&id_value)));
+  {
+    g_autoptr(GomExpression) filter = NULL;
+
+    filter = gom_binary_expression_new_equal (gom_field_expression_new ("id"),
+                                              gom_literal_expression_new (&id_value));
+
+    gom_query_builder_set_filter (query_builder, filter);
+  }
 
   query = gom_query_builder_build (query_builder, error);
   if (query == NULL)

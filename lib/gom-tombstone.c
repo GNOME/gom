@@ -434,10 +434,13 @@ gom_tombstone_build_tombstone_filter (const char *entity_type,
   entity_type_value = gom_literal_expression_new_string (entity_type);
   identity_field = gom_field_expression_new ("identity");
   identity_value = gom_literal_expression_new_string (identity);
-  entity_type_match = gom_binary_expression_new_equal (entity_type_field, entity_type_value);
-  identity_match = gom_binary_expression_new_equal (identity_field, identity_value);
+  entity_type_match = gom_binary_expression_new_equal (g_steal_pointer (&entity_type_field),
+                                                       g_steal_pointer (&entity_type_value));
+  identity_match = gom_binary_expression_new_equal (g_steal_pointer (&identity_field),
+                                                    g_steal_pointer (&identity_value));
 
-  return gom_binary_expression_new_and (entity_type_match, identity_match);
+  return gom_binary_expression_new_and (g_steal_pointer (&entity_type_match),
+                                        g_steal_pointer (&identity_match));
 }
 
 static GomExpression *
@@ -508,7 +511,8 @@ gom_tombstone_build_identity_filter_from_variant (GType      entity_type,
       storage_field = gom_tombstone_get_field_name (entity_class, identity_field);
       field = gom_field_expression_new (storage_field);
       literal = gom_literal_expression_new (&value);
-      predicate = gom_binary_expression_new_equal (field, literal);
+      predicate = gom_binary_expression_new_equal (g_steal_pointer (&field),
+                                                   g_steal_pointer (&literal));
 
       if (filter == NULL)
         {
@@ -518,7 +522,8 @@ gom_tombstone_build_identity_filter_from_variant (GType      entity_type,
         {
           g_autoptr(GomExpression) previous = g_steal_pointer (&filter);
 
-          filter = gom_binary_expression_new_and (previous, predicate);
+          filter = gom_binary_expression_new_and (g_steal_pointer (&previous),
+                                                  g_steal_pointer (&predicate));
         }
     }
 
