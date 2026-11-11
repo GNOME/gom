@@ -63,6 +63,7 @@ typedef enum _GomBinaryOperator
   GOM_BINARY_AND           = 11,
   GOM_BINARY_OR            = 12,
   GOM_BINARY_LIKE          = 13,
+  GOM_BINARY_CONCAT        = 14,
 } GomBinaryOperator;
 
 typedef enum _GomCursorFlags

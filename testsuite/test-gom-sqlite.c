@@ -4614,6 +4614,157 @@ test_sqlite_query_count_for_filter (GomRepository  *repository,
 }
 
 static void
+test_sqlite_repository_expression_concat (void)
+{
+  static const struct
+  {
+    const char *left;
+    const char *right;
+    const char *expected;
+  } cases[] = {
+    { "hello", " world", "hello world" },
+    { "", "suffix", "suffix" },
+    { "prefix", "", "prefix" },
+    { "", "", "" },
+    { "été", "東京", "été東京" },
+    { "it's", " 'quoted'", "it's 'quoted'" },
+    { NULL, "suffix", NULL },
+    { "prefix", NULL, NULL },
+    { NULL, NULL, NULL },
+  };
+  g_auto(TestSqliteContext) context = { 0 };
+  g_autoptr(GomRepository) repository = NULL;
+  g_autoptr(GomRegistry) registry = NULL;
+  g_autoptr(GError) error = NULL;
+  sqlite3 *db = NULL;
+
+  g_assert_true (test_sqlite_context_init (&context, "gom-sqlite-test-XXXXXX", &error));
+  g_assert_no_error (error);
+
+  test_sqlite_open (context.db_path, &db);
+  test_sqlite_exec_ok (db,
+                       "CREATE TABLE concat_items (id INTEGER PRIMARY KEY);"
+                       "INSERT INTO concat_items (id) VALUES (1)");
+  test_sqlite_close (db);
+
+  registry = test_sqlite_create_registry ();
+  repository = test_sqlite_context_create_repository (&context, registry, &error);
+  g_assert_no_error (error);
+  g_assert_true (GOM_IS_REPOSITORY (repository));
+
+  for (guint i = 0; i < G_N_ELEMENTS (cases); i++)
+    {
+      g_autoptr(GomExpression) left = NULL;
+      g_autoptr(GomExpression) right = NULL;
+      g_autoptr(GomQueryBuilder) builder = NULL;
+      g_autoptr(GomQuery) query = NULL;
+      g_autoptr(GomCursor) cursor = NULL;
+
+      left = gom_literal_expression_new_string (cases[i].left);
+      right = gom_literal_expression_new_string (cases[i].right);
+      builder = gom_query_builder_new ();
+      gom_query_builder_set_target_relation (builder, "concat_items");
+      gom_query_builder_add_projection (builder, gom_binary_expression_new_concat (left, right));
+      query = gom_query_builder_build (builder, &error);
+      g_assert_no_error (error);
+      g_assert_nonnull (query);
+
+      cursor = dex_await_object (gom_repository_query (repository, query), &error);
+      g_assert_no_error (error);
+      g_assert_true (GOM_IS_CURSOR (cursor));
+      g_assert_true (dex_await_boolean (gom_cursor_next (cursor), &error));
+      g_assert_no_error (error);
+      g_assert_cmpuint (gom_cursor_get_n_columns (cursor), ==, 1);
+
+      if (cases[i].expected == NULL)
+        g_assert_true (gom_cursor_get_column_null (cursor, 0));
+      else
+        g_assert_cmpstr (gom_cursor_get_column_string (cursor, 0), ==, cases[i].expected);
+
+      g_assert_false (dex_await_boolean (gom_cursor_next (cursor), &error));
+      g_assert_no_error (error);
+      dex_await (gom_cursor_close (cursor), &error);
+      g_assert_no_error (error);
+    }
+}
+
+static void
+test_sqlite_repository_expression_concat_like (void)
+{
+  static const struct
+  {
+    const char *candidate;
+    const char *expected;
+  } cases[] = {
+    { "/srv/music/song.ogg", "/srv/music/" },
+    { "/srv/music/", "/srv/music/" },
+    { "/srv/l'été/曲.ogg", "/srv/l'été/" },
+    { "/srv/missing/song.ogg", NULL },
+    { NULL, NULL },
+  };
+  g_auto(TestSqliteContext) context = { 0 };
+  g_autoptr(GomRepository) repository = NULL;
+  g_autoptr(GomRegistry) registry = NULL;
+  g_autoptr(GomExpression) field = NULL;
+  g_autoptr(GomExpression) wildcard = NULL;
+  g_autoptr(GomExpression) pattern = NULL;
+  g_autoptr(GError) error = NULL;
+  sqlite3 *db = NULL;
+
+  g_assert_true (test_sqlite_context_init (&context, "gom-sqlite-test-XXXXXX", &error));
+  g_assert_no_error (error);
+
+  test_sqlite_open (context.db_path, &db);
+  test_sqlite_exec_ok (db,
+                       "CREATE TABLE entity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB"
+                       ");"
+                       "INSERT INTO entity_items (name) VALUES "
+                       "('/srv/music/'), ('/srv/docs/'), ('/srv/l''été/')");
+  test_sqlite_close (db);
+
+  registry = test_sqlite_create_registry ();
+  repository = test_sqlite_context_create_repository (&context, registry, &error);
+  g_assert_no_error (error);
+  g_assert_true (GOM_IS_REPOSITORY (repository));
+
+  field = gom_field_expression_new ("name");
+  wildcard = gom_literal_expression_new_string ("%");
+  pattern = gom_binary_expression_new_concat (field, wildcard);
+
+  for (guint i = 0; i < G_N_ELEMENTS (cases); i++)
+    {
+      g_autoptr(GomExpression) candidate = NULL;
+      g_autoptr(GomExpression) filter = NULL;
+      g_autoptr(GListModel) list = NULL;
+
+      candidate = gom_literal_expression_new_string (cases[i].candidate);
+      filter = gom_binary_expression_new_like (candidate, pattern);
+      list = dex_await_object (gom_repository_list_entities (repository,
+                                                             test_crud_item_get_type (),
+                                                             filter,
+                                                             NULL),
+                               &error);
+      g_assert_no_error (error);
+      g_assert_true (G_IS_LIST_MODEL (list));
+      g_assert_cmpuint (g_list_model_get_n_items (list), ==, cases[i].expected != NULL ? 1 : 0);
+
+      if (cases[i].expected != NULL)
+        {
+          g_autoptr(GomEntity) entity = g_list_model_get_item (list, 0);
+          g_autofree char *name = NULL;
+
+          g_object_get (entity,
+                        "name", &name,
+                        NULL);
+          g_assert_cmpstr (name, ==, cases[i].expected);
+        }
+    }
+}
+
+static void
 test_sqlite_repository_expression_variants (void)
 {
   g_auto(TestSqliteContext) context = {0};
@@ -5745,6 +5896,8 @@ main (int   argc,
   _g_test_add_func ("/Gom/Sqlite/repository-list-relations", test_sqlite_repository_list_relations);
   _g_test_add_func ("/Gom/Sqlite/repository-search", test_sqlite_repository_search);
   _g_test_add_func ("/Gom/Sqlite/repository-expression-variants", test_sqlite_repository_expression_variants);
+  _g_test_add_func ("/Gom/Sqlite/repository-expression-concat", test_sqlite_repository_expression_concat);
+  _g_test_add_func ("/Gom/Sqlite/repository-expression-concat-like", test_sqlite_repository_expression_concat_like);
   _g_test_add_func ("/Gom/Sqlite/repository-vector-distance", test_sqlite_repository_vector_distance);
   _g_test_add_func ("/Gom/Sqlite/repository-auto-migrate-empty", test_sqlite_repository_auto_migrate_empty);
   _g_test_add_func ("/Gom/Sqlite/repository-migrate-v1-to-v2", test_sqlite_repository_migrate_v1_to_v2);

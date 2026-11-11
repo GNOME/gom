@@ -847,6 +847,25 @@ gom_binary_expression_new_like (GomExpression *left,
 }
 
 /**
+ * gom_binary_expression_new_concat:
+ * @left: (transfer none): a string [class@Gom.Expression]
+ * @right: (transfer none): a string [class@Gom.Expression]
+ *
+ * Creates a string concatenation expression using the SQL `||` operator.
+ *
+ * The result is @left followed by @right. If either operand evaluates to
+ * SQL `NULL`, the result is SQL `NULL`.
+ *
+ * Returns: (transfer full) (type Gom.BinaryExpression): a [class@Gom.Expression]
+ */
+GomExpression *
+gom_binary_expression_new_concat (GomExpression *left,
+                                  GomExpression *right)
+{
+  return gom_binary_expression_new (GOM_BINARY_CONCAT, left, right);
+}
+
+/**
  * gom_search_expression_new:
  * @target: (transfer full): a [class@Gom.Expression]
  * @query: (transfer full): a [class@Gom.Expression]

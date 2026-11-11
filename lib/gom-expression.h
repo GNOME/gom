@@ -130,6 +130,9 @@ GOM_AVAILABLE_IN_ALL
 GomExpression *gom_binary_expression_new_like          (GomExpression        *left,
                                                         GomExpression        *right);
 GOM_AVAILABLE_IN_ALL
+GomExpression *gom_binary_expression_new_concat        (GomExpression        *left,
+                                                        GomExpression        *right);
+GOM_AVAILABLE_IN_ALL
 GomExpression *gom_search_expression_new               (GomExpression        *target,
                                                         GomExpression        *query,
                                                         GomSearchMode         mode);

@@ -267,6 +267,8 @@ gom_pgsql_binary_operator_to_sql (GomBinaryOperator op)
       return "OR";
     case GOM_BINARY_LIKE:
       return "LIKE";
+    case GOM_BINARY_CONCAT:
+      return "||";
     default:
       return NULL;
     }

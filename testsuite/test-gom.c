@@ -742,6 +742,7 @@ test_expression_api (void)
   g_autoptr(GomExpression) binary_and = NULL;
   g_autoptr(GomExpression) binary_or = NULL;
   g_autoptr(GomExpression) binary_like = NULL;
+  g_autoptr(GomExpression) binary_concat = NULL;
   g_autoptr(GomExpression) search = NULL;
   g_autoptr(GomExpression) search_for_field = NULL;
   g_autoptr(GomExpression) null_string_literal = NULL;
@@ -811,6 +812,14 @@ test_expression_api (void)
   g_assert_true (GOM_IS_BINARY_EXPRESSION (binary_and));
   g_assert_true (GOM_IS_BINARY_EXPRESSION (binary_or));
   g_assert_true (GOM_IS_BINARY_EXPRESSION (binary_like));
+
+  binary_concat = gom_binary_expression_new_concat (string_literal, string_literal);
+  g_assert_true (GOM_IS_BINARY_EXPRESSION (binary_concat));
+  g_assert_true (gom_expression_is_constant (binary_concat));
+
+  g_clear_object (&binary_concat);
+  binary_concat = gom_binary_expression_new_concat (field, string_literal);
+  g_assert_false (gom_expression_is_constant (binary_concat));
 
   search = gom_search_expression_new (gom_field_expression_new ("body"),
                                       new_string_literal ("hello"),

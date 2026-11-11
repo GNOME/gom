@@ -48,6 +48,11 @@ Query results still use [class@Gom.Cursor]. Mutation results now use
 [class@Gom.MutationResult], a [iface@Gio.ListModel] of [class@Gom.Record]
 snapshots.
 
+Use [ctor@Gom.BinaryExpression.new_concat] to concatenate string expressions
+with SQL `||`. It can be combined with [ctor@Gom.BinaryExpression.new_like]
+to build filters such as `? LIKE path || '%'`. Concatenation evaluates to SQL
+`NULL` if either operand evaluates to SQL `NULL`.
+
 ### Entity mapper path
 
 Define `GomEntity` subclasses and register them in a `GomRegistry`.
