@@ -71,14 +71,16 @@ struct _TestVersionedMigrateItemV5Class
   TestVersionedMigrateItemClass parent_class;
 };
 
-enum {
+enum
+{
   TEST_AUTO_MIGRATE_ITEM_PROP_0,
   TEST_AUTO_MIGRATE_ITEM_PROP_ID,
   TEST_AUTO_MIGRATE_ITEM_PROP_NAME,
   TEST_AUTO_MIGRATE_ITEM_N_PROPS
 };
 
-enum {
+enum
+{
   TEST_VERSIONED_MIGRATE_ITEM_PROP_0,
   TEST_VERSIONED_MIGRATE_ITEM_PROP_ID,
   TEST_VERSIONED_MIGRATE_ITEM_PROP_TITLE,
@@ -375,7 +377,7 @@ test_sqlite_create_versioned_migrate_registry_with_entity_removed (void)
 static void
 test_sqlite_entity_migrator_auto_creates_schema_single_version_crud (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) inserted = NULL;
@@ -496,7 +498,7 @@ test_sqlite_entity_migrator_auto_creates_schema_single_version_crud (void)
 static void
 test_sqlite_entity_migrator_multi_version_with_final_entity_removal (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry_v4 = NULL;
   g_autoptr(GomRegistry) registry_v5 = NULL;
@@ -509,12 +511,12 @@ test_sqlite_entity_migrator_multi_version_with_final_entity_removal (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE versioned_migrate_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  title TEXT NOT NULL"
-                     ");"
-                     "INSERT INTO versioned_migrate_items (id, title) VALUES (1, 'alpha');"
-                     "PRAGMA user_version = 1"
+                       "CREATE TABLE versioned_migrate_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  title TEXT NOT NULL"
+                       ");"
+                       "INSERT INTO versioned_migrate_items (id, title) VALUES (1, 'alpha');"
+                       "PRAGMA user_version = 1"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -579,10 +581,8 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
-  _g_test_add_func ("/Gom/Sqlite/entity-migrator-auto-creates-schema-single-version-crud",
-                    test_sqlite_entity_migrator_auto_creates_schema_single_version_crud);
-  _g_test_add_func ("/Gom/Sqlite/entity-migrator-multi-version-with-final-entity-removal",
-                    test_sqlite_entity_migrator_multi_version_with_final_entity_removal);
+  _g_test_add_func ("/Gom/Sqlite/entity-migrator-auto-creates-schema-single-version-crud", test_sqlite_entity_migrator_auto_creates_schema_single_version_crud);
+  _g_test_add_func ("/Gom/Sqlite/entity-migrator-multi-version-with-final-entity-removal", test_sqlite_entity_migrator_multi_version_with_final_entity_removal);
 
   return g_test_run ();
 }

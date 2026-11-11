@@ -145,13 +145,13 @@ enum
 
 static GParamSpec *test_cursor_entity_properties[TEST_CURSOR_ENTITY_N_PROPS];
 
-static GType test_cursor_get_type              (void);
 static GType test_count_cursor_get_type        (void);
-static GType test_cursor_entity_get_type       (void);
 static GType test_cursor_child_entity_get_type (void);
-static GType test_sync_session_get_type        (void);
-GType        test_cursor_state_get_type        (void) G_GNUC_CONST;
+static GType test_cursor_entity_get_type       (void);
+static GType test_cursor_get_type              (void);
 GType        test_cursor_perms_get_type        (void) G_GNUC_CONST;
+GType        test_cursor_state_get_type        (void) G_GNUC_CONST;
+static GType test_sync_session_get_type        (void);
 
 #define TEST_TYPE_CURSOR             (test_cursor_get_type())
 #define TEST_TYPE_COUNT_CURSOR       (test_count_cursor_get_type())
@@ -185,10 +185,30 @@ test_cursor_get_column_name (GomCursor *cursor,
 {
   TestCursor *self = (TestCursor *)cursor;
   static const char * const value_columns[] = {
-    "i64", "i", "u", "u64", "b", "d", "f", "s", "null_ptr", "null_str", "bytes", "datetime"
+    "i64",
+    "i",
+    "u",
+    "u64",
+    "b",
+    "d",
+    "f",
+    "s",
+    "null_ptr",
+    "null_str",
+    "bytes",
+    "datetime"
   };
   static const char * const materialize_columns[] = {
-    "type", "name", "state", "perms", "enabled", "count", "total", "ratio", "weight", "blob"
+    "type",
+    "name",
+    "state",
+    "perms",
+    "enabled",
+    "count",
+    "total",
+    "ratio",
+    "weight",
+    "blob"
   };
 
   if (self->scenario == TEST_CURSOR_SCENARIO_VALUES)
@@ -215,42 +235,52 @@ test_cursor_get_column_value (GomCursor *cursor,
           g_value_init (value, G_TYPE_INT64);
           g_value_set_int64 (value, 101);
           return TRUE;
+
         case 1:
           g_value_init (value, G_TYPE_INT);
           g_value_set_int (value, 7);
           return TRUE;
+
         case 2:
           g_value_init (value, G_TYPE_UINT);
           g_value_set_uint (value, 8);
           return TRUE;
+
         case 3:
           g_value_init (value, G_TYPE_UINT64);
           g_value_set_uint64 (value, 9);
           return TRUE;
+
         case 4:
           g_value_init (value, G_TYPE_BOOLEAN);
           g_value_set_boolean (value, TRUE);
           return TRUE;
+
         case 5:
           g_value_init (value, G_TYPE_DOUBLE);
           g_value_set_double (value, 10.5);
           return TRUE;
+
         case 6:
           g_value_init (value, G_TYPE_FLOAT);
           g_value_set_float (value, 11.5f);
           return TRUE;
+
         case 7:
           g_value_init (value, G_TYPE_STRING);
           g_value_set_static_string (value, "12");
           return TRUE;
+
         case 8:
           g_value_init (value, G_TYPE_POINTER);
           g_value_set_pointer (value, NULL);
           return TRUE;
+
         case 9:
           g_value_init (value, G_TYPE_STRING);
           g_value_set_string (value, NULL);
           return TRUE;
+
         case 10:
           {
             static const char test_string[] = "xyz";
@@ -259,10 +289,12 @@ test_cursor_get_column_value (GomCursor *cursor,
             g_value_take_boxed (value, g_bytes_new_static (test_string, strlen (test_string)));
             return TRUE;
           }
+
         case 11:
           g_value_init (value, G_TYPE_DATE_TIME);
           g_value_take_boxed (value, g_date_time_new_from_iso8601 ("2026-06-09T12:34:56Z", NULL));
           return TRUE;
+
         default:
           return FALSE;
         }
@@ -274,38 +306,47 @@ test_cursor_get_column_value (GomCursor *cursor,
       g_value_init (value, G_TYPE_STRING);
       g_value_set_static_string (value, self->row == 0 ? "child" : "base");
       return TRUE;
+
     case 1:
       g_value_init (value, G_TYPE_STRING);
       g_value_set_static_string (value, self->row == 0 ? "materialized-child" : "materialized-base");
       return TRUE;
+
     case 2:
       g_value_init (value, G_TYPE_INT);
       g_value_set_int (value, TEST_CURSOR_STATE_BETA);
       return TRUE;
+
     case 3:
       g_value_init (value, G_TYPE_STRING);
       g_value_set_static_string (value, "3");
       return TRUE;
+
     case 4:
       g_value_init (value, G_TYPE_DOUBLE);
       g_value_set_double (value, 1.0);
       return TRUE;
+
     case 5:
       g_value_init (value, G_TYPE_FLOAT);
       g_value_set_float (value, 7.25f);
       return TRUE;
+
     case 6:
       g_value_init (value, G_TYPE_UINT);
       g_value_set_uint (value, 42);
       return TRUE;
+
     case 7:
       g_value_init (value, G_TYPE_STRING);
       g_value_set_static_string (value, "2.5");
       return TRUE;
+
     case 8:
       g_value_init (value, G_TYPE_UINT64);
       g_value_set_uint64 (value, 99);
       return TRUE;
+
     case 9:
       {
         static const char test_string[] = "mat";
@@ -314,6 +355,7 @@ test_cursor_get_column_value (GomCursor *cursor,
         g_value_take_boxed (value, g_bytes_new_static (test_string, strlen (test_string)));
         return TRUE;
       }
+
     default:
       return FALSE;
     }
@@ -487,33 +529,43 @@ test_cursor_entity_get_property (GObject    *object,
     case TEST_CURSOR_ENTITY_PROP_TYPE:
       g_value_set_string (value, self->type);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_NAME:
       g_value_set_string (value, self->name);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_STATE:
       g_value_set_enum (value, self->state);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_PERMS:
       g_value_set_flags (value, self->perms);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_ENABLED:
       g_value_set_boolean (value, self->enabled);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_COUNT:
       g_value_set_int (value, self->count);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_TOTAL:
       g_value_set_int64 (value, self->total);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_RATIO:
       g_value_set_double (value, self->ratio);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_WEIGHT:
       g_value_set_float (value, self->weight);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_BLOB:
       g_value_set_boxed (value, self->blob);
       break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -533,34 +585,44 @@ test_cursor_entity_set_property (GObject      *object,
     case TEST_CURSOR_ENTITY_PROP_TYPE:
       g_set_str (&self->type, g_value_get_string (value));
       break;
+
     case TEST_CURSOR_ENTITY_PROP_NAME:
       g_set_str (&self->name, g_value_get_string (value));
       break;
+
     case TEST_CURSOR_ENTITY_PROP_STATE:
       self->state = (TestCursorState)g_value_get_enum (value);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_PERMS:
       self->perms = (TestCursorPerms)g_value_get_flags (value);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_ENABLED:
       self->enabled = g_value_get_boolean (value);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_COUNT:
       self->count = g_value_get_int (value);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_TOTAL:
       self->total = g_value_get_int64 (value);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_RATIO:
       self->ratio = g_value_get_double (value);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_WEIGHT:
       self->weight = g_value_get_float (value);
       break;
+
     case TEST_CURSOR_ENTITY_PROP_BLOB:
       g_clear_pointer (&self->blob, g_bytes_unref);
       self->blob = g_value_dup_boxed (value);
       break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;

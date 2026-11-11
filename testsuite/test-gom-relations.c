@@ -71,14 +71,16 @@ struct _TestRelationTagClass
   GomEntityClass parent_class;
 };
 
-enum {
+enum
+{
   TEST_RELATION_AUTHOR_PROP_0,
   TEST_RELATION_AUTHOR_PROP_ID,
   TEST_RELATION_AUTHOR_PROP_NAME,
   TEST_RELATION_AUTHOR_N_PROPS
 };
 
-enum {
+enum
+{
   TEST_RELATION_BOOK_PROP_0,
   TEST_RELATION_BOOK_PROP_ID,
   TEST_RELATION_BOOK_PROP_AUTHOR_ID,
@@ -86,7 +88,8 @@ enum {
   TEST_RELATION_BOOK_N_PROPS
 };
 
-enum {
+enum
+{
   TEST_RELATION_TAG_PROP_0,
   TEST_RELATION_TAG_PROP_ID,
   TEST_RELATION_TAG_PROP_NAME,
@@ -418,8 +421,16 @@ test_relations_create_registry_with_book_author_delete_rule (GomRelationshipDele
   book_class = g_type_class_ref (TEST_RELATION_BOOK_TYPE);
   tag_class = g_type_class_ref (TEST_RELATION_TAG_TYPE);
 
-  gom_entity_class_add_one_to_many (author_class, "books", TEST_RELATION_BOOK_TYPE, "author_id", "author");
-  gom_entity_class_add_many_to_one (book_class, "author", TEST_RELATION_AUTHOR_TYPE, "author_id", "books");
+  gom_entity_class_add_one_to_many (author_class,
+                                    "books",
+                                    TEST_RELATION_BOOK_TYPE,
+                                    "author_id",
+                                    "author");
+  gom_entity_class_add_many_to_one (book_class,
+                                    "author",
+                                    TEST_RELATION_AUTHOR_TYPE,
+                                    "author_id",
+                                    "books");
   gom_entity_class_relationship_set_delete_rule (book_class, "author", delete_rule);
   gom_entity_class_add_many_to_many (book_class,
                                      "tags",
@@ -446,7 +457,7 @@ test_relations_create_registry_with_book_author_delete_rule (GomRelationshipDele
 static GomRegistry *
 test_relations_get_cached_registry_with_delete_rule (GomRelationshipDeleteRule delete_rule)
 {
-  static gsize initialized_registry[GOM_RELATIONSHIP_DELETE_DENY + 1] = {0};
+  static gsize initialized_registry[GOM_RELATIONSHIP_DELETE_DENY + 1] = { 0 };
 
   g_assert_cmpint (delete_rule, >=, GOM_RELATIONSHIP_DELETE_NO_ACTION);
   g_assert_cmpint (delete_rule, <=, GOM_RELATIONSHIP_DELETE_DENY);
@@ -518,7 +529,7 @@ test_relations_delete_rule_case (const char                        *tmp_pattern,
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GObject) authors = NULL;
   g_autoptr(GomEntity) author = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, tmp_pattern, &error));
@@ -612,60 +623,60 @@ static void
 test_relations_delete_rule_nullify (void)
 {
   test_relations_delete_rule_case ("gom-relations-delete-nullify-XXXXXX",
-                                  "CREATE TABLE authors ("
-                                  "  id INTEGER PRIMARY KEY,"
-                                  "  name TEXT NOT NULL"
-                                  ");"
-                                  "CREATE TABLE books ("
-                                  "  id INTEGER PRIMARY KEY,"
-                                  "  author_id INTEGER,"
-                                  "  title TEXT NOT NULL"
-                                  ");"
-                                  "INSERT INTO authors (id, name) VALUES (1, 'Ada');"
-                                  "INSERT INTO books (id, author_id, title) VALUES (10, 1, 'First');",
-                                  GOM_RELATIONSHIP_DELETE_NULLIFY,
-                                  FALSE,
-                                  test_relations_delete_rule_nullify_assert);
+                                   "CREATE TABLE authors ("
+                                   "  id INTEGER PRIMARY KEY,"
+                                   "  name TEXT NOT NULL"
+                                   ");"
+                                   "CREATE TABLE books ("
+                                   "  id INTEGER PRIMARY KEY,"
+                                   "  author_id INTEGER,"
+                                   "  title TEXT NOT NULL"
+                                   ");"
+                                   "INSERT INTO authors (id, name) VALUES (1, 'Ada');"
+                                   "INSERT INTO books (id, author_id, title) VALUES (10, 1, 'First');",
+                                   GOM_RELATIONSHIP_DELETE_NULLIFY,
+                                   FALSE,
+                                   test_relations_delete_rule_nullify_assert);
 }
 
 static void
 test_relations_delete_rule_cascade (void)
 {
   test_relations_delete_rule_case ("gom-relations-delete-cascade-XXXXXX",
-                                  "CREATE TABLE authors ("
-                                  "  id INTEGER PRIMARY KEY,"
-                                  "  name TEXT NOT NULL"
-                                  ");"
-                                  "CREATE TABLE books ("
-                                  "  id INTEGER PRIMARY KEY,"
-                                  "  author_id INTEGER NOT NULL,"
-                                  "  title TEXT NOT NULL"
-                                  ");"
-                                  "INSERT INTO authors (id, name) VALUES (1, 'Ada');"
-                                  "INSERT INTO books (id, author_id, title) VALUES (10, 1, 'First');",
-                                  GOM_RELATIONSHIP_DELETE_CASCADE,
-                                  FALSE,
-                                  test_relations_delete_rule_cascade_assert);
+                                   "CREATE TABLE authors ("
+                                   "  id INTEGER PRIMARY KEY,"
+                                   "  name TEXT NOT NULL"
+                                   ");"
+                                   "CREATE TABLE books ("
+                                   "  id INTEGER PRIMARY KEY,"
+                                   "  author_id INTEGER NOT NULL,"
+                                   "  title TEXT NOT NULL"
+                                   ");"
+                                   "INSERT INTO authors (id, name) VALUES (1, 'Ada');"
+                                   "INSERT INTO books (id, author_id, title) VALUES (10, 1, 'First');",
+                                   GOM_RELATIONSHIP_DELETE_CASCADE,
+                                   FALSE,
+                                   test_relations_delete_rule_cascade_assert);
 }
 
 static void
 test_relations_delete_rule_deny (void)
 {
   test_relations_delete_rule_case ("gom-relations-delete-deny-XXXXXX",
-                                  "CREATE TABLE authors ("
-                                  "  id INTEGER PRIMARY KEY,"
-                                  "  name TEXT NOT NULL"
-                                  ");"
-                                  "CREATE TABLE books ("
-                                  "  id INTEGER PRIMARY KEY,"
-                                  "  author_id INTEGER NOT NULL,"
-                                  "  title TEXT NOT NULL"
-                                  ");"
-                                  "INSERT INTO authors (id, name) VALUES (1, 'Ada');"
-                                  "INSERT INTO books (id, author_id, title) VALUES (10, 1, 'First');",
-                                  GOM_RELATIONSHIP_DELETE_DENY,
-                                  TRUE,
-                                  test_relations_delete_rule_deny_assert);
+                                   "CREATE TABLE authors ("
+                                   "  id INTEGER PRIMARY KEY,"
+                                   "  name TEXT NOT NULL"
+                                   ");"
+                                   "CREATE TABLE books ("
+                                   "  id INTEGER PRIMARY KEY,"
+                                   "  author_id INTEGER NOT NULL,"
+                                   "  title TEXT NOT NULL"
+                                   ");"
+                                   "INSERT INTO authors (id, name) VALUES (1, 'Ada');"
+                                   "INSERT INTO books (id, author_id, title) VALUES (10, 1, 'First');",
+                                   GOM_RELATIONSHIP_DELETE_DENY,
+                                   TRUE,
+                                   test_relations_delete_rule_deny_assert);
 }
 
 static void
@@ -675,7 +686,7 @@ test_relations_insert_rejects_missing_foreign_key_target (void)
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomEntity) book = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, "gom-relations-insert-missing-target-XXXXXX", &error));
@@ -729,7 +740,7 @@ test_relations_update_rejects_missing_foreign_key_target (void)
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GObject) books = NULL;
   g_autoptr(GomEntity) book = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, "gom-relations-update-missing-target-XXXXXX", &error));
@@ -795,7 +806,7 @@ test_relations_repository_load (void)
   g_autoptr(GomRelatedModel) related_tags = NULL;
   g_autoptr(GObject) authors = NULL;
   g_autoptr(GObject) books = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
   guint n_books = 0;
   guint n_tags = 0;
@@ -939,7 +950,7 @@ test_relations_session_flush_relationship_change (void)
   g_autoptr(GomEntity) author2 = NULL;
   g_autoptr(GomRelatedModel) related_books = NULL;
   g_autoptr(GomRelatedModel) related_books_for_new_author = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
   guint session_changed_count = 0;
 
@@ -1017,8 +1028,7 @@ test_relations_session_flush_relationship_change (void)
   g_assert_nonnull (related_books);
   g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (related_books)), ==, 1);
 
-  related_books_for_new_author = dex_await_object (gom_entity_load_related_model (author2,
-                                                                                  "books"),
+  related_books_for_new_author = dex_await_object (gom_entity_load_related_model (author2, "books"),
                                                    &error);
   g_assert_no_error (error);
   g_assert_nonnull (related_books_for_new_author);
@@ -1044,7 +1054,7 @@ test_relations_query_model_refreshes_on_session_change (void)
   g_autoptr(GObject) books = NULL;
   g_autoptr(GomEntity) book = NULL;
   guint *items_changed_count = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
   guint initial_items_changed_count = 0;
 
@@ -1147,7 +1157,7 @@ test_relations_entity_list_model_query_validation (void)
   g_autoptr(GomQuery) query = NULL;
   g_autoptr(DexFuture) future = NULL;
   g_autoptr(GomEntityListModel) model = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, "gom-relations-entity-list-validation-XXXXXX", &error));
@@ -1218,7 +1228,7 @@ test_relations_entity_list_model_lazy_loading (void)
   g_autoptr(GomEntityListModel) model = NULL;
   g_autoptr(GomEntityListItem) first = NULL;
   g_autoptr(GomEntityListItem) second = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, "gom-relations-entity-list-lazy-XXXXXX", &error));
@@ -1294,7 +1304,7 @@ test_relations_entity_list_model_refreshes_snapshot (void)
   g_autoptr(GomEntityListItem) second = NULL;
   g_autoptr(GomEntityListItem) refreshed_first = NULL;
   g_autoptr(GomEntity) deleted_book = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, "gom-relations-entity-list-refresh-XXXXXX", &error));
@@ -1380,7 +1390,7 @@ test_relations_entity_list_model_wrapper_outlives_model (void)
   g_autoptr(DexFuture) future = NULL;
   g_autoptr(GomEntityListModel) model = NULL;
   g_autoptr(GomEntityListItem) wrapper = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, "gom-relations-entity-list-wrapper-XXXXXX", &error));
@@ -1440,7 +1450,7 @@ test_relations_delete_join_table_book (void)
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GObject) books = NULL;
   g_autoptr(GomEntity) book = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, "gom-relations-delete-join-book-XXXXXX", &error));
@@ -1504,7 +1514,7 @@ test_relations_delete_join_table_tag (void)
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GObject) tags = NULL;
   g_autoptr(GomEntity) tag = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   sqlite3 *db = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, "gom-relations-delete-join-tag-XXXXXX", &error));

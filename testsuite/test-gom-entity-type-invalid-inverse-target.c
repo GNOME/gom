@@ -43,7 +43,6 @@ main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
-  _g_test_add_func ("/Gom/Entity/type-invalid-inverse-target/registry-builds",
-                    test_entity_invalid_inverse_target_reports_expected_type);
+  _g_test_add_func ("/Gom/Entity/type-invalid-inverse-target/registry-builds", test_entity_invalid_inverse_target_reports_expected_type);
   return g_test_run ();
 }

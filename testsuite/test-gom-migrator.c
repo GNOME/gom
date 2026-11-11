@@ -44,7 +44,8 @@ struct _TestEntityMigratorItemClass
   GomEntityClass parent_class;
 };
 
-enum {
+enum
+{
   TEST_ENTITY_MIGRATOR_ITEM_PROP_0,
   TEST_ENTITY_MIGRATOR_ITEM_PROP_ID,
   TEST_ENTITY_MIGRATOR_ITEM_PROP_NAME,
@@ -163,6 +164,7 @@ apply_callback_called (GomDriver *driver,
                        gpointer   user_data)
 {
   gboolean *called = (gboolean *) user_data;
+
   *called = TRUE;
   return dex_future_new_true ();
 }
@@ -237,11 +239,20 @@ test_add_migration_applied_in_sorted_order (void)
 
   /* Add migrations out of order to test they run in order */
   gom_custom_migrator_add_migration (migrator,
-                                     gom_custom_migration_new (3, apply_record_order_3, NULL, NULL));
+                                     gom_custom_migration_new (3,
+                                                               apply_record_order_3,
+                                                               NULL,
+                                                               NULL));
   gom_custom_migrator_add_migration (migrator,
-                                     gom_custom_migration_new (1, apply_record_order_1, NULL, NULL));
+                                     gom_custom_migration_new (1,
+                                                               apply_record_order_1,
+                                                               NULL,
+                                                               NULL));
   gom_custom_migrator_add_migration (migrator,
-                                     gom_custom_migration_new (2, apply_record_order_2, NULL, NULL));
+                                     gom_custom_migration_new (2,
+                                                               apply_record_order_2,
+                                                               NULL,
+                                                               NULL));
 
   r = dex_await (gom_migrator_update (GOM_MIGRATOR (migrator), GOM_DRIVER (driver)), &error);
   g_assert_no_error (error);
@@ -268,9 +279,15 @@ test_migrations_above_version_only (void)
   migrator = gom_custom_migrator_new (1);
 
   gom_custom_migrator_add_migration (migrator,
-                                     gom_custom_migration_new (1, apply_callback_called, &v1_called, NULL));
+                                     gom_custom_migration_new (1,
+                                                               apply_callback_called,
+                                                               &v1_called,
+                                                               NULL));
   gom_custom_migrator_add_migration (migrator,
-                                     gom_custom_migration_new (2, apply_callback_called, &v2_called, NULL));
+                                     gom_custom_migration_new (2,
+                                                               apply_callback_called,
+                                                               &v2_called,
+                                                               NULL));
 
   r = dex_await (gom_migrator_update (GOM_MIGRATOR (migrator), GOM_DRIVER (driver)), &error);
   g_assert_no_error (error);
@@ -283,11 +300,12 @@ test_migrations_above_version_only (void)
 static void
 test_repository_new_runs_custom_migrator (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomCustomMigrator) migrator = NULL;
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GError) error = NULL;
   gboolean apply_called = FALSE;
+
   g_assert_true (test_sqlite_context_init (&context, "gom-migrator-repository-test-XXXXXX", &error));
   g_assert_no_error (error);
 
@@ -312,7 +330,7 @@ test_repository_new_runs_custom_migrator (void)
 static void
 test_entity_migrator_updates_from_registry (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntityMigrator) migrator = NULL;
   g_autoptr(GError) error = NULL;
@@ -330,8 +348,7 @@ test_entity_migrator_updates_from_registry (void)
   migrator = gom_entity_migrator_new (registry);
   g_assert_true (GOM_IS_ENTITY_MIGRATOR (migrator));
 
-  r = dex_await (gom_migrator_update (GOM_MIGRATOR (migrator),
-                                      GOM_DRIVER (context.driver)),
+  r = dex_await (gom_migrator_update (GOM_MIGRATOR (migrator), GOM_DRIVER (context.driver)),
                  &error);
   g_assert_no_error (error);
   g_assert_true (r);
@@ -365,7 +382,7 @@ test_sql_migration_apply_script (void)
   static const char test_string[] =
     "CREATE TABLE sql_migration_items (id INTEGER PRIMARY KEY);"
     "PRAGMA user_version = 7;";
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomMigration) migration = NULL;
   g_autoptr(GBytes) script = NULL;
   g_autoptr(GError) error = NULL;

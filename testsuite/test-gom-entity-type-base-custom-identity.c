@@ -49,7 +49,6 @@ main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
-  _g_test_add_func ("/Gom/Entity/type-base-custom-identity/inherits",
-                    test_entity_base_custom_identity_inherits_type_metadata);
+  _g_test_add_func ("/Gom/Entity/type-base-custom-identity/inherits", test_entity_base_custom_identity_inherits_type_metadata);
   return g_test_run ();
 }

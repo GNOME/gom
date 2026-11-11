@@ -239,7 +239,8 @@ GType test_materialize_item_get_type (void) G_GNUC_CONST;
 
 G_DEFINE_TYPE (TestMaterializeItem, test_materialize_item, GOM_TYPE_ENTITY)
 
-enum {
+enum
+{
   TEST_MATERIALIZE_ITEM_PROP_0,
   TEST_MATERIALIZE_ITEM_PROP_NAME,
   TEST_MATERIALIZE_ITEM_PROP_PAYLOAD,
@@ -257,7 +258,8 @@ enum {
 
 static GParamSpec *test_materialize_item_properties[TEST_MATERIALIZE_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_INSERT_ITEM_PROP_0,
   TEST_INSERT_ITEM_PROP_NAME,
   TEST_INSERT_ITEM_PROP_CATEGORY,
@@ -266,7 +268,8 @@ enum {
 
 static GParamSpec *test_insert_item_properties[TEST_INSERT_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_HYPHEN_ITEM_PROP_0,
   TEST_HYPHEN_ITEM_PROP_ID,
   TEST_HYPHEN_ITEM_PROP_FORMAT_TYPE,
@@ -275,7 +278,8 @@ enum {
 
 static GParamSpec *test_hyphen_item_properties[TEST_HYPHEN_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_GTYPE_ITEM_PROP_0,
   TEST_GTYPE_ITEM_PROP_ID,
   TEST_GTYPE_ITEM_PROP_FORMAT_TYPE,
@@ -284,7 +288,8 @@ enum {
 
 static GParamSpec *test_gtype_item_properties[TEST_GTYPE_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_ENUM_ITEM_PROP_0,
   TEST_ENUM_ITEM_PROP_ID,
   TEST_ENUM_ITEM_PROP_MODE,
@@ -293,7 +298,8 @@ enum {
 
 static GParamSpec *test_enum_item_properties[TEST_ENUM_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_DATETIME_ITEM_PROP_0,
   TEST_DATETIME_ITEM_PROP_ID,
   TEST_DATETIME_ITEM_PROP_STAMP,
@@ -302,7 +308,8 @@ enum {
 
 static GParamSpec *test_datetime_item_properties[TEST_DATETIME_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_CRUD_ITEM_PROP_0,
   TEST_CRUD_ITEM_PROP_ID,
   TEST_CRUD_ITEM_PROP_NAME,
@@ -310,7 +317,8 @@ enum {
   TEST_CRUD_ITEM_N_PROPS
 };
 
-enum {
+enum
+{
   TEST_NO_IDENTITY_ITEM_PROP_0,
   TEST_NO_IDENTITY_ITEM_PROP_ID,
   TEST_NO_IDENTITY_ITEM_PROP_NAME,
@@ -320,7 +328,8 @@ enum {
 static GParamSpec *test_crud_item_properties[TEST_CRUD_ITEM_N_PROPS];
 static GParamSpec *test_no_identity_item_properties[TEST_NO_IDENTITY_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_MIGRATION_ITEM_PROP_0,
   TEST_MIGRATION_ITEM_PROP_ID,
   TEST_MIGRATION_ITEM_PROP_NAME,
@@ -331,7 +340,8 @@ enum {
 
 static GParamSpec *test_migration_item_properties[TEST_MIGRATION_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_UNSUPPORTED_TRANSFORM_ITEM_PROP_0,
   TEST_UNSUPPORTED_TRANSFORM_ITEM_PROP_ID,
   TEST_UNSUPPORTED_TRANSFORM_ITEM_PROP_OPAQUE,
@@ -340,7 +350,8 @@ enum {
 
 static GParamSpec *test_unsupported_transform_item_properties[TEST_UNSUPPORTED_TRANSFORM_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_INVALID_MIGRATION_ITEM_PROP_0,
   TEST_INVALID_MIGRATION_ITEM_PROP_ID,
   TEST_INVALID_MIGRATION_ITEM_PROP_NAME,
@@ -350,7 +361,8 @@ enum {
 
 static GParamSpec *test_invalid_migration_item_properties[TEST_INVALID_MIGRATION_ITEM_N_PROPS];
 
-enum {
+enum
+{
   TEST_STRV_ITEM_PROP_0,
   TEST_STRV_ITEM_PROP_ID,
   TEST_STRV_ITEM_PROP_TAGS,
@@ -359,18 +371,18 @@ enum {
 
 static GParamSpec *test_strv_item_properties[TEST_STRV_ITEM_N_PROPS];
 
-GType test_insert_item_get_type                (void) G_GNUC_CONST;
-GType test_hyphen_item_get_type                (void) G_GNUC_CONST;
-GType test_gtype_item_get_type                 (void) G_GNUC_CONST;
-GType test_enum_item_get_type                  (void) G_GNUC_CONST;
-GType test_datetime_item_get_type              (void) G_GNUC_CONST;
-GType test_crud_item_get_type                  (void) G_GNUC_CONST;
 GType test_crud_allow_default_id_item_get_type (void) G_GNUC_CONST;
-GType test_no_identity_item_get_type           (void) G_GNUC_CONST;
-GType test_migration_item_get_type             (void) G_GNUC_CONST;
-GType test_unsupported_transform_item_get_type (void) G_GNUC_CONST;
+GType test_crud_item_get_type                  (void) G_GNUC_CONST;
+GType test_datetime_item_get_type              (void) G_GNUC_CONST;
+GType test_enum_item_get_type                  (void) G_GNUC_CONST;
+GType test_gtype_item_get_type                 (void) G_GNUC_CONST;
+GType test_hyphen_item_get_type                (void) G_GNUC_CONST;
+GType test_insert_item_get_type                (void) G_GNUC_CONST;
 GType test_invalid_migration_item_get_type     (void) G_GNUC_CONST;
+GType test_migration_item_get_type             (void) G_GNUC_CONST;
+GType test_no_identity_item_get_type           (void) G_GNUC_CONST;
 GType test_strv_item_get_type                  (void) G_GNUC_CONST;
+GType test_unsupported_transform_item_get_type (void) G_GNUC_CONST;
 
 G_DEFINE_TYPE (TestInsertItem, test_insert_item, GOM_TYPE_ENTITY)
 G_DEFINE_TYPE (TestHyphenItem, test_hyphen_item, GOM_TYPE_ENTITY)
@@ -385,11 +397,11 @@ G_DEFINE_TYPE (TestUnsupportedTransformItem, test_unsupported_transform_item, GO
 G_DEFINE_TYPE (TestInvalidMigrationItem, test_invalid_migration_item, GOM_TYPE_ENTITY)
 G_DEFINE_TYPE (TestStrvItem, test_strv_item, GOM_TYPE_ENTITY)
 
-static GBytes   *test_materialize_item_to_bytes   (const GValue  *value,
-                                                   gpointer       user_data,
-                                                   GError       **error);
 static gboolean  test_materialize_item_from_bytes (GBytes        *bytes,
                                                    GValue        *value,
+                                                   gpointer       user_data,
+                                                   GError       **error);
+static GBytes   *test_materialize_item_to_bytes   (const GValue  *value,
                                                    gpointer       user_data,
                                                    GError       **error);
 
@@ -1811,7 +1823,7 @@ test_materialize_item_init (TestMaterializeItem *self)
 static void
 test_sqlite_driver_pool (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GError) error = NULL;
 
   g_assert_true (test_sqlite_context_init (&context, "gom-sqlite-test-XXXXXX", &error));
@@ -1825,7 +1837,7 @@ static void
 test_sqlite_repository_query (void)
 {
   static const char *expected_names[] = { "alpha", "beta", "gamma" };
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomQueryBuilder) builder = NULL;
@@ -1840,14 +1852,14 @@ test_sqlite_repository_query (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_exec_ok (db,
-                     "INSERT INTO items (name) VALUES "
-                     "('alpha'), ('beta'), ('gamma')"
+                       "INSERT INTO items (name) VALUES "
+                       "('alpha'), ('beta'), ('gamma')"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -1902,7 +1914,7 @@ test_sqlite_repository_query (void)
 static void
 test_sqlite_repository_count (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomQueryBuilder) builder = NULL;
@@ -1915,14 +1927,14 @@ test_sqlite_repository_count (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_exec_ok (db,
-                     "INSERT INTO items (name) VALUES "
-                     "('alpha'), ('beta'), ('gamma')"
+                       "INSERT INTO items (name) VALUES "
+                       "('alpha'), ('beta'), ('gamma')"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -1959,6 +1971,7 @@ test_sqlite_wait_for_record_item (GListModel *model,
 
       if (item != NULL)
         record = gom_record_list_item_dup_record (item);
+
       if (record != NULL)
         return g_steal_pointer (&item);
 
@@ -1971,7 +1984,7 @@ test_sqlite_wait_for_record_item (GListModel *model,
 static void
 test_sqlite_repository_list_records (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomQueryBuilder) builder = NULL;
@@ -1989,14 +2002,14 @@ test_sqlite_repository_list_records (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE record_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE record_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_exec_ok (db,
-                     "INSERT INTO record_items (name) VALUES "
-                     "('alpha'), ('beta'), ('gamma')"
+                       "INSERT INTO record_items (name) VALUES "
+                       "('alpha'), ('beta'), ('gamma')"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2052,7 +2065,7 @@ test_sqlite_repository_list_records (void)
 static void
 test_sqlite_repository_list_entities (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomOrdering) ordering = NULL;
@@ -2068,17 +2081,17 @@ test_sqlite_repository_list_entities (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE entity_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  payload BLOB"
-                     ")"
+                       "CREATE TABLE entity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB"
+                       ")"
   );
   test_sqlite_exec_ok (db,
-                     "INSERT INTO entity_items (name, payload) VALUES "
-                     "('alpha', x'7061796c6f61642d61'), "
-                     "('beta', x'7061796c6f61642d62'), "
-                     "('gamma', x'7061796c6f61642d63')"
+                       "INSERT INTO entity_items (name, payload) VALUES "
+                       "('alpha', x'7061796c6f61642d61'), "
+                       "('beta', x'7061796c6f61642d62'), "
+                       "('gamma', x'7061796c6f61642d63')"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2126,7 +2139,7 @@ static void
 test_sqlite_repository_insert (void)
 {
   static const char *expected_names[] = { "alpha", "beta", "gamma" };
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomInsertionBuilder) insert_builder = NULL;
@@ -2147,11 +2160,11 @@ test_sqlite_repository_insert (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  category TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  category TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2175,6 +2188,7 @@ test_sqlite_repository_insert (void)
       gom_literal_expression_new (&name_value),
       gom_literal_expression_new (&category_value)
     };
+
     gom_insertion_builder_add_row (insert_builder, row, G_N_ELEMENTS (row));
   }
 
@@ -2185,6 +2199,7 @@ test_sqlite_repository_insert (void)
       gom_literal_expression_new (&name_value),
       gom_literal_expression_new (&category_value)
     };
+
     gom_insertion_builder_add_row (insert_builder, row, G_N_ELEMENTS (row));
   }
 
@@ -2292,7 +2307,7 @@ test_sqlite_repository_insert (void)
 static void
 test_sqlite_repository_insert_during_open_read_cursor (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomQueryBuilder) query_builder = NULL;
@@ -2310,15 +2325,15 @@ test_sqlite_repository_insert_during_open_read_cursor (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  category TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  category TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_exec_ok (db,
-                     "INSERT INTO items (name, category) VALUES "
-                     "('alpha', 'first'), ('beta', 'second')"
+                       "INSERT INTO items (name, category) VALUES "
+                       "('alpha', 'first'), ('beta', 'second')"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2420,7 +2435,7 @@ test_sqlite_assert_mutation_result_row (GomMutationResult *result,
 static void
 test_sqlite_repository_insert_unique_constraint (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -2433,15 +2448,13 @@ test_sqlite_repository_insert_unique_constraint (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  category TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  category TEXT NOT NULL"
+                       ")"
   );
-  test_sqlite_exec_ok (db,
-                       "CREATE UNIQUE INDEX items_name_idx ON items (name)"
-  );
+  test_sqlite_exec_ok (db, "CREATE UNIQUE INDEX items_name_idx ON items (name)");
   test_sqlite_close (db);
   db = NULL;
 
@@ -2479,7 +2492,7 @@ test_sqlite_repository_insert_unique_constraint (void)
 static void
 test_sqlite_repository_insert_hyphenated_property (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomInsertionBuilder) insert_builder = NULL;
@@ -2495,10 +2508,10 @@ test_sqlite_repository_insert_hyphenated_property (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE hyphen_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  \"format-type\" TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE hyphen_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  \"format-type\" TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2544,7 +2557,7 @@ test_sqlite_repository_insert_hyphenated_property (void)
 static void
 test_sqlite_repository_find_one (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) inserted = NULL;
@@ -2558,10 +2571,10 @@ test_sqlite_repository_find_one (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE hyphen_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  \"format-type\" TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE hyphen_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  \"format-type\" TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2585,7 +2598,8 @@ test_sqlite_repository_find_one (void)
 
   loaded = dex_await_object (gom_repository_find_one (repository,
                                                       test_hyphen_item_get_type (),
-                                                      "id", id,
+                                                      "id",
+                                                      id,
                                                       NULL),
                              &error);
   g_assert_no_error (error);
@@ -2594,7 +2608,8 @@ test_sqlite_repository_find_one (void)
 
   missing = dex_await_object (gom_repository_find_one (repository,
                                                        test_hyphen_item_get_type (),
-                                                       "format-type", "missing",
+                                                       "format-type",
+                                                       "missing",
                                                        NULL),
                               &error);
   g_assert_no_error (error);
@@ -2604,7 +2619,7 @@ test_sqlite_repository_find_one (void)
 static void
 test_sqlite_repository_find_one_with_properties (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) inserted = NULL;
@@ -2619,10 +2634,10 @@ test_sqlite_repository_find_one_with_properties (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE hyphen_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  \"format-type\" TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE hyphen_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  \"format-type\" TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2665,7 +2680,7 @@ test_sqlite_repository_find_one_with_properties (void)
 static void
 test_sqlite_session_find_one (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomSession) session = NULL;
@@ -2679,10 +2694,10 @@ test_sqlite_session_find_one (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE hyphen_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  \"format-type\" TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE hyphen_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  \"format-type\" TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2710,8 +2725,10 @@ test_sqlite_session_find_one (void)
 
   loaded = dex_await_object (gom_session_find_one (session,
                                                    test_hyphen_item_get_type (),
-                                                   "id", id,
-                                                   "format-type", "omega",
+                                                   "id",
+                                                   id,
+                                                   "format-type",
+                                                   "omega",
                                                    NULL),
                              &error);
   g_assert_no_error (error);
@@ -2724,7 +2741,7 @@ test_sqlite_session_find_one (void)
 static void
 test_sqlite_repository_insert_gtype_property (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -2739,10 +2756,10 @@ test_sqlite_repository_insert_gtype_property (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE gtype_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  \"format-type\" TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE gtype_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  \"format-type\" TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2798,7 +2815,7 @@ test_sqlite_repository_insert_gtype_property (void)
 static void
 test_sqlite_repository_insert_enum_property (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -2815,10 +2832,10 @@ test_sqlite_repository_insert_enum_property (void)
 
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE enum_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  mode INTEGER NOT NULL"
-                     ")"
+                       "CREATE TABLE enum_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  mode INTEGER NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -2890,7 +2907,7 @@ test_sqlite_repository_insert_enum_property (void)
 static void
 test_sqlite_repository_insert_datetime_property (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -2913,10 +2930,10 @@ test_sqlite_repository_insert_datetime_property (void)
 
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE datetime_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  stamp TEXT"
-                     ")"
+                       "CREATE TABLE datetime_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  stamp TEXT"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -3052,7 +3069,7 @@ test_sqlite_repository_insert_datetime_property (void)
 static void
 test_sqlite_cursor_move (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomQueryBuilder) builder = NULL;
@@ -3067,17 +3084,17 @@ test_sqlite_cursor_move (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  active INTEGER NOT NULL DEFAULT 0, "
-                     "  score REAL NOT NULL DEFAULT 0, "
-                     "  note TEXT"
-                     ");"
-                     "INSERT INTO items (name, active, score, note) VALUES "
-                     "('alpha', 1, 3.5, 'first'), "
-                     "('beta', 0, 2.25, NULL), "
-                     "('gamma', 1, 7.75, 'third')"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  active INTEGER NOT NULL DEFAULT 0, "
+                       "  score REAL NOT NULL DEFAULT 0, "
+                       "  note TEXT"
+                       ");"
+                       "INSERT INTO items (name, active, score, note) VALUES "
+                       "('alpha', 1, 3.5, 'first'), "
+                       "('beta', 0, 2.25, NULL), "
+                       "('gamma', 1, 7.75, 'third')"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -3174,7 +3191,7 @@ test_sqlite_cursor_move (void)
 static void
 test_sqlite_repository_query_invalid_entity_field (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomQueryBuilder) builder = NULL;
@@ -3188,10 +3205,10 @@ test_sqlite_repository_query_invalid_entity_field (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -3224,7 +3241,7 @@ test_sqlite_repository_query_invalid_entity_field (void)
 static void
 test_sqlite_repository_query_unregistered_entity_type (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomQueryBuilder) builder = NULL;
@@ -3256,7 +3273,7 @@ test_sqlite_repository_query_unregistered_entity_type (void)
 static void
 test_sqlite_repository_mutate_invalid_entity_field (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomUpdateBuilder) update_builder = NULL;
@@ -3270,11 +3287,11 @@ test_sqlite_repository_mutate_invalid_entity_field (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  category TEXT"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  category TEXT"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -3307,7 +3324,7 @@ test_sqlite_repository_mutate_invalid_entity_field (void)
 static void
 test_sqlite_cursor_materialize (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomQueryBuilder) query_builder = NULL;
@@ -3342,19 +3359,19 @@ test_sqlite_cursor_materialize (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE materialize_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  payload BLOB, "
-                     "  \"when\" TEXT NOT NULL, "
-                     "  count TEXT NOT NULL, "
-                     "  big_count INTEGER NOT NULL, "
-                     "  ucount INTEGER NOT NULL, "
-                     "  flag INTEGER NOT NULL, "
-                     "  ratio REAL NOT NULL, "
-                     "  fvalue REAL NOT NULL, "
-                     "  mode INTEGER NOT NULL"
-                     ")"
+                       "CREATE TABLE materialize_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB, "
+                       "  \"when\" TEXT NOT NULL, "
+                       "  count TEXT NOT NULL, "
+                       "  big_count INTEGER NOT NULL, "
+                       "  ucount INTEGER NOT NULL, "
+                       "  flag INTEGER NOT NULL, "
+                       "  ratio REAL NOT NULL, "
+                       "  fvalue REAL NOT NULL, "
+                       "  mode INTEGER NOT NULL"
+                       ")"
   );
 
   rc = sqlite3_prepare_v2 (db,
@@ -3565,7 +3582,7 @@ test_sqlite_cursor_materialize (void)
 static void
 test_sqlite_session_identity_map (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomSession) session = NULL;
@@ -3587,11 +3604,11 @@ test_sqlite_session_identity_map (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE entity_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  payload BLOB"
-                     ")"
+                       "CREATE TABLE entity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB"
+                       ")"
   );
 
   rc = sqlite3_prepare_v2 (db,
@@ -3697,7 +3714,7 @@ static void
 test_sqlite_session_rekey_identity_map (void)
 {
   static const char blob_data[] = "blob-data";
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomSession) session = NULL;
@@ -3725,11 +3742,11 @@ test_sqlite_session_rekey_identity_map (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE entity_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  payload BLOB"
-                     ")"
+                       "CREATE TABLE entity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB"
+                       ")"
   );
 
   rc = sqlite3_prepare_v2 (db,
@@ -3834,7 +3851,7 @@ test_sqlite_session_rekey_identity_map (void)
 static void
 test_sqlite_session_persist_flush_commit (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomSession) session = NULL;
@@ -3855,11 +3872,11 @@ test_sqlite_session_persist_flush_commit (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE entity_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  payload BLOB"
-                     ")"
+                       "CREATE TABLE entity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -3984,7 +4001,7 @@ test_sqlite_session_persist_flush_commit (void)
 static void
 test_sqlite_repository_update_delete (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomUpdateBuilder) update_builder = NULL;
@@ -4003,15 +4020,15 @@ test_sqlite_repository_update_delete (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  category TEXT NOT NULL"
-                     ");"
-                     "INSERT INTO items (name, category) VALUES "
-                     "  ('alpha', 'first'),"
-                     "  ('beta', 'second'),"
-                     "  ('gamma', 'third');"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  category TEXT NOT NULL"
+                       ");"
+                       "INSERT INTO items (name, category) VALUES "
+                       "  ('alpha', 'first'),"
+                       "  ('beta', 'second'),"
+                       "  ('gamma', 'third');"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -4110,7 +4127,7 @@ static void
 test_sqlite_entity_crud (void)
 {
   static const char payload_b[] = "payload-b";
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) inserted = NULL;
@@ -4130,11 +4147,11 @@ test_sqlite_entity_crud (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE entity_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  payload BLOB"
-                     ")"
+                       "CREATE TABLE entity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -4249,7 +4266,7 @@ test_sqlite_entity_crud (void)
 static void
 test_sqlite_entity_crud_errors (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) no_identity = NULL;
@@ -4261,15 +4278,15 @@ test_sqlite_entity_crud_errors (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE entity_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  payload BLOB"
-                     ");"
-                     "CREATE TABLE no_identity_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE entity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB"
+                       ");"
+                       "CREATE TABLE no_identity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -4306,7 +4323,7 @@ test_sqlite_entity_crud_errors (void)
 static void
 test_sqlite_entity_insert_unsupported_property_transform (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -4317,10 +4334,10 @@ test_sqlite_entity_insert_unsupported_property_transform (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE unsupported_transform_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  opaque BLOB"
-                     ")"
+                       "CREATE TABLE unsupported_transform_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  opaque BLOB"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -4347,7 +4364,7 @@ static void
 test_sqlite_entity_default_identity_override (void)
 {
   static const char payload_b[] = "payload-b";
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -4362,11 +4379,11 @@ test_sqlite_entity_default_identity_override (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE entity_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  payload BLOB"
-                     ")"
+                       "CREATE TABLE entity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -4458,7 +4475,7 @@ test_sqlite_entity_default_identity_override (void)
 static void
 test_sqlite_repository_insert_omits_default_identity (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomInsertionBuilder) insert_builder = NULL;
@@ -4475,11 +4492,11 @@ test_sqlite_repository_insert_omits_default_identity (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE entity_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  payload BLOB"
-                     ")"
+                       "CREATE TABLE entity_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  payload BLOB"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -4767,7 +4784,7 @@ test_sqlite_repository_expression_concat_like (void)
 static void
 test_sqlite_repository_expression_variants (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GError) error = NULL;
@@ -4794,7 +4811,9 @@ test_sqlite_repository_expression_variants (void)
 
   rc = sqlite3_exec (db,
                      "CREATE VIRTUAL TABLE expr_items_fts USING fts5 (name)",
-                     NULL, NULL, &errmsg);
+                     NULL,
+                     NULL,
+                     &errmsg);
   if (rc == SQLITE_OK)
     {
       test_sqlite_exec_ok (db,
@@ -4838,6 +4857,7 @@ test_sqlite_repository_expression_variants (void)
         if (ctors[i] == gom_binary_expression_new_like)
           {
             GValue pattern = G_VALUE_INIT;
+
             g_value_init (&pattern, G_TYPE_STRING);
             g_value_set_string (&pattern, "%a%");
             filter = ctors[i] (gom_field_expression_new ("name"),
@@ -4849,6 +4869,7 @@ test_sqlite_repository_expression_variants (void)
           {
             GValue one = G_VALUE_INIT;
             GValue two = G_VALUE_INIT;
+
             g_value_init (&one, G_TYPE_INT);
             g_value_init (&two, G_TYPE_INT);
             g_value_set_int (&one, 1);
@@ -5054,7 +5075,7 @@ test_find_index_schema (GListModel *indexes,
 static void
 test_sqlite_repository_describe_relation (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomRelationSchema) schema = NULL;
@@ -5066,16 +5087,14 @@ test_sqlite_repository_describe_relation (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  category TEXT, "
-                     "  count INTEGER DEFAULT 42"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  category TEXT, "
+                       "  count INTEGER DEFAULT 42"
+                       ")"
   );
-  test_sqlite_exec_ok (db,
-                     "CREATE UNIQUE INDEX items_name_idx ON items (name)"
-  );
+  test_sqlite_exec_ok (db, "CREATE UNIQUE INDEX items_name_idx ON items (name)");
   test_sqlite_close (db);
   db = NULL;
 
@@ -5168,7 +5187,7 @@ test_sqlite_repository_describe_relation (void)
 static void
 test_sqlite_repository_list_relations (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GError) error = NULL;
@@ -5179,16 +5198,16 @@ test_sqlite_repository_list_relations (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE users ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  username TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE users ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  username TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -5209,7 +5228,7 @@ test_sqlite_repository_list_relations (void)
 static void
 test_sqlite_repository_search (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GError) error = NULL;
@@ -5221,11 +5240,11 @@ test_sqlite_repository_search (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  category TEXT NOT NULL"
-                     ")"
+                       "CREATE TABLE items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  category TEXT NOT NULL"
+                       ")"
   );
   test_sqlite_exec_ok (db,
                        "INSERT INTO items (name, category) VALUES "
@@ -5237,7 +5256,9 @@ test_sqlite_repository_search (void)
                      "  name, "
                      "  category"
                      ")",
-                     NULL, NULL, &errmsg);
+                     NULL,
+                     NULL,
+                     &errmsg);
   if (rc != SQLITE_OK)
     {
       g_clear_pointer (&errmsg, sqlite3_free);
@@ -5281,7 +5302,7 @@ test_sqlite_repository_search (void)
 static void
 test_sqlite_cursor_snapshot (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomQueryBuilder) query_builder = NULL;
@@ -5302,13 +5323,13 @@ test_sqlite_cursor_snapshot (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE snapshot_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  ratio REAL NOT NULL, "
-                     "  payload BLOB, "
-                     "  note TEXT"
-                     ")"
+                       "CREATE TABLE snapshot_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  ratio REAL NOT NULL, "
+                       "  payload BLOB, "
+                       "  note TEXT"
+                       ")"
   );
 
   rc = sqlite3_prepare_v2 (db,
@@ -5433,7 +5454,7 @@ test_sqlite_cursor_snapshot (void)
 static void
 test_sqlite_repository_auto_migrate_empty (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GError) error = NULL;
@@ -5464,7 +5485,7 @@ test_sqlite_repository_auto_migrate_empty (void)
 static void
 test_sqlite_repository_migrate_v1_to_v2 (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GError) error = NULL;
@@ -5476,18 +5497,16 @@ test_sqlite_repository_migrate_v1_to_v2 (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE migrate_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT NOT NULL, "
-                     "  legacy TEXT"
-                     ")"
+                       "CREATE TABLE migrate_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT NOT NULL, "
+                       "  legacy TEXT"
+                       ")"
   );
   test_sqlite_exec_ok (db,
-                     "INSERT INTO migrate_items (id, name, legacy) VALUES (1, 'alpha', 'legacy-value')"
+                       "INSERT INTO migrate_items (id, name, legacy) VALUES (1, 'alpha', 'legacy-value')"
   );
-  test_sqlite_exec_ok (db,
-                     "PRAGMA user_version = 1"
-  );
+  test_sqlite_exec_ok (db, "PRAGMA user_version = 1");
   test_sqlite_close (db);
   db = NULL;
 
@@ -5527,7 +5546,7 @@ test_sqlite_repository_migrate_v1_to_v2 (void)
 static void
 test_sqlite_repository_migrate_invalid_schema_transition (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GError) error = NULL;
@@ -5537,12 +5556,12 @@ test_sqlite_repository_migrate_invalid_schema_transition (void)
   g_assert_no_error (error);
   test_sqlite_open (context.db_path, &db);
   test_sqlite_exec_ok (db,
-                     "CREATE TABLE invalid_migration_items ("
-                     "  id INTEGER PRIMARY KEY, "
-                     "  name TEXT"
-                     ");"
-                     "INSERT INTO invalid_migration_items (id, name) VALUES (1, 'alpha');"
-                     "PRAGMA user_version = 1"
+                       "CREATE TABLE invalid_migration_items ("
+                       "  id INTEGER PRIMARY KEY, "
+                       "  name TEXT"
+                       ");"
+                       "INSERT INTO invalid_migration_items (id, name) VALUES (1, 'alpha');"
+                       "PRAGMA user_version = 1"
   );
   test_sqlite_close (db);
   db = NULL;
@@ -5566,7 +5585,7 @@ test_sqlite_repository_migrate_invalid_schema_transition (void)
 static void
 test_sqlite_repository_vector_distance (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomCustomMigrator) migrator = NULL;
   g_autoptr(GomMigration) migration = NULL;
   g_autoptr(GomRepository) repository = NULL;
@@ -5745,13 +5764,13 @@ test_sqlite_durable_options (void)
     gboolean foreign_keys_set;
     gboolean foreign_keys;
   } cases[] = {
-    { NULL,     1, FALSE, FALSE },
-    { "OFF",    0, TRUE,  FALSE },
-    { "normal", 1, TRUE,  TRUE  },
-    { "FULL",   2, TRUE,  TRUE  },
-    { "EXTRA",  3, TRUE,  FALSE },
+    { NULL, 1, FALSE, FALSE },
+    { "OFF", 0, TRUE, FALSE },
+    { "normal", 1, TRUE, TRUE },
+    { "FULL", 2, TRUE, TRUE },
+    { "EXTRA", 3, TRUE, FALSE },
   };
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomDriverOptions) options = gom_driver_options_new ();
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomRepository) repository = NULL;
@@ -5812,7 +5831,7 @@ test_sqlite_durable_options (void)
 static void
 test_sqlite_invalid_options (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomDriverOptions) options = gom_driver_options_new ();
   g_autoptr(GomDriver) driver = NULL;
   g_autoptr(GError) error = NULL;

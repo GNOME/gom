@@ -155,11 +155,11 @@ struct _TestMemorySyncHistory
   guint      next_batch;
 };
 
-static GType test_sync_entity_get_type       (void);
+static GType test_merge_policy_get_type      (void);
 static GType test_other_sync_entity_get_type (void);
+static GType test_sync_entity_get_type       (void);
 static GType test_sync_session_get_type      (void);
 static GType test_sync_transport_get_type    (void);
-static GType test_merge_policy_get_type      (void);
 
 #define TEST_TYPE_SYNC_ENTITY       (test_sync_entity_get_type())
 #define TEST_TYPE_OTHER_SYNC_ENTITY (test_other_sync_entity_get_type())
@@ -170,7 +170,8 @@ static GType test_merge_policy_get_type      (void);
 G_DEFINE_TYPE (TestSyncEntity, test_sync_entity, GOM_TYPE_ENTITY)
 G_DEFINE_TYPE (TestOtherSyncEntity, test_other_sync_entity, GOM_TYPE_ENTITY)
 
-enum {
+enum
+{
   PROP_SYNC_ENTITY_0,
   PROP_SYNC_ENTITY_ID,
   PROP_SYNC_ENTITY_VALUE,
@@ -276,8 +277,7 @@ test_delta_copy (GomDelta *delta)
 
   g_assert (GOM_IS_DELTA (delta));
 
-  copy = gom_delta_new (gom_delta_get_entity_type (delta),
-                        gom_delta_get_kind (delta));
+  copy = gom_delta_new (gom_delta_get_entity_type (delta), gom_delta_get_kind (delta));
   n_changes = gom_delta_get_n_changes (delta);
 
   for (guint i = 0; i < n_changes; i++)
@@ -675,7 +675,9 @@ test_memory_sync_history_count_unsent_outbound (TestMemorySyncHistory *history)
     {
       TestMemorySyncChange *change = g_ptr_array_index (history->changes, i);
 
-      if (change->outbound && !change->sent && !change->acked)
+      if (change->outbound &&
+          !change->sent &&
+          !change->acked)
         count++;
     }
 
@@ -695,6 +697,7 @@ test_sync_transport_queue_inbound_delta_with_sequence (TestSyncTransport *self,
   g_assert (GOM_IS_REPOSITORY (repository));
   g_assert (GOM_IS_ENTITY (entity));
   g_assert (GOM_IS_DELTA (delta));
+
   g_assert_cmpuint (remote_sequence, >, 0);
 
   change = test_memory_sync_history_append (self->history,
@@ -715,10 +718,10 @@ test_sync_transport_queue_inbound_delta (TestSyncTransport *self,
   g_assert (GOM_IS_SYNC_TRANSPORT (self));
 
   test_sync_transport_queue_inbound_delta_with_sequence (self,
-                                                        repository,
-                                                        entity,
-                                                        delta,
-                                                        self->next_remote_sequence++);
+                                                         repository,
+                                                         entity,
+                                                         delta,
+                                                         self->next_remote_sequence++);
 }
 
 static void
@@ -891,7 +894,9 @@ test_sync_transport_push (GomSyncTransport   *transport,
     {
       TestMemorySyncChange *change = g_ptr_array_index (self->history->changes, i);
 
-      if (change->outbound && !change->sent && !change->acked)
+      if (change->outbound &&
+          !change->sent &&
+          !change->acked)
         {
           change->sent = TRUE;
           g_queue_push_tail (&self->history->sent, change);
@@ -1313,7 +1318,7 @@ static void
 test_repository_no_sidecars_without_coordinator (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomRepository) repository = NULL;
   sqlite3 *db = NULL;
@@ -1341,7 +1346,7 @@ static void
 test_sync_history_sqlite_persistent_replay_ack (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomSyncCoordinator) coordinator = NULL;
@@ -1462,7 +1467,7 @@ static void
 test_repository_mutations_stage_without_session (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -1526,7 +1531,7 @@ static void
 test_repository_mutations_without_coordinator_are_unchanged (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -1580,7 +1585,7 @@ static void
 test_repository_staging_failure_is_reported (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -2387,15 +2392,15 @@ test_memory_sync_transport_duplicate_remote_sequence_is_idempotent (void)
   remote_delta = test_delta_new_for_property (TEST_TYPE_SYNC_ENTITY, "remote-value", 12);
 
   test_sync_transport_queue_inbound_delta_with_sequence (transport,
-                                                        repository,
-                                                        remote_entity,
-                                                        remote_delta,
-                                                        1);
+                                                         repository,
+                                                         remote_entity,
+                                                         remote_delta,
+                                                         1);
   test_sync_transport_queue_inbound_delta_with_sequence (transport,
-                                                        repository,
-                                                        remote_entity,
-                                                        remote_delta,
-                                                        1);
+                                                         repository,
+                                                         remote_entity,
+                                                         remote_delta,
+                                                         1);
 
   g_assert_true (dex_await (gom_sync_coordinator_pull (coordinator), &error));
   g_assert_no_error (error);
@@ -2436,10 +2441,10 @@ test_memory_sync_transport_rejects_out_of_order_remote_sequence (void)
   remote_delta = test_delta_new_for_property (TEST_TYPE_SYNC_ENTITY, "remote-value", 13);
 
   test_sync_transport_queue_inbound_delta_with_sequence (transport,
-                                                        repository,
-                                                        remote_entity,
-                                                        remote_delta,
-                                                        2);
+                                                         repository,
+                                                         remote_entity,
+                                                         remote_delta,
+                                                         2);
 
   g_assert_false (dex_await (gom_sync_coordinator_pull (coordinator), &error));
   g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
@@ -2460,7 +2465,7 @@ static void
 test_memory_sync_transport_remote_update_applies_to_sqlite (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomSyncCoordinator) coordinator = NULL;
   g_autoptr(GomEntity) remote_entity = NULL;
@@ -2517,7 +2522,7 @@ static void
 test_memory_sync_transport_local_delete_records_tombstone (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomEntity) entity = NULL;
   g_autoptr(GomEntity) stored = NULL;
@@ -2590,7 +2595,7 @@ static void
 test_memory_sync_transport_remote_delete_records_tombstone (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomSyncCoordinator) coordinator = NULL;
   g_autoptr(GomEntity) remote_entity = NULL;
@@ -2652,7 +2657,7 @@ static void
 test_memory_sync_transport_remote_delete_missing_records_tombstone (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomSyncCoordinator) coordinator = NULL;
   g_autoptr(GomEntity) remote_entity = NULL;
@@ -2705,7 +2710,7 @@ static void
 test_memory_sync_transport_stale_update_after_tombstone_rejects (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomSyncCoordinator) coordinator = NULL;
   g_autoptr(GomEntity) remote_entity = NULL;
@@ -2739,10 +2744,10 @@ test_memory_sync_transport_stale_update_after_tombstone_rejects (void)
                                 NULL);
   remote_delta = test_delta_new_for_property (TEST_TYPE_SYNC_ENTITY, "value", 50);
   test_sync_transport_queue_inbound_delta_with_sequence (transport,
-                                                        repository,
-                                                        remote_entity,
-                                                        remote_delta,
-                                                        1);
+                                                         repository,
+                                                         remote_entity,
+                                                         remote_delta,
+                                                         1);
 
   coordinator = gom_repository_dup_coordinator (repository);
   g_assert_false (dex_await (gom_sync_coordinator_pull (coordinator), &error));
@@ -2759,7 +2764,7 @@ static void
 test_memory_sync_transport_reinsert_after_tombstone_is_ordered (void)
 {
   g_autoptr(GError) error = NULL;
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomSyncCoordinator) coordinator = NULL;
   g_autoptr(GomEntity) delete_entity = NULL;
@@ -2800,15 +2805,15 @@ test_memory_sync_transport_reinsert_after_tombstone_is_ordered (void)
   test_delta_add_int_property (insert_delta, "remote-value", 61);
 
   test_sync_transport_queue_inbound_delta_with_sequence (transport,
-                                                        repository,
-                                                        delete_entity,
-                                                        delete_delta,
-                                                        1);
+                                                         repository,
+                                                         delete_entity,
+                                                         delete_delta,
+                                                         1);
   test_sync_transport_queue_inbound_delta_with_sequence (transport,
-                                                        repository,
-                                                        insert_entity,
-                                                        insert_delta,
-                                                        2);
+                                                         repository,
+                                                         insert_entity,
+                                                         insert_delta,
+                                                         2);
 
   coordinator = gom_repository_dup_coordinator (repository);
   g_assert_true (dex_await (gom_sync_coordinator_pull (coordinator), &error));
@@ -2977,69 +2982,38 @@ main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
-  _g_test_add_func ("/Gom/sync-coordinator/accessors",
-                    test_sync_coordinator_accessors);
-  _g_test_add_func ("/Gom/repository/coordinator-accessors",
-                    test_repository_and_session_coordinator_accessors);
-  _g_test_add_func ("/Gom/sync-transport/default-behavior",
-                    test_sync_transport_default_behavior);
-  _g_test_add_func ("/Gom/session/commit-stages-sync-changes",
-                    test_session_commit_stages_sync_changes);
-  _g_test_add_func ("/Gom/session/rollback-drops-pending-staged-changes",
-                    test_session_rollback_drops_pending_staged_changes);
-  _g_test_add_func ("/Gom/memory-sync-history/stage-replay-ack",
-                    test_memory_sync_history_stage_replay_ack);
-  _g_test_add_func ("/Gom/memory-sync-transport/failed-push-keeps-pending",
-                    test_memory_sync_transport_failed_push_keeps_pending);
-  _g_test_add_func ("/Gom/memory-sync-transport/sync-pulls-then-pushes",
-                    test_memory_sync_transport_sync_pulls_then_pushes);
-  _g_test_add_func ("/Gom/memory-sync-transport/remote-only-applies",
-                    test_memory_sync_transport_remote_only_applies);
-  _g_test_add_func ("/Gom/memory-sync-transport/local-only-remains-pending",
-                    test_memory_sync_transport_local_only_remains_pending);
-  _g_test_add_func ("/Gom/memory-sync-transport/merges-disjoint-local-remote",
-                    test_memory_sync_transport_merges_disjoint_local_remote);
-  _g_test_add_func ("/Gom/memory-sync-transport/rejects-same-field-conflict",
-                    test_memory_sync_transport_rejects_same_field_conflict);
-  _g_test_add_func ("/Gom/memory-sync-transport/mismatched-identity-is-remote-only",
-                    test_memory_sync_transport_mismatched_identity_is_remote_only);
-  _g_test_add_func ("/Gom/memory-sync-transport/failed-pull-leaves-inbound-replayable",
-                    test_memory_sync_transport_failed_pull_leaves_inbound_replayable);
-  _g_test_add_func ("/Gom/memory-sync-transport/duplicate-remote-sequence-is-idempotent",
-                    test_memory_sync_transport_duplicate_remote_sequence_is_idempotent);
-  _g_test_add_func ("/Gom/memory-sync-transport/rejects-out-of-order-remote-sequence",
-                    test_memory_sync_transport_rejects_out_of_order_remote_sequence);
+  _g_test_add_func ("/Gom/sync-coordinator/accessors", test_sync_coordinator_accessors);
+  _g_test_add_func ("/Gom/repository/coordinator-accessors", test_repository_and_session_coordinator_accessors);
+  _g_test_add_func ("/Gom/sync-transport/default-behavior", test_sync_transport_default_behavior);
+  _g_test_add_func ("/Gom/session/commit-stages-sync-changes", test_session_commit_stages_sync_changes);
+  _g_test_add_func ("/Gom/session/rollback-drops-pending-staged-changes", test_session_rollback_drops_pending_staged_changes);
+  _g_test_add_func ("/Gom/memory-sync-history/stage-replay-ack", test_memory_sync_history_stage_replay_ack);
+  _g_test_add_func ("/Gom/memory-sync-transport/failed-push-keeps-pending", test_memory_sync_transport_failed_push_keeps_pending);
+  _g_test_add_func ("/Gom/memory-sync-transport/sync-pulls-then-pushes", test_memory_sync_transport_sync_pulls_then_pushes);
+  _g_test_add_func ("/Gom/memory-sync-transport/remote-only-applies", test_memory_sync_transport_remote_only_applies);
+  _g_test_add_func ("/Gom/memory-sync-transport/local-only-remains-pending", test_memory_sync_transport_local_only_remains_pending);
+  _g_test_add_func ("/Gom/memory-sync-transport/merges-disjoint-local-remote", test_memory_sync_transport_merges_disjoint_local_remote);
+  _g_test_add_func ("/Gom/memory-sync-transport/rejects-same-field-conflict", test_memory_sync_transport_rejects_same_field_conflict);
+  _g_test_add_func ("/Gom/memory-sync-transport/mismatched-identity-is-remote-only", test_memory_sync_transport_mismatched_identity_is_remote_only);
+  _g_test_add_func ("/Gom/memory-sync-transport/failed-pull-leaves-inbound-replayable", test_memory_sync_transport_failed_pull_leaves_inbound_replayable);
+  _g_test_add_func ("/Gom/memory-sync-transport/duplicate-remote-sequence-is-idempotent", test_memory_sync_transport_duplicate_remote_sequence_is_idempotent);
+  _g_test_add_func ("/Gom/memory-sync-transport/rejects-out-of-order-remote-sequence", test_memory_sync_transport_rejects_out_of_order_remote_sequence);
 #ifdef GOM_DATABASE_SQLITE
-  _g_test_add_func ("/Gom/repository/sqlite-no-sidecars-without-coordinator",
-                    test_repository_no_sidecars_without_coordinator);
-  _g_test_add_func ("/Gom/repository/mutations-stage-without-session",
-                    test_repository_mutations_stage_without_session);
-  _g_test_add_func ("/Gom/repository/mutations-without-coordinator-unchanged",
-                    test_repository_mutations_without_coordinator_are_unchanged);
-  _g_test_add_func ("/Gom/repository/staging-failure-is-reported",
-                    test_repository_staging_failure_is_reported);
-  _g_test_add_func ("/Gom/sync-history/sqlite-persistent-replay-ack",
-                    test_sync_history_sqlite_persistent_replay_ack);
-  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-remote-update-applies",
-                    test_memory_sync_transport_remote_update_applies_to_sqlite);
-  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-local-delete-records-tombstone",
-                    test_memory_sync_transport_local_delete_records_tombstone);
-  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-remote-delete-records-tombstone",
-                    test_memory_sync_transport_remote_delete_records_tombstone);
-  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-remote-delete-missing-records-tombstone",
-                    test_memory_sync_transport_remote_delete_missing_records_tombstone);
-  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-stale-update-after-tombstone-rejects",
-                    test_memory_sync_transport_stale_update_after_tombstone_rejects);
-  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-reinsert-after-tombstone-is-ordered",
-                    test_memory_sync_transport_reinsert_after_tombstone_is_ordered);
+  _g_test_add_func ("/Gom/repository/sqlite-no-sidecars-without-coordinator", test_repository_no_sidecars_without_coordinator);
+  _g_test_add_func ("/Gom/repository/mutations-stage-without-session", test_repository_mutations_stage_without_session);
+  _g_test_add_func ("/Gom/repository/mutations-without-coordinator-unchanged", test_repository_mutations_without_coordinator_are_unchanged);
+  _g_test_add_func ("/Gom/repository/staging-failure-is-reported", test_repository_staging_failure_is_reported);
+  _g_test_add_func ("/Gom/sync-history/sqlite-persistent-replay-ack", test_sync_history_sqlite_persistent_replay_ack);
+  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-remote-update-applies", test_memory_sync_transport_remote_update_applies_to_sqlite);
+  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-local-delete-records-tombstone", test_memory_sync_transport_local_delete_records_tombstone);
+  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-remote-delete-records-tombstone", test_memory_sync_transport_remote_delete_records_tombstone);
+  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-remote-delete-missing-records-tombstone", test_memory_sync_transport_remote_delete_missing_records_tombstone);
+  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-stale-update-after-tombstone-rejects", test_memory_sync_transport_stale_update_after_tombstone_rejects);
+  _g_test_add_func ("/Gom/memory-sync-transport/sqlite-reinsert-after-tombstone-is-ordered", test_memory_sync_transport_reinsert_after_tombstone_is_ordered);
 #endif
-  _g_test_add_func ("/Gom/merge-decision/rejects-mismatched-deltas",
-                    test_merge_decision_rejects_mismatched_deltas);
-  _g_test_add_func ("/Gom/sync-coordinator/merge-applies-policy-delta",
-                    test_sync_coordinator_merge_applies_policy_delta);
-  _g_test_add_func ("/Gom/sync-coordinator/merge-rejects-unresolved-decision",
-                    test_sync_coordinator_merge_rejects_unresolved_decision);
-  _g_test_add_func ("/Gom/sync-coordinator/merge-propagates-policy-rejection",
-                    test_sync_coordinator_merge_propagates_policy_rejection);
+  _g_test_add_func ("/Gom/merge-decision/rejects-mismatched-deltas", test_merge_decision_rejects_mismatched_deltas);
+  _g_test_add_func ("/Gom/sync-coordinator/merge-applies-policy-delta", test_sync_coordinator_merge_applies_policy_delta);
+  _g_test_add_func ("/Gom/sync-coordinator/merge-rejects-unresolved-decision", test_sync_coordinator_merge_rejects_unresolved_decision);
+  _g_test_add_func ("/Gom/sync-coordinator/merge-propagates-policy-rejection", test_sync_coordinator_merge_propagates_policy_rejection);
   return g_test_run ();
 }

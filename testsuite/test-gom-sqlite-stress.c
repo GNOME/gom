@@ -145,7 +145,8 @@ struct _TraceCounters
   int pending_entities;
 };
 
-enum {
+enum
+{
   TEST_STRESS_ITEM_PROP_0,
   TEST_STRESS_ITEM_PROP_ID,
   TEST_STRESS_ITEM_PROP_NAME,
@@ -303,7 +304,7 @@ test_sqlite_assert_external_begin_immediate_blocked (const char *db_path)
 static void
 test_sqlite_wait_for_lock_holder_ready (int stdout_fd)
 {
-  char buffer[16] = {0};
+  char buffer[16] = { 0 };
   gsize len = 0;
 
   g_assert_cmpint (stdout_fd, >=, 0);
@@ -849,8 +850,7 @@ stress_item_new (guint worker_id,
   name = g_strdup_printf ("worker-%u-item-%u", worker_id, iteration);
   payload = g_strdup_printf ("payload-%u-%u", worker_id, iteration);
   when = g_date_time_new_utc (2026, 1, 1, 0, 0, 0);
-  when = g_date_time_add_seconds (g_steal_pointer (&when),
-                                  worker_id * 1000 + iteration);
+  when = g_date_time_add_seconds (g_steal_pointer (&when), worker_id * 1000 + iteration);
 
   return g_object_new (test_stress_item_get_type (),
                        "name", name,
@@ -1259,7 +1259,7 @@ test_sqlite_assert_pool_lease_limit (GomRepository *repository)
   g_autoptr(DexFuture) pending_query = NULL;
   g_autoptr(GomCursor) blocked_cursor = NULL;
   g_autoptr(GError) error = NULL;
-  GomCursor *held_cursors[GOM_SQLITE_POOL_MAX_LEASES] = {NULL};
+  GomCursor *held_cursors[GOM_SQLITE_POOL_MAX_LEASES] = { NULL };
 
   g_assert_true (GOM_IS_REPOSITORY (repository));
 
@@ -1548,7 +1548,7 @@ fail:
 static void
 test_sqlite_concurrent_repository_reads (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GPtrArray) fibers = NULL;
   g_autoptr(DexPromise) start_promise = NULL;
@@ -1623,14 +1623,14 @@ test_sqlite_concurrent_repository_reads (void)
 static void
 test_sqlite_limiter_concurrency_no_retry (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GPtrArray) fibers = NULL;
   g_autoptr(DexPromise) start_promise = NULL;
   g_autoptr(GError) error = NULL;
-  gint64 session_ids[LIMITER_SESSION_WORKER_COUNT] = {0};
-  SessionCounters insert_counters = {0};
-  SessionCounters update_counters = {0};
+  gint64 session_ids[LIMITER_SESSION_WORKER_COUNT] = { 0 };
+  SessionCounters insert_counters = { 0 };
+  SessionCounters update_counters = { 0 };
   guint expected_count;
   TraceCounters baseline;
 
@@ -1769,7 +1769,7 @@ test_sqlite_limiter_concurrency_no_retry (void)
 static void
 test_sqlite_long_read_cursor_queues_writes (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomQuery) query = NULL;
   g_autoptr(GomCursor) read_cursor = NULL;
@@ -1858,7 +1858,7 @@ test_sqlite_long_read_cursor_queues_writes (void)
 static void
 test_sqlite_migration_open_contention (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRegistry) registry = NULL;
   g_autoptr(GPtrArray) fibers = NULL;
   g_autoptr(DexPromise) start_promise = NULL;
@@ -1915,13 +1915,13 @@ test_sqlite_migration_open_contention (void)
 static void
 test_sqlite_cursor_close_releases_lease (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomQuery) query = NULL;
   g_autoptr(DexFuture) pending_query = NULL;
   g_autoptr(GomCursor) cursor = NULL;
   g_autoptr(GError) error = NULL;
-  GomCursor *held_cursors[GOM_SQLITE_POOL_MAX_LEASES] = {NULL};
+  GomCursor *held_cursors[GOM_SQLITE_POOL_MAX_LEASES] = { NULL };
   TraceCounters baseline;
 
   test_trace_counters_snapshot (&baseline);
@@ -2073,7 +2073,7 @@ test_sqlite_limiter_pending_acquire_rejects_on_close (void)
 static void
 test_sqlite_session_begins_immediate_transaction (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomSession) session = NULL;
   g_autoptr(GError) error = NULL;
@@ -2109,7 +2109,7 @@ test_sqlite_session_begins_immediate_transaction (void)
 static void
 test_sqlite_session_holds_write_boundary (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomSession) session = NULL;
   g_autoptr(GomEntity) entity = NULL;
@@ -2176,7 +2176,7 @@ test_sqlite_session_holds_write_boundary (void)
 static void
 test_sqlite_backend_busy_retry_timeout (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GomEntity) entity = NULL;
   g_autoptr(GomMutationResult) result = NULL;
@@ -2224,7 +2224,7 @@ test_sqlite_backend_busy_retry_timeout (void)
 static void
 test_sqlite_repository_fiber_stress (void)
 {
-  g_auto(TestSqliteContext) context = {0};
+  g_auto(TestSqliteContext) context = { 0 };
   g_autoptr(GomRepository) repository = NULL;
   g_autoptr(GPtrArray) fibers = NULL;
   g_autoptr(GError) error = NULL;

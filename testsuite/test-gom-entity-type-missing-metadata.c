@@ -79,7 +79,6 @@ main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
-  _g_test_add_func ("/Gom/Entity/registry-builder/warns-for-missing-metadata",
-                    test_entity_registry_builder_warns_for_missing_metadata);
+  _g_test_add_func ("/Gom/Entity/registry-builder/warns-for-missing-metadata", test_entity_registry_builder_warns_for_missing_metadata);
   return g_test_run ();
 }

@@ -166,14 +166,22 @@ test_entity_base_class_init (TestEntityBaseClass *klass)
   gom_entity_class_property_set_nonnull (entity_class, "name", TRUE);
   gom_entity_class_property_set_unique (entity_class, "name", TRUE);
   gom_entity_class_property_set_search_flags (entity_class,
-                                             "name",
-                                             GOM_SEARCH_INDEXED | GOM_SEARCH_PREFIX);
+                                              "name",
+                                              GOM_SEARCH_INDEXED | GOM_SEARCH_PREFIX);
   gom_entity_class_property_set_version_added (entity_class, "name", 100);
   gom_entity_class_property_set_reference (entity_class, "name", "names", "value");
   gom_entity_class_property_set_mapped (entity_class, "internal", FALSE);
   gom_entity_class_property_set_version_removed (entity_class, "internal", 300);
-  gom_entity_class_add_many_to_one (entity_class, "parent", TEST_ENTITY_BASE_TYPE, "id1", "children");
-  gom_entity_class_add_one_to_many (entity_class, "children", TEST_ENTITY_BASE_TYPE, "id1", "parent");
+  gom_entity_class_add_many_to_one (entity_class,
+                                    "parent",
+                                    TEST_ENTITY_BASE_TYPE,
+                                    "id1",
+                                    "children");
+  gom_entity_class_add_one_to_many (entity_class,
+                                    "children",
+                                    TEST_ENTITY_BASE_TYPE,
+                                    "id1",
+                                    "parent");
   gom_entity_class_add_many_to_many (entity_class,
                                      "related",
                                      TEST_ENTITY_BASE_TYPE,
@@ -188,9 +196,7 @@ test_entity_base_init (TestEntityBase *self)
 {
 }
 
-G_DEFINE_TYPE (TestEntityBaseCustomIdentity,
-               test_entity_base_custom_identity,
-               TEST_ENTITY_BASE_TYPE)
+G_DEFINE_TYPE (TestEntityBaseCustomIdentity, test_entity_base_custom_identity, TEST_ENTITY_BASE_TYPE)
 
 static void
 test_entity_base_custom_identity_class_init (TestEntityBaseCustomIdentityClass *klass)
@@ -207,9 +213,7 @@ test_entity_base_custom_identity_init (TestEntityBaseCustomIdentity *self)
 {
 }
 
-G_DEFINE_TYPE (TestEntityBaseInheritedMetadata,
-               test_entity_base_inherited_metadata,
-               TEST_ENTITY_BASE_TYPE)
+G_DEFINE_TYPE (TestEntityBaseInheritedMetadata, test_entity_base_inherited_metadata, TEST_ENTITY_BASE_TYPE)
 
 static void
 test_entity_base_inherited_metadata_class_init (TestEntityBaseInheritedMetadataClass *klass)
@@ -224,17 +228,11 @@ test_entity_base_inherited_metadata_init (TestEntityBaseInheritedMetadata *self)
 {
 }
 
-G_DEFINE_TYPE (TestEntityInvalidInverseTarget,
-               test_entity_invalid_inverse_target,
-               GOM_TYPE_ENTITY)
+G_DEFINE_TYPE (TestEntityInvalidInverseTarget, test_entity_invalid_inverse_target, GOM_TYPE_ENTITY)
 
-G_DEFINE_TYPE (TestEntityOneToOneFeed,
-               test_entity_one_to_one_feed,
-               GOM_TYPE_ENTITY)
+G_DEFINE_TYPE (TestEntityOneToOneFeed, test_entity_one_to_one_feed, GOM_TYPE_ENTITY)
 
-G_DEFINE_TYPE (TestEntityOneToOneChild,
-               test_entity_one_to_one_child,
-               GOM_TYPE_ENTITY)
+G_DEFINE_TYPE (TestEntityOneToOneChild, test_entity_one_to_one_child, GOM_TYPE_ENTITY)
 
 static void
 test_entity_one_to_one_feed_get_property (GObject    *object,
@@ -289,18 +287,18 @@ test_entity_one_to_one_feed_class_init (TestEntityOneToOneFeedClass *klass)
                         (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class,
-                                    TEST_ENTITY_ONE_TO_ONE_FEED_N_PROPS,
-                                    test_entity_one_to_one_feed_properties);
+                                     TEST_ENTITY_ONE_TO_ONE_FEED_N_PROPS,
+                                     test_entity_one_to_one_feed_properties);
 
   gom_entity_class_set_relation (entity_class, "one_to_one_feeds");
   gom_entity_class_set_identity_field (entity_class, "id");
   gom_entity_class_set_version_added (entity_class, 1);
   gom_entity_class_property_set_mapped (entity_class, "id", TRUE);
   gom_entity_class_add_one_to_one (entity_class,
-                                  "child",
-                                  TEST_ENTITY_ONE_TO_ONE_CHILD_TYPE,
-                                  "feed-id",
-                                  "feed");
+                                   "child",
+                                   TEST_ENTITY_ONE_TO_ONE_CHILD_TYPE,
+                                   "feed-id",
+                                   "feed");
 }
 
 static void
@@ -333,9 +331,9 @@ test_entity_one_to_one_child_get_property (GObject    *object,
 
 static void
 test_entity_one_to_one_child_set_property (GObject      *object,
-                                          guint         prop_id,
-                                          const GValue *value,
-                                          GParamSpec   *pspec)
+                                           guint         prop_id,
+                                           const GValue *value,
+                                           GParamSpec   *pspec)
 {
   TestEntityOneToOneChild *self = (TestEntityOneToOneChild *) object;
 
@@ -373,8 +371,8 @@ test_entity_one_to_one_child_class_init (TestEntityOneToOneChildClass *klass)
                         (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class,
-                                    TEST_ENTITY_ONE_TO_ONE_CHILD_N_PROPS,
-                                    test_entity_one_to_one_child_properties);
+                                     TEST_ENTITY_ONE_TO_ONE_CHILD_N_PROPS,
+                                     test_entity_one_to_one_child_properties);
 
   gom_entity_class_set_relation (entity_class, "one_to_one_children");
   gom_entity_class_set_identity_field (entity_class, "id");
@@ -453,8 +451,8 @@ test_entity_invalid_inverse_target_class_init (TestEntityInvalidInverseTargetCla
                         (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class,
-                                    TEST_ENTITY_INVALID_INVERSE_TARGET_N_PROPS,
-                                    test_entity_invalid_inverse_target_properties);
+                                     TEST_ENTITY_INVALID_INVERSE_TARGET_N_PROPS,
+                                     test_entity_invalid_inverse_target_properties);
 
   gom_entity_class_set_relation (entity_class, "invalid_inverse_target");
   gom_entity_class_set_identity_field (entity_class, "id");

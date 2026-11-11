@@ -43,7 +43,8 @@ struct _TestCipherItemClass
   GomEntityClass parent_class;
 };
 
-enum {
+enum
+{
   PROP_0,
   PROP_ID,
   PROP_NAME,
@@ -124,12 +125,14 @@ test_cipher_item_class_init (TestCipherItemClass *klass)
   properties[PROP_ID] =
     g_param_spec_int64 ("id", NULL, NULL,
                         0, G_MAXINT64, 0,
-                        (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+                        (G_PARAM_READWRITE |
+                         G_PARAM_STATIC_STRINGS));
 
   properties[PROP_NAME] =
     g_param_spec_string ("name", NULL, NULL,
                          NULL,
-                         (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+                         (G_PARAM_READWRITE |
+                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPS, properties);
 
@@ -382,7 +385,8 @@ test_cipher_is_encrypted (const char   *db_path,
 
   g_clear_error (&error);
 
-  if (wrong_key != NULL && wrong_key_len > 0 &&
+  if (wrong_key != NULL &&
+      wrong_key_len > 0 &&
       test_cipher_verify_sqlite_read (db_path, wrong_key, wrong_key_len, &error))
     return FALSE;
 
@@ -684,11 +688,11 @@ test_cipher_apply_post_rekey_mutations (const char    *db_path,
   sqlite3 *db = NULL;
 
   if (!test_cipher_open_sqlite (db_path,
-                               key,
-                               key_len,
-                               SQLITE_OPEN_READWRITE,
-                               &db,
-                               error))
+                                key,
+                                key_len,
+                                SQLITE_OPEN_READWRITE,
+                                &db,
+                                error))
     return FALSE;
 
   if (!test_cipher_insert_fixture_row (db, CIPHER_ITEM_COUNT + 1, "item-after-rekey", error))

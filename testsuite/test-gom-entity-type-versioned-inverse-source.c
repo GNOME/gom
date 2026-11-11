@@ -51,9 +51,7 @@ enum
 
 static GParamSpec *test_entity_versioned_inverse_source_properties[TEST_ENTITY_VERSIONED_INVERSE_SOURCE_N_PROPS];
 
-G_DEFINE_TYPE (TestEntityVersionedInverseSource,
-               test_entity_versioned_inverse_source,
-               GOM_TYPE_ENTITY)
+G_DEFINE_TYPE (TestEntityVersionedInverseSource, test_entity_versioned_inverse_source, GOM_TYPE_ENTITY)
 
 static void
 test_entity_versioned_inverse_source_get_property (GObject    *object,
@@ -96,7 +94,7 @@ test_entity_versioned_inverse_source_set_property (GObject      *object,
 static void
 test_entity_versioned_inverse_source_class_init (TestEntityVersionedInverseSourceClass *klass)
 {
-  GObjectClass  *object_class = G_OBJECT_CLASS (klass);
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GomEntityClass *entity_class = GOM_ENTITY_CLASS (klass);
 
   object_class->get_property = test_entity_versioned_inverse_source_get_property;
@@ -108,8 +106,8 @@ test_entity_versioned_inverse_source_class_init (TestEntityVersionedInverseSourc
                         (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class,
-                                    TEST_ENTITY_VERSIONED_INVERSE_SOURCE_N_PROPS,
-                                    test_entity_versioned_inverse_source_properties);
+                                     TEST_ENTITY_VERSIONED_INVERSE_SOURCE_N_PROPS,
+                                     test_entity_versioned_inverse_source_properties);
 
   gom_entity_class_set_relation (entity_class, "versioned_inverse_source");
   gom_entity_class_set_identity_field (entity_class, "id");
@@ -149,7 +147,6 @@ main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
-  _g_test_add_func ("/Gom/Entity/registry-builder/ignores-removed-relationships",
-                    test_entity_registry_builder_ignores_removed_relationships);
+  _g_test_add_func ("/Gom/Entity/registry-builder/ignores-removed-relationships", test_entity_registry_builder_ignores_removed_relationships);
   return g_test_run ();
 }

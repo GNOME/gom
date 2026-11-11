@@ -246,16 +246,19 @@ test_pgsql_parse_uri_list (GUri     *uri,
       g_ptr_array_add (names, g_strdup ("host"));
       g_ptr_array_add (values, g_strdup (host));
     }
+
   if (g_uri_get_port (uri) > 0)
     {
       g_ptr_array_add (names, g_strdup ("port"));
       g_ptr_array_add (values, g_strdup_printf ("%u", g_uri_get_port (uri)));
     }
+
   if (!gom_str_empty0 (user))
     {
       g_ptr_array_add (names, g_strdup ("user"));
       g_ptr_array_add (values, g_strdup (user));
     }
+
   if (!gom_str_empty0 (password))
     {
       g_ptr_array_add (names, g_strdup ("password"));
@@ -264,6 +267,7 @@ test_pgsql_parse_uri_list (GUri     *uri,
   if (path != NULL && path[0] == '/' && path[1] != '\0')
     {
       g_autofree char *dbname = g_uri_unescape_string (path + 1, NULL);
+
       g_ptr_array_add (names, g_strdup ("dbname"));
       g_ptr_array_add (values, g_steal_pointer (&dbname));
     }
@@ -424,8 +428,7 @@ test_pgsql_relation_has_field (GomRepository *repository,
   g_autoptr(GListModel) fields = NULL;
   guint n_items;
 
-  relation_schema = dex_await_object (gom_repository_describe_relation (repository,
-                                                                        relation),
+  relation_schema = dex_await_object (gom_repository_describe_relation (repository, relation),
                                       &error);
   g_assert_no_error (error);
   g_assert_nonnull (relation_schema);
@@ -459,10 +462,8 @@ test_pgsql_prepare_v1_schema (const char *uri)
   test_pgsql_exec_sql (uri,
                        "INSERT INTO pgsql_items (id, name, legacy) "
                        "VALUES (1, 'alpha', 'legacy-value')");
-  test_pgsql_exec_sql (uri,
-                       "CREATE TABLE gom_schema_version (version integer NOT NULL)");
-  test_pgsql_exec_sql (uri,
-                       "INSERT INTO gom_schema_version (version) VALUES (1)");
+  test_pgsql_exec_sql (uri, "CREATE TABLE gom_schema_version (version integer NOT NULL)");
+  test_pgsql_exec_sql (uri, "INSERT INTO gom_schema_version (version) VALUES (1)");
 }
 
 static void
@@ -579,10 +580,8 @@ test_pgsql_session_persist_flush_commit_and_search (void)
                        "  name text NOT NULL, "
                        "  tag text"
                        ")");
-  test_pgsql_exec_sql (uri,
-                       "CREATE TABLE gom_schema_version (version integer NOT NULL)");
-  test_pgsql_exec_sql (uri,
-                       "INSERT INTO gom_schema_version (version) VALUES (2)");
+  test_pgsql_exec_sql (uri, "CREATE TABLE gom_schema_version (version integer NOT NULL)");
+  test_pgsql_exec_sql (uri, "INSERT INTO gom_schema_version (version) VALUES (2)");
 
   repository = test_pgsql_create_repository (uri, registry, &error);
   g_assert_no_error (error);
@@ -676,10 +675,8 @@ test_pgsql_repository_count (void)
                        "('alpha', 'one'), "
                        "('beta', 'two'), "
                        "('gamma', 'three')");
-  test_pgsql_exec_sql (uri,
-                       "CREATE TABLE gom_schema_version (version integer NOT NULL)");
-  test_pgsql_exec_sql (uri,
-                       "INSERT INTO gom_schema_version (version) VALUES (2)");
+  test_pgsql_exec_sql (uri, "CREATE TABLE gom_schema_version (version integer NOT NULL)");
+  test_pgsql_exec_sql (uri, "INSERT INTO gom_schema_version (version) VALUES (2)");
 
   repository = test_pgsql_create_repository (uri, registry, &error);
   g_assert_no_error (error);
@@ -729,10 +726,8 @@ test_pgsql_repository_mutate_limits_and_update_results (void)
                        "('alpha', 'one'), "
                        "('beta', 'two'), "
                        "('gamma', 'three')");
-  test_pgsql_exec_sql (uri,
-                       "CREATE TABLE gom_schema_version (version integer NOT NULL)");
-  test_pgsql_exec_sql (uri,
-                       "INSERT INTO gom_schema_version (version) VALUES (2)");
+  test_pgsql_exec_sql (uri, "CREATE TABLE gom_schema_version (version integer NOT NULL)");
+  test_pgsql_exec_sql (uri, "INSERT INTO gom_schema_version (version) VALUES (2)");
 
   repository = test_pgsql_create_repository (uri, registry, &error);
   g_assert_no_error (error);
@@ -803,10 +798,8 @@ test_pgsql_repository_multi_insert_is_atomic (void)
                        "  name text NOT NULL, "
                        "  tag text"
                        ")");
-  test_pgsql_exec_sql (uri,
-                       "CREATE TABLE gom_schema_version (version integer NOT NULL)");
-  test_pgsql_exec_sql (uri,
-                       "INSERT INTO gom_schema_version (version) VALUES (2)");
+  test_pgsql_exec_sql (uri, "CREATE TABLE gom_schema_version (version integer NOT NULL)");
+  test_pgsql_exec_sql (uri, "INSERT INTO gom_schema_version (version) VALUES (2)");
 
   repository = test_pgsql_create_repository (uri, registry, &error);
   g_assert_no_error (error);
@@ -822,6 +815,7 @@ test_pgsql_repository_multi_insert_is_atomic (void)
       test_pgsql_int64_literal_expression (1),
       gom_literal_expression_new_string ("alpha"),
     };
+
     gom_insertion_builder_add_row (insertion_builder, row, G_N_ELEMENTS (row));
   }
 
@@ -830,6 +824,7 @@ test_pgsql_repository_multi_insert_is_atomic (void)
       test_pgsql_int64_literal_expression (1),
       gom_literal_expression_new_string ("duplicate"),
     };
+
     gom_insertion_builder_add_row (insertion_builder, row, G_N_ELEMENTS (row));
   }
 
@@ -855,15 +850,10 @@ main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
-  _g_test_add_func ("/Gom/Pgsql/repository-migrate-v1-to-v2-preserves-data",
-                    test_pgsql_repository_migrate_v1_to_v2_preserves_data);
-  _g_test_add_func ("/Gom/Pgsql/repository-count",
-                    test_pgsql_repository_count);
-  _g_test_add_func ("/Gom/Pgsql/repository-mutate-limits-and-update-results",
-                    test_pgsql_repository_mutate_limits_and_update_results);
-  _g_test_add_func ("/Gom/Pgsql/repository-multi-insert-is-atomic",
-                    test_pgsql_repository_multi_insert_is_atomic);
-  _g_test_add_func ("/Gom/Pgsql/session-persist-flush-commit-and-search",
-                    test_pgsql_session_persist_flush_commit_and_search);
+  _g_test_add_func ("/Gom/Pgsql/repository-migrate-v1-to-v2-preserves-data", test_pgsql_repository_migrate_v1_to_v2_preserves_data);
+  _g_test_add_func ("/Gom/Pgsql/repository-count", test_pgsql_repository_count);
+  _g_test_add_func ("/Gom/Pgsql/repository-mutate-limits-and-update-results", test_pgsql_repository_mutate_limits_and_update_results);
+  _g_test_add_func ("/Gom/Pgsql/repository-multi-insert-is-atomic", test_pgsql_repository_multi_insert_is_atomic);
+  _g_test_add_func ("/Gom/Pgsql/session-persist-flush-commit-and-search", test_pgsql_session_persist_flush_commit_and_search);
   return g_test_run ();
 }
