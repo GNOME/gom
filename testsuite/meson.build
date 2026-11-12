@@ -149,7 +149,7 @@ if get_option('sqlite-backend').enabled()
   endif
 endif
 
-if pgsql_dep.found()
+if pgsql_dep.found() and get_option('pgsql-tests')
   test_gom_pgsql = executable('test-gom-pgsql',
                               ['test-gom-pgsql.c'],
                               c_args: lib_testsuite_c_args,

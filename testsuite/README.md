@@ -86,5 +86,5 @@ meson setup build -Dpgsql-tests=true -Dpgsql-tests-tablespace=your_tablespace
 ## Troubleshooting
 
 - If `psql "postgresql:///libgom?user=$USER"` fails, the role usually does not exist yet or peer authentication is not allowing that login.
-- If the test skips immediately, make sure `-Dpgsql-tests=true` was enabled when configuring the build.
+- If Meson reports no `test-gom-pgsql` test, enable it with `-Dpgsql-tests=true`.
 - If you changed the database name, update `-Dpgsql-tests-dbname` or `-Dpgsql-tests-uri` accordingly.
