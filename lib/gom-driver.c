@@ -199,7 +199,7 @@ gom_driver_dup_uri (GomDriver *self)
 /**
  * _gom_driver_query:
  * @self: a [class@Gom.Driver]
- * @registry: a [class@Gom.Registry]
+ * @repository: a [class@Gom.Registry]
  * @query: a [class@Gom.Query]
  * @flags: a set of #GomCursorFlags
  *
