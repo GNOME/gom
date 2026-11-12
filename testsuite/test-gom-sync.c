@@ -2859,7 +2859,11 @@ test_merge_decision_rejects_mismatched_deltas (void)
   local_delta = test_delta_new (TEST_TYPE_SYNC_ENTITY);
   remote_delta = test_delta_new (TEST_TYPE_OTHER_SYNC_ENTITY);
 
+  g_test_expect_message ("Gom",
+                         G_LOG_LEVEL_CRITICAL,
+                         "*gom_merge_decision_new: assertion*gom_delta_get_entity_type*");
   decision = gom_merge_decision_new (repository, local_delta, remote_delta);
+  g_test_assert_expected_messages ();
   g_assert_null (decision);
 }
 
