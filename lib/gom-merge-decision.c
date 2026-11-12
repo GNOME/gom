@@ -81,6 +81,8 @@ gom_merge_decision_init (GomMergeDecision *self)
  *
  * Creates a merge decision object for a local/remote delta pair.
  *
+ * The delta entity types much match.
+ *
  * Returns: (transfer full): a [class@Gom.MergeDecision]
  */
 GomMergeDecision *
@@ -94,10 +96,9 @@ gom_merge_decision_new (GomRepository *repository,
   g_return_val_if_fail (local_delta == NULL || GOM_IS_DELTA (local_delta), NULL);
   g_return_val_if_fail (remote_delta == NULL || GOM_IS_DELTA (remote_delta), NULL);
   g_return_val_if_fail (local_delta != NULL || remote_delta != NULL, NULL);
-
-  if (local_delta != NULL && remote_delta != NULL &&
-      gom_delta_get_entity_type (local_delta) != gom_delta_get_entity_type (remote_delta))
-    return NULL;
+  g_return_val_if_fail (local_delta == NULL || remote_delta == NULL ||
+                        gom_delta_get_entity_type (local_delta) == gom_delta_get_entity_type (remote_delta),
+                        NULL);
 
   self = g_object_new (GOM_TYPE_MERGE_DECISION, NULL);
   self->repository = g_object_ref (repository);
